@@ -1,0 +1,68 @@
+The Docker build error you are encountering:
+
+text
+failed to calculate checksum of ref ...: "/dist": not found
+...
+ERROR: failed to build: failed to solve: failed to compute cache key: failed to calculate checksum of ref ...:: "/dist": not found
+indicates that during the Docker build process, the COPY dist/ ./dist/ instruction fails because the dist directory does not exist in the build context at the time of the docker build.
+
+Why is this happening?
+Your Dockerfile tries to copy the dist folder (which generally contains the compiled/bundled production build of your app) into the image.
+
+However, the dist folder is either not present in the directory where Docker is building from OR
+
+The build context you are giving Docker doesn't include the dist folder.
+
+This is a common issue when the Docker build runs before the build step that generates dist has completed or when dist is in .dockerignore.
+
+How to fix this
+1. Make sure your build step runs before Docker build
+You must run npm run build (or equivalent build command that creates dist/) locally before running docker build.
+
+For example, your deployment or CI pipeline should:
+
+bash
+npm install
+npm run build   # <-- this creates the dist/ directory
+docker build .  # <-- now dist/ exists to be copied into the image
+2. Verify Docker build context
+When running docker build, ensure you run it from the root directory of your project where dist and package.json exist.
+
+The Docker CLI only has visibility into files inside the current build context folder.
+
+If you run docker build some/other/dir, and dist is in a sibling folder, Docker won't see it.
+
+3. Check .dockerignore
+Make sure your .dockerignore file does not exclude dist/.
+
+Sometimes .dockerignore may have an entry like dist or dist/ which will prevent dist from being sent to the Docker daemon.
+
+4. Alternative: Build inside Docker
+You can modify your Dockerfile to run the build inside the container itself, so no need to have dist beforehand:
+
+Example pattern:
+
+text
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+FROM node:20-alpine
+WORKDIR /app
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/package*.json ./
+RUN npm ci --only=production
+CMD ["node", "dist/index.js"]
+This way, the full build happens inside Docker in a multi-stage build.
+
+Summary checklist
+ Run local build (npm run build) before Docker build if copying dist externally.
+
+ Run docker build from the project root folder that contains dist/.
+
+ Remove dist from .dockerignore if it is listed there.
+
+ Or use multi-stage Docker build to do compile inside Docker, avoiding pre-built artifacts.
