@@ -1,0 +1,137 @@
+✅ 1. Generate Reply Button
+Issue:
+"Generate Reply" button is not working.
+
+Fix:
+Ensure the button is properly bound to its event handler. Implement loading and error handling logic.
+
+Action Steps:
+
+Verify the front-end click event triggers the correct function.
+
+Check API endpoint or LLM call used behind the button.
+
+Add fail-safe UI feedback if API is unreachable or returns error.
+
+✅ 2. Platform Stats Display
+Requirement:
+Show the following metrics for each platform:
+
+Platforms:
+
+Facebook
+
+Quora
+
+LinkedIn
+
+Twitter (X)
+
+Reddit
+
+(Optional: Instagram, YouTube, TikTok if relevant)
+
+Metrics:
+
+Views
+
+Votes / Likes
+
+Shares / Retweets / Reshares
+
+Action Steps:
+
+Integrate platform APIs (or scraping methods where APIs are limited).
+
+Normalize data structure so UI can show stats in consistent format across tabs.
+
+Tooltip for platform-specific metrics (e.g. Quora “Upvotes”, Twitter “Retweets”).
+
+✅ 3. API Settings Tab
+Requirement:
+Don’t repeat “Use your own API” input in every tab. Instead:
+
+Solution:
+
+Create a dedicated tab: API Settings
+
+Allow users to input optional API keys (e.g., Serper.dev, ChatGPT, Gemini)
+
+Store securely with encryption and connect dynamically if key is provided
+
+Bonus Tip:
+Use local storage/session for keys if app is browser-based and user-controlled.
+
+✅ 4. Missing “Search In-depth” Option
+Observation:
+Screenshot reference implies there's a missing toggle for deep/advanced search.
+
+Fix:
+
+Add checkbox or toggle: “Enable In-Depth Search”
+
+Enhance backend logic to trigger deeper crawling / broader keyword expansion.
+
+✅ 5. Regenerate Reply & Anchor Link Feature
+Missing Feature:
+“Regenerate Reply” option.
+
+Additions:
+
+Add "Regenerate" button next to each AI response.
+
+Add optional backend anchor URL field in response customization. Example:
+
+"Learn more about {{brand}}" → <a href="https://brand.com">brand</a>
+
+✅ 6. Alerts with Email + URL
+New Alert Feature:
+
+Allow user to set alert URL
+
+Ask for email address
+
+Auto-send regular report to email when update is found for that URL/topic
+
+Implementation Suggestion:
+
+Backend cron job to monitor URL + email trigger.
+
+Add options: daily/weekly/monthly frequency.
+
+✅ 7. Smart Feedback Integration
+Feature:
+Like / Dislike on each AI-generated response.
+
+Use:
+
+Collect feedback history to improve future suggestions
+
+Train or fine-tune response logic per user or globally
+
+Action Steps:
+
+Track feedback per reply (upvote/downvote)
+
+Log metadata: timestamp, prompt, result, feedback
+
+Build fine-tuning pipeline or logic adjuster using RAG (Retrieval-Augmented Generation) or similarity filtering
+
+✅ 8. New Feature – Generate FAQ
+Input Fields:
+
+Keywords / Topics
+
+Brand Name
+
+Brand Website
+
+Optional: Brand Overview or Services Description
+
+Functionality:
+
+Scrape relevant FAQs from Quora, Reddit, Twitter (X), Facebook
+
+Filter by highest views, votes, shares, retweets
+
+Return Top 10 FAQs relevant to the topic that you can include on your webpage
