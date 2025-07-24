@@ -1,8 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
-import { log } from "./utils";
-import fs from "fs";
-import path from "path";
 
 const app = express();
 app.use(express.json());
@@ -19,7 +16,7 @@ app.use((req, res, next) => {
     return originalResJson.apply(res, [bodyJson, ...args]);
   };
 
-  res.on("finish", () => {
+  res.on("finish", async () => {
     const duration = Date.now() - start;
     if (path.startsWith("/api")) {
       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
@@ -31,6 +28,10 @@ app.use((req, res, next) => {
         logLine = logLine.slice(0, 79) + "…";
       }
 
+      // Import log function only when needed
+      const { log } = process.env.NODE_ENV === "development" 
+        ? await import("./vite")
+        : await import("./production");
       log(logLine);
     }
   });
@@ -49,28 +50,15 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    const { setupVite } = await import("./vite");
-    await setupVite(app, server);
+  // Environment-specific server setup with proper dependency isolation
+  if (process.env.NODE_ENV === "development") {
+    // Dynamic import ensures development dependencies are never bundled
+    const { setupDevelopmentServer } = await import("./development");
+    await setupDevelopmentServer(app, server);
   } else {
-    // Serve static files in production
-    const distPath = path.resolve(process.cwd(), "dist", "public");
-    
-    if (!fs.existsSync(distPath)) {
-      throw new Error(
-        `Could not find the build directory: ${distPath}, make sure to build the client first`,
-      );
-    }
-
-    app.use(express.static(distPath));
-
-    // fall through to index.html if the file doesn't exist
-    app.use("*", (_req, res) => {
-      res.sendFile(path.resolve(distPath, "index.html"));
-    });
+    // Production-only imports - no development dependencies
+    const { serveStatic, log } = await import("./production");
+    serveStatic(app);
   }
 
   // ALWAYS serve the app on the port specified in the environment variable PORT
@@ -82,7 +70,10 @@ app.use((req, res, next) => {
     port,
     host: "0.0.0.0",
     reusePort: true,
-  }, () => {
+  }, async () => {
+    const { log } = process.env.NODE_ENV === "development" 
+      ? await import("./vite")
+      : await import("./production");
     log(`serving on port ${port}`);
   });
 })();

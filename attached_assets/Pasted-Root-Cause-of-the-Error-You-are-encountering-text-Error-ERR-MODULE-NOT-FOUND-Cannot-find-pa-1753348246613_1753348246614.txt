@@ -1,0 +1,75 @@
+Root Cause of the Error
+You are encountering:
+
+text
+Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'vite' imported from /app/dist/index.js
+This means your production build (dist/index.js) is attempting to import 'vite' at runtime on Railway. However, the vite package is a development dependency and is not present in the production install (npm ci --only=production), nor should it ever be bundled into, or required by, your backend production server.
+
+Why This Happens
+1. Improper Import in Production Build
+The command import 'vite' (directly or indirectly) is present in code that gets compiled into your dist/index.js.
+
+vite should only be used for development tooling, building process, and HMR, not for runtime after deployment.
+
+2. Build vs. Run Confusion
+In production, your backend server should never require Vite. If Vite features (like SSR middleware, dev server, error overlay) are in your main backend entry point, those imports will escape the build and trigger this error.
+
+3. Production Dependency Install
+Railway uses npm ci --only=production, which excludes devDependencies like vite. If you do try to include Vite at runtime, it will not be found.
+
+How to Fix the Issue
+1. Remove All Vite Imports From Production Code
+Your backend entry (server/index.ts) and the compiled dist/index.js must not import or call any Vite APIs in production.
+
+Typically, dev-only code like:
+
+js
+if (process.env.NODE_ENV === "development") {
+  // import vite or its dev middleware
+}
+should be guarded and/or removed during the build.
+
+2. Guard Against Dev Imports
+Use dynamic imports with environment checks, or move dev-only code into files not imported/required by your production app.
+
+js
+if (process.env.NODE_ENV === "development") {
+  // dynamic import or require here, never outside this condition.
+  const vite = await import('vite');
+  // or require('vite');
+  // do dev-server logic
+}
+3. Adjust Your Build Pipeline
+Ensure your build tool (esbuild, tsup, etc.) tree-shakes unreachable code when building for production, or uses environment variable replacement.
+
+4. Inspect Your Output
+Open your dist/index.js and verify there is no import 'vite' or similar line in production files.
+
+A Corrected Example
+Refactor code that currently looks like this:
+
+js
+import { createServer as createViteServer } from 'vite';
+
+if (process.env.NODE_ENV === "development") {
+  // Setup Vite SSR
+}
+To this pattern:
+
+js
+if (process.env.NODE_ENV === "development") {
+  // This import must be inside the conditional to avoid inclusion in the production build
+  import('vite').then(({ createServer }) => {
+    // setup vite dev server
+  });
+}
+Or, split your dev and prod startup into separate files and entrypoints.
+
+Fast Checklist for Resolution
+ No import 'vite' nor require('vite') in your server production code.
+
+ Dev tooling (vite, error overlay, HMR) only loaded in development environments.
+
+ Production build contains only actual runtime dependencies.
+
+ If using Docker, confirm you npm run build (creating production-ready code) before npm ci --only=production.

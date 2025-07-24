@@ -108,6 +108,10 @@ The application provides health check endpoints:
 
 Use these for monitoring and load balancer configuration.
 
+## Architecture Overview
+
+SocialMonitor AI uses an **enterprise-grade dependency isolation architecture** that ensures development tools never leak into production builds. See `ARCHITECTURE.md` for detailed technical specifications.
+
 ## Troubleshooting
 
 ### Common Issues
