@@ -1,0 +1,82 @@
+Node.js v20.19.4
+file:///app/dist/index.js:255
+    throw new Error(
+          ^
+ 
+Error: Missing OpenAI API key. Please set one of these environment variables:
+      - OPENAI_API_KEY (preferred)
+      - CHATGPT_API_KEY (fallback)
+      - OPENAI_TOKEN (fallback)
+      
+      Get your API key from: [https://platform.openai.com/api-keys](https://platform.openai.com/api-keys)
+    at createConfig (file:///app/dist/index.js:255:11)
+    at file:///app/dist/index.js:288:14
+    at ModuleJob.run (node:internal/modules/esm/module_job:263:25)
+    at async ModuleLoader.import (node:internal/modules/esm/loader:540:24)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+ 
+Node.js v20.19.4
+file:///app/dist/index.js:255
+    throw new Error(
+          ^
+ 
+Error: Missing OpenAI API key. Please set one of these environment variables:
+      - OPENAI_API_KEY (preferred)
+      - CHATGPT_API_KEY (fallback)
+      - OPENAI_TOKEN (fallback)
+      
+      Get your API key from: [https://platform.openai.com/api-keys](https://platform.openai.com/api-keys)
+    at createConfig (file:///app/dist/index.js:255:11)
+    at file:///app/dist/index.js:288:14
+    at ModuleJob.run (node:internal/modules/esm/module_job:263:25)
+    at async ModuleLoader.import (node:internal/modules/esm/loader:540:24)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+ 
+Node.js v20.19.4
+file:///app/dist/index.js:255
+    throw new Error(
+          ^
+ 
+Error: Missing OpenAI API key. Please set one of these environment variables:
+      - OPENAI_API_KEY (preferred)
+      - CHATGPT_API_KEY (fallback)
+      - OPENAI_TOKEN (fallback)
+      
+      Get your API key from: [https://platform.openai.com/api-keys](https://platform.openai.com/api-keys)
+    at createConfig (file:///app/dist/index.js:255:11)
+    at file:///app/dist/index.js:288:14
+    at ModuleJob.run (node:internal/modules/esm/module_job:263:25)
+    at async ModuleLoader.import (node:internal/modules/esm/loader:540:24)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+ 
+Node.js v20.19.4
+file:///app/dist/index.js:255
+
+Error: Missing OpenAI API key. Please set one of these environment variables:
+      - OPENAI_API_KEY (preferred)
+      - CHATGPT_API_KEY (fallback)
+      - OPENAI_TOKEN (fallback)
+      
+      Get your API key from: [https://platform.openai.com/api-keys](https://platform.openai.com/api-keys)
+    at createConfig (file:///app/dist/index.js:255:11)
+    at file:///app/dist/index.js:288:14
+    at ModuleJob.run (node:internal/modules/esm/module_job:263:25)
+    at async ModuleLoader.import (node:internal/modules/esm/loader:540:24)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+ 
+Node.js v20.19.4
+file:///app/dist/index.js:255
+    throw new Error(
+          ^
+ 
+Error: Missing OpenAI API key. Please set one of these environment variables:
+      - OPENAI_API_KEY (preferred)
+      - CHATGPT_API_KEY (fallback)
+      - OPENAI_TOKEN (fallback)
+      
+      Get your API key from: [https://platform.openai.com/api-keys](https://platform.openai.com/api-keys)
+    at createConfig (file:///app/dist/index.js:255:11)
+
+
+
+Now resolve this and tell wat to do
