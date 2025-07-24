@@ -45,6 +45,7 @@ If you prefer to build assets locally first:
 ```bash
 npm install
 npm run build
+node build.js  # Custom build script that properly handles production bundling
 docker build -t socialmonitor-ai .
 ```
 
@@ -62,7 +63,7 @@ docker build -t socialmonitor-ai .
 1. Create a new Web Service
 2. Connect your repository
 3. Set these build and start commands:
-   - Build Command: `npm install && npm run build`
+   - Build Command: `npm install && npm run build && node build.js`
    - Start Command: `npm start`
 4. Add environment variables in the dashboard
 
@@ -125,7 +126,8 @@ Use these for monitoring and load balancer configuration.
 
 4. **Build Failures**:
    - Make sure all dependencies are in `package.json`
-   - Check that build command completes successfully locally
+   - Run `npm run build && node build.js` locally to test
+   - Ensure the `dist/` directory contains both `public/` (client) and `index.js` (server)
 
 ### Logs and Monitoring
 
