@@ -1,5 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
+import { config, logConfigStatus } from "./config";
 
 const app = express();
 app.use(express.json());
@@ -61,19 +62,21 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // ALWAYS serve the app on the port specified in the environment variable PORT
-  // Other ports are firewalled. Default to 5000 if not specified.
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = parseInt(process.env.PORT || '5000', 10);
+  // Server configuration from validated environment
   server.listen({
-    port,
-    host: "0.0.0.0",
+    port: config.port,
+    host: config.host,
     reusePort: true,
   }, async () => {
     const { log } = process.env.NODE_ENV === "development" 
       ? await import("./vite")
       : await import("./production");
-    log(`serving on port ${port}`);
+    
+    log(`🚀 SocialMonitor AI serving on ${config.host}:${config.port}`);
+    
+    // Log configuration status in development
+    if (config.nodeEnv === 'development') {
+      await logConfigStatus();
+    }
   });
 })();

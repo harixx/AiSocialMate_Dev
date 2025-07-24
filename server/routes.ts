@@ -3,17 +3,11 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertAlertSchema, insertSearchResultSchema, insertGeneratedReplySchema } from "@shared/schema";
 import OpenAI from "openai";
+import { config } from "./config";
 
-// API Keys from environment variables with fallbacks
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY || process.env.CHATGPT_API_KEY;
-const SERPER_API_KEY = process.env.SERPER_API_KEY;
-
-if (!OPENAI_API_KEY) throw new Error("Missing OpenAI API key");
-if (!SERPER_API_KEY) throw new Error("Missing Serper API key");
-
-// Initialize OpenAI client
+// Initialize OpenAI client with validated configuration
 const openai = new OpenAI({ 
-  apiKey: OPENAI_API_KEY 
+  apiKey: config.openai.apiKey 
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -58,8 +52,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Construct search query
       const searchQuery = `${competitorName} ${keywords ? keywords : ''} -${brandName} ${excludeKeywords ? excludeKeywords.split(',').map((k: string) => `-${k.trim()}`).join(' ') : ''}`.trim();
 
-      // Use provided API key or default
-      const apiKey = serperApiKey || SERPER_API_KEY;
+      // Use provided API key or default from config
+      const apiKey = serperApiKey || config.serper.apiKey;
 
       // Search each platform
       const searchPromises = platforms.map(async (platform: string) => {
@@ -185,7 +179,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Keywords are required" });
       }
 
-      const apiKey = serperApiKey || SERPER_API_KEY;
+      const apiKey = serperApiKey || config.serper.apiKey;
 
       // Search each platform
       const searchPromises = platforms.map(async (platform: string) => {
@@ -313,7 +307,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Use custom API key if provided
-      const apiKey = customApiKey || OPENAI_API_KEY;
+      const apiKey = customApiKey || config.openai.apiKey;
       const client = customApiKey ? new OpenAI({ apiKey: customApiKey }) : openai;
 
       // Advanced AI techniques: Zero-shot, Few-shot, Chain-of-thought
@@ -483,10 +477,7 @@ Generate only the final reply text that would be posted.`;
         return res.status(400).json({ message: "Keyword is required" });
       }
 
-      const apiKey = SERPER_API_KEY;
-      if (!apiKey) {
-        return res.status(400).json({ message: "Serper API key is required" });
-      }
+      const apiKey = config.serper.apiKey;
 
       const searchPromises = platforms.map(async (platform: string) => {
         try {
@@ -511,7 +502,7 @@ Generate only the final reply text that would be posted.`;
 
       const platformResults = await Promise.all(searchPromises);
       const allQuestions = platformResults.flat();
-      const topQuestions = [...new Set(allQuestions)].slice(0, 10);
+      const topQuestions = Array.from(new Set(allQuestions)).slice(0, 10);
 
       res.json({
         success: true,
@@ -574,7 +565,7 @@ Generate only the final reply text that would be posted.`;
           const response = await fetch('https://google.serper.dev/search', {
             method: 'POST',
             headers: {
-              'X-API-KEY': SERPER_API_KEY!,
+              'X-API-KEY': config.serper.apiKey,
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({

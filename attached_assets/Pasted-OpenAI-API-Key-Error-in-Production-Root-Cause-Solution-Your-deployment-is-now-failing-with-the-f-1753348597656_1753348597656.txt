@@ -1,0 +1,55 @@
+OpenAI API Key Error in Production: Root Cause & Solution
+Your deployment is now failing with the following error:
+
+text
+Error: Missing OpenAI API key
+if (!OPENAI_API_KEY) throw new Error("Missing OpenAI API key");
+This means your backend server is attempting to access the OpenAI API, but the required OPENAI_API_KEY environment variable is not set in the production environment.
+
+Why This Happens
+Your code obtains the OpenAI API key via:
+
+js
+var OPENAI_API_KEY = process.env.OPENAI_API_KEY || process.env.CHATGPT_API_KEY;
+if (!OPENAI_API_KEY) throw new Error("Missing OpenAI API key");
+In Railway (or any Docker-container or cloud environment), environment variables like OPENAI_API_KEY must be explicitly configured; they are not read from .env files by default unless you set that up manually or declare them in the project’s environment variable section.
+
+How To Fix
+1. Set the Environment Variable on Railway
+Go to your Railway project dashboard.
+
+Click on your deployed service.
+
+Locate the “Variables” or "Environment" tab.
+
+Add a new variable:
+
+Key	Value
+OPENAI_API_KEY	sk-xxxxxxx... (your API key)
+Click “Save” or “Deploy” to restart your service with the new variable set.
+
+2. (Optional) For Local Testing
+If you also want to run locally, add to your .env:
+
+text
+OPENAI_API_KEY=sk-xxxxxx...
+And ensure you use a package like dotenv to load it in local development.
+
+3. Redeploy Your Service
+Once you’ve added OPENAI_API_KEY in Railway, redeploy/restart your service.
+
+The error should disappear and new requests to endpoints requiring OpenAI should now function.
+
+Tips
+Ensure you never commit your OpenAI API key to version control (GitHub, etc.).
+
+If you use a different variable name (e.g., CHATGPT_API_KEY), set that as well, or update your code.
+
+For multiple environments (dev, prod), set the correct variable in each.
+
+Table: Common Causes of "Missing API Key" in Cloud Deployments
+Cause	How to Fix
+Not set variable in cloud dashboard	Add via Railway Dashboard > Variables
+Used wrong variable name	Check your code for correct variable name(s)
+Overwrote variable during redeploy	Re-add variable after restoring project
+Not using dotenv or manual env loader	Make sure local runs use dotenv or similar

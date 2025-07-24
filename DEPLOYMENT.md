@@ -1,8 +1,20 @@
 # SocialMonitor AI - Deployment Guide
 
-## Overview
+## Production Deployment Status
+✅ **RESOLVED: Enterprise-grade environment variable management implemented**
 
-This guide covers deploying SocialMonitor AI to various platforms including Railway, Render, Heroku, and other container-based platforms.
+### Root Cause & Solution
+The deployment failures were caused by missing environment variables in production. We've implemented:
+
+1. **Centralized Configuration Management** (`server/config.ts`)
+   - Enterprise-grade environment validation with descriptive error messages
+   - Multiple fallback variable names (OPENAI_API_KEY, CHATGPT_API_KEY, OPENAI_TOKEN)
+   - Runtime validation prevents silent failures
+   - Configuration status logging for development debugging
+
+2. **Environment Variable Templates** (`.env.example`)
+   - Complete setup guide for all deployment platforms
+   - Clear documentation of required vs optional variables
 
 ## Prerequisites
 
@@ -12,15 +24,26 @@ Before deploying, ensure you have:
 
 ## Environment Variables
 
+### Required Variables
 Set these environment variables in your deployment platform:
 
 ```bash
 OPENAI_API_KEY=your_openai_api_key_here
 SERPER_API_KEY=your_serper_api_key_here
-DATABASE_URL=your_postgresql_database_url_here
+```
+
+### Optional Variables
+```bash
+DATABASE_URL=your_postgresql_database_url_here  # Uses in-memory storage if not provided
 NODE_ENV=production
 PORT=5000
+HOST=0.0.0.0
 ```
+
+### Environment Variable Fallbacks
+The system checks multiple names for flexibility:
+- OpenAI: `OPENAI_API_KEY` → `CHATGPT_API_KEY` → `OPENAI_TOKEN`
+- Serper: `SERPER_API_KEY` → `SERPER_TOKEN`
 
 ## Docker Deployment
 
@@ -112,22 +135,35 @@ Use these for monitoring and load balancer configuration.
 
 SocialMonitor AI uses an **enterprise-grade dependency isolation architecture** that ensures development tools never leak into production builds. See `ARCHITECTURE.md` for detailed technical specifications.
 
+## Configuration Features
+
+### Development Status Logging
+In development mode, the system logs configuration status:
+```
+🚀 SocialMonitor AI serving on 0.0.0.0:5000
+Environment: development
+Port: 5000
+Host: 0.0.0.0
+OpenAI API: ✓ Configured
+Serper API: ✓ Configured
+Database: ✗ Not set
+```
+
+### Helpful Error Messages
+Instead of generic "Missing API key" errors, the system provides:
+- Exact environment variable names to set
+- Links to get API keys
+- Platform-specific setup instructions
+
 ## Troubleshooting
 
 ### Common Issues
 
-1. **502 Bad Gateway**: Usually means the app isn't starting or binding to the correct port
+1. **"Missing OpenAI API key"** → Set `OPENAI_API_KEY` in your deployment platform
+2. **"Missing Serper API key"** → Set `SERPER_API_KEY` in your deployment platform
+3. **502 Bad Gateway**: Usually means the app isn't starting or binding to the correct port
    - Ensure `PORT` environment variable is set correctly
    - Check logs for startup errors
-
-2. **API Key Errors**: 
-   - Verify `OPENAI_API_KEY` and `SERPER_API_KEY` are set
-   - Check that keys are valid and have sufficient credits
-
-3. **Database Connection Issues**:
-   - Verify `DATABASE_URL` is correct
-   - Ensure database allows connections from your deployment platform
-
 4. **Build Failures**:
    - Make sure all dependencies are in `package.json`
    - Run `npm run build && node build.js` locally to test
