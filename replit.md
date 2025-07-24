@@ -8,6 +8,15 @@ SocialMonitor AI is a comprehensive social media monitoring and brand intelligen
 
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes
+
+### Migration Completed (July 24, 2025)
+- ✓ Successfully migrated from Replit Agent to Replit environment
+- ✓ Fixed API key configuration for OpenAI and Serper services
+- ✓ Added health check endpoints at `/health` and `/api/health`
+- ✓ Created deployment documentation and Docker configuration
+- ✓ Verified application is running correctly in Replit
+
 ## System Architecture
 
 ### Frontend Architecture

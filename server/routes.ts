@@ -18,6 +18,23 @@ const openai = new OpenAI({
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
+  // Health check and root endpoints
+  app.get("/health", (req, res) => {
+    res.json({ 
+      status: "ok", 
+      timestamp: new Date().toISOString(),
+      service: "SocialMonitor AI"
+    });
+  });
+
+  app.get("/api/health", (req, res) => {
+    res.json({ 
+      status: "ok", 
+      timestamp: new Date().toISOString(),
+      service: "SocialMonitor AI API"
+    });
+  });
+  
   // Search endpoints
   app.post("/api/search/brand-opportunities", async (req, res) => {
     try {
