@@ -10,6 +10,9 @@ interface AppConfig {
   openai: {
     apiKey: string;
   };
+  gemini: {
+    apiKey: string;
+  };
   serper: {
     apiKey: string;
   };
@@ -30,6 +33,10 @@ function createConfig(): AppConfig {
                       process.env.CHATGPT_API_KEY || 
                       process.env.OPENAI_TOKEN;
   
+  // Gemini API Key with fallback names
+  const geminiApiKey = process.env.GEMINI_API_KEY || 
+                      process.env.GOOGLE_AI_API_KEY;
+  
   // Serper API Key with fallback names
   const serperApiKey = process.env.SERPER_API_KEY || 
                       process.env.SERPER_TOKEN;
@@ -43,6 +50,16 @@ function createConfig(): AppConfig {
       - OPENAI_TOKEN (fallback)
       
       Get your API key from: https://platform.openai.com/api-keys`
+    );
+  }
+  
+  if (!geminiApiKey) {
+    throw new Error(
+      `Missing Gemini API key. Please set one of these environment variables:
+      - GEMINI_API_KEY (preferred)
+      - GOOGLE_AI_API_KEY (fallback)
+      
+      Get your API key from: https://makersuite.google.com/app/apikey`
     );
   }
   
@@ -62,6 +79,9 @@ function createConfig(): AppConfig {
     host: process.env.HOST || '0.0.0.0',
     openai: {
       apiKey: openaiApiKey
+    },
+    gemini: {
+      apiKey: geminiApiKey
     },
     serper: {
       apiKey: serperApiKey
@@ -90,6 +110,7 @@ export async function logConfigStatus() {
   log(`Port: ${config.port}`);
   log(`Host: ${config.host}`);
   log(`OpenAI API: ${config.openai.apiKey ? '✓ Configured' : '✗ Missing'}`);
+  log(`Gemini API: ${config.gemini.apiKey ? '✓ Configured' : '✗ Missing'}`);
   log(`Serper API: ${config.serper.apiKey ? '✓ Configured' : '✗ Missing'}`);
   log(`Database: ${config.database.url ? '✓ Configured' : '✗ Not set'}`);
 }

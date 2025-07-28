@@ -43,6 +43,42 @@ export default function ReplyGeneratorForm() {
     },
   });
 
+  // Watch the aiProvider to update models dynamically
+  const aiProvider = form.watch("aiProvider");
+
+  // Define models for each provider
+  const modelsByProvider = {
+    openai: [
+      { value: "gpt-4o", label: "GPT-4o (Latest)" },
+      { value: "gpt-4", label: "GPT-4" },
+      { value: "gpt-3.5-turbo", label: "GPT-3.5 Turbo" }
+    ],
+    gemini: [
+      { value: "gemini-2.5-flash", label: "Gemini 2.5 Flash (Latest)" },
+      { value: "gemini-2.5-pro", label: "Gemini 2.5 Pro" },
+      { value: "gemini-1.5-flash", label: "Gemini 1.5 Flash" },
+      { value: "gemini-1.5-pro", label: "Gemini 1.5 Pro" }
+    ],
+    claude: [
+      { value: "claude-3-5-sonnet-20241022", label: "Claude 3.5 Sonnet (Latest)" },
+      { value: "claude-3-haiku-20240307", label: "Claude 3 Haiku" },
+      { value: "claude-3-opus-20240229", label: "Claude 3 Opus" }
+    ]
+  };
+
+  // Update model when provider changes
+  React.useEffect(() => {
+    const defaultModels = {
+      openai: "gpt-4o",
+      gemini: "gemini-2.5-flash", 
+      claude: "claude-3-5-sonnet-20241022"
+    };
+    
+    if (aiProvider && defaultModels[aiProvider as keyof typeof defaultModels]) {
+      form.setValue("model", defaultModels[aiProvider as keyof typeof defaultModels]);
+    }
+  }, [aiProvider, form]);
+
   // Issue #2 fix - Auto-fill thread URL from query params
   React.useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -247,16 +283,18 @@ export default function ReplyGeneratorForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Model</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="gpt-4o">GPT-4o (Latest)</SelectItem>
-                        <SelectItem value="gpt-4">GPT-4</SelectItem>
-                        <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
+                        {modelsByProvider[aiProvider as keyof typeof modelsByProvider]?.map((model) => (
+                          <SelectItem key={model.value} value={model.value}>
+                            {model.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </FormItem>

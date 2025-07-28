@@ -3,11 +3,17 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertAlertSchema, insertSearchResultSchema, insertGeneratedReplySchema } from "@shared/schema";
 import OpenAI from "openai";
+import { GoogleGenAI } from "@google/genai";
 import { config } from "./config";
 
 // Initialize OpenAI client with validated configuration
 const openai = new OpenAI({ 
   apiKey: config.openai.apiKey 
+});
+
+// Initialize Gemini client with validated configuration
+const gemini = new GoogleGenAI({ 
+  apiKey: config.gemini.apiKey 
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -306,10 +312,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Thread URL is required" });
       }
 
-      // Use custom API key if provided
-      const apiKey = customApiKey || config.openai.apiKey;
-      const client = customApiKey ? new OpenAI({ apiKey: customApiKey }) : openai;
-
       // Advanced AI techniques: Zero-shot, Few-shot, Chain-of-thought
       const systemPrompt = `You are an expert social media manager that uses advanced AI techniques to generate authentic, helpful replies.
 
@@ -348,18 +350,38 @@ Step 3: Craft the final reply that aligns with the requirements
 
 Generate only the final reply text that would be posted.`;
 
-      // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-      const response = await client.chat.completions.create({
-        model: model,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt }
-        ],
-        temperature: parseFloat(creativity),
-        max_tokens: 500
-      });
+      let generatedText = "";
 
-      const generatedText = response.choices[0].message.content || "";
+      // Handle different AI providers
+      if (aiProvider === "gemini") {
+        // Use Gemini API
+        const response = await gemini.models.generateContent({
+          model: model,
+          contents: `${systemPrompt}\n\n${userPrompt}`,
+          config: {
+            temperature: parseFloat(creativity),
+            maxOutputTokens: 500,
+          },
+        });
+        
+        generatedText = response.text || "";
+      } else {
+        // Use OpenAI API (default)
+        const apiKey = customApiKey || config.openai.apiKey;
+        const client = customApiKey ? new OpenAI({ apiKey: customApiKey }) : openai;
+        
+        const response = await client.chat.completions.create({
+          model: model,
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt }
+          ],
+          temperature: parseFloat(creativity),
+          max_tokens: 500
+        });
+
+        generatedText = response.choices[0].message.content || "";
+      }
 
       // Store generated reply
       const reply = await storage.createGeneratedReply({
