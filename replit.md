@@ -10,6 +10,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### Reddit Comments Expansion Feature (July 29, 2025)
+- ✓ Added Reddit comments fetching API endpoint (`/api/reddit/comments`)
+- ✓ Implemented expand/collapse functionality for Reddit threads
+- ✓ Created nested comment display with proper threading and depth limits
+- ✓ Added "Show Comments" button that appears only for Reddit URLs
+- ✓ Integrated Reddit JSON API with proper error handling and authentication
+- ✓ Added visual indicators for comment scores, timestamps, and reply counts
+- ✓ Comments are hidden by default and revealed only on user interaction
+
 ### Replit Agent Migration & Multi-AI Provider Support (July 28, 2025)
 - ✓ Successfully migrated from Replit Agent to standard Replit environment
 - ✓ Added Google Gemini API integration alongside OpenAI support

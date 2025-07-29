@@ -1,8 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, MessageCircle, ArrowUp, Wand2 } from "lucide-react";
+import { ExternalLink, MessageCircle, ArrowUp, Wand2, ChevronDown, ChevronUp } from "lucide-react";
 import { useLocation } from "wouter";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import RedditComments from "./reddit-comments";
 
 interface ThreadResultsProps {
   results: any[];
@@ -12,6 +15,7 @@ interface ThreadResultsProps {
 
 export default function ThreadResults({ results, totalResults, query }: ThreadResultsProps) {
   const [, setLocation] = useLocation();
+  const [expandedThreads, setExpandedThreads] = useState<Set<number>>(new Set());
   
   if (!results || results.length === 0) {
     return null;
@@ -20,6 +24,20 @@ export default function ThreadResults({ results, totalResults, query }: ThreadRe
   const handleGenerateReply = (threadUrl: string, threadTitle: string) => {
     // Issue #2 fix - Navigate to correct AI Reply Generator route
     setLocation(`/ai-reply-generator?threadUrl=${encodeURIComponent(threadUrl)}&title=${encodeURIComponent(threadTitle)}`);
+  };
+
+  const toggleExpanded = (index: number) => {
+    const newExpanded = new Set(expandedThreads);
+    if (newExpanded.has(index)) {
+      newExpanded.delete(index);
+    } else {
+      newExpanded.add(index);
+    }
+    setExpandedThreads(newExpanded);
+  };
+
+  const isRedditUrl = (url: string) => {
+    return url.includes('reddit.com');
   };
 
   return (
@@ -75,17 +93,40 @@ export default function ThreadResults({ results, totalResults, query }: ThreadRe
                 </div>
                 
                 <div className="flex justify-between items-center">
-                  <Button variant="outline" size="sm" asChild>
-                    <a 
-                      href={thread.url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="flex items-center space-x-1"
-                    >
-                      <span>View Thread</span>
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
-                  </Button>
+                  <div className="flex items-center space-x-2">
+                    <Button variant="outline" size="sm" asChild>
+                      <a 
+                        href={thread.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center space-x-1"
+                      >
+                        <span>View Thread</span>
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </Button>
+                    
+                    {isRedditUrl(thread.url) && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => toggleExpanded(index)}
+                        className="flex items-center space-x-1"
+                      >
+                        {expandedThreads.has(index) ? (
+                          <>
+                            <ChevronUp className="h-3 w-3" />
+                            <span>Hide Comments</span>
+                          </>
+                        ) : (
+                          <>
+                            <ChevronDown className="h-3 w-3" />
+                            <span>Show Comments</span>
+                          </>
+                        )}
+                      </Button>
+                    )}
+                  </div>
                   
                   <Button 
                     size="sm"
@@ -96,6 +137,10 @@ export default function ThreadResults({ results, totalResults, query }: ThreadRe
                     <span>Generate Reply</span>
                   </Button>
                 </div>
+                
+                {expandedThreads.has(index) && isRedditUrl(thread.url) && (
+                  <RedditComments url={thread.url} />
+                )}
               </div>
             ))}
           </div>

@@ -293,6 +293,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Reddit Comments Fetching
+  app.get("/api/reddit/comments", async (req, res) => {
+    try {
+      const { url } = req.query;
+      
+      if (!url) {
+        return res.status(400).json({ message: "Reddit URL is required" });
+      }
+
+      // Extract Reddit post ID from URL
+      const redditUrl = url as string;
+      const postMatch = redditUrl.match(/\/r\/[^\/]+\/comments\/([^\/]+)/);
+      
+      if (!postMatch) {
+        return res.status(400).json({ message: "Invalid Reddit URL format" });
+      }
+
+      // Convert Reddit URL to JSON API format
+      const jsonUrl = redditUrl.endsWith('.json') ? redditUrl : `${redditUrl}.json`;
+      
+      const response = await fetch(jsonUrl, {
+        headers: {
+          'User-Agent': 'SocialMonitor AI Bot 1.0'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Reddit API responded with ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      // Parse Reddit response structure
+      const post = data[0]?.data?.children?.[0]?.data;
+      const comments = data[1]?.data?.children || [];
+
+      if (!post) {
+        return res.status(404).json({ message: "Reddit post not found" });
+      }
+
+      // Format comments recursively
+      const formatComments = (commentData: any): any => {
+        if (!commentData?.data) return null;
+        
+        const comment = commentData.data;
+        
+        // Skip deleted/removed comments
+        if (comment.body === '[deleted]' || comment.body === '[removed]') {
+          return null;
+        }
+
+        const replies = comment.replies?.data?.children
+          ?.map(formatComments)
+          .filter(Boolean) || [];
+
+        return {
+          id: comment.id,
+          author: comment.author,
+          body: comment.body,
+          score: comment.score,
+          created_utc: comment.created_utc,
+          depth: comment.depth || 0,
+          replies: replies
+        };
+      };
+
+      const formattedComments = comments
+        .map(formatComments)
+        .filter(Boolean);
+
+      res.json({
+        success: true,
+        post: {
+          title: post.title,
+          author: post.author,
+          score: post.score,
+          num_comments: post.num_comments,
+          selftext: post.selftext,
+          created_utc: post.created_utc
+        },
+        comments: formattedComments,
+        total_comments: formattedComments.length
+      });
+
+    } catch (error) {
+      console.error('Reddit comments fetch error:', error);
+      res.status(500).json({ 
+        message: "Failed to fetch Reddit comments",
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   // AI Reply Generation
   app.post("/api/generate-reply", async (req, res) => {
     try {
