@@ -302,65 +302,98 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Reddit URL is required" });
       }
 
-      // Extract Reddit post ID from URL
+      // Extract Reddit post details from URL
       const redditUrl = url as string;
-      const postMatch = redditUrl.match(/\/r\/[^\/]+\/comments\/([^\/]+)/);
+      const postMatch = redditUrl.match(/\/r\/([^\/]+)\/comments\/([^\/]+)(?:\/([^\/]+))?/);
       
       if (!postMatch) {
-        return res.status(400).json({ message: "Invalid Reddit URL format" });
+        return res.status(400).json({ message: "Invalid Reddit URL format. Expected: /r/subreddit/comments/post_id/" });
       }
 
-      // Try multiple approaches to fetch Reddit data
-      let response;
-      let jsonUrl;
+      const [, subreddit, articleId] = postMatch;
       
-      // Method 1: Try old Reddit with .json
-      try {
-        jsonUrl = redditUrl.replace('www.reddit.com', 'old.reddit.com');
-        if (!jsonUrl.endsWith('.json')) {
-          jsonUrl += '.json';
+      // Use Reddit's official API endpoint format as per documentation
+      const apiUrl = `https://www.reddit.com/r/${subreddit}/comments/${articleId}.json?limit=100&depth=10&sort=top`;
+      
+      console.log(`Fetching Reddit comments from: ${apiUrl}`);
+      
+      const response = await fetch(apiUrl, {
+        headers: {
+          'User-Agent': 'SocialMonitor:v1.0.0 (by /u/socialmonitor)',
+          'Accept': 'application/json',
+          'Accept-Language': 'en-US,en;q=0.9',
         }
-        
-        response = await fetch(jsonUrl, {
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (compatible; SocialMonitor/1.0; +https://socialmonitor.ai)',
-            'Accept': 'application/json',
-          }
-        });
-        
-        if (!response.ok) throw new Error('Old Reddit failed');
-      } catch (error) {
-        // Method 2: Try www Reddit with .json
-        try {
-          jsonUrl = redditUrl.endsWith('.json') ? redditUrl : `${redditUrl}.json`;
-          response = await fetch(jsonUrl, {
-            headers: {
-              'User-Agent': 'curl/7.68.0',
-              'Accept': 'application/json',
-            }
-          });
-          
-          if (!response.ok) throw new Error('Main Reddit failed');
-        } catch (error2) {
-          // Method 3: Try with no-www and .json
-          jsonUrl = redditUrl.replace('www.reddit.com', 'reddit.com').replace('old.reddit.com', 'reddit.com');
-          if (!jsonUrl.endsWith('.json')) {
-            jsonUrl += '.json';
-          }
-          
-          response = await fetch(jsonUrl, {
-            headers: {
-              'User-Agent': 'SocialMonitorBot/1.0',
-              'Accept': 'application/json',
-            }
-          });
-        }
-      }
+      });
 
       if (!response.ok) {
         console.error(`Reddit API error: ${response.status} - ${response.statusText}`);
         
-        // Provide fallback response with helpful information
+        // Try fallback with old.reddit.com
+        try {
+          const fallbackUrl = `https://old.reddit.com/r/${subreddit}/comments/${articleId}.json?limit=100`;
+          console.log(`Trying fallback URL: ${fallbackUrl}`);
+          
+          const fallbackResponse = await fetch(fallbackUrl, {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (compatible; SocialMonitor/1.0)',
+              'Accept': 'application/json',
+            }
+          });
+          
+          if (fallbackResponse.ok) {
+            const fallbackData = await fallbackResponse.json();
+            
+            // Process the successful response
+            const post = fallbackData[0]?.data?.children?.[0]?.data;
+            const comments = fallbackData[1]?.data?.children || [];
+            
+            if (post) {
+              // Use the same comment formatting logic
+              const formatComments = (commentData: any): any => {
+                if (!commentData?.data) return null;
+                
+                const comment = commentData.data;
+                if (comment.body === '[deleted]' || comment.body === '[removed]') {
+                  return null;
+                }
+                
+                const replies = comment.replies?.data?.children
+                  ?.map(formatComments)
+                  .filter(Boolean) || [];
+                
+                return {
+                  id: comment.id,
+                  author: comment.author,
+                  body: comment.body,
+                  score: comment.score,
+                  created_utc: comment.created_utc,
+                  depth: comment.depth || 0,
+                  replies: replies
+                };
+              };
+              
+              const formattedComments = comments.map(formatComments).filter(Boolean);
+              
+              return res.json({
+                success: true,
+                post: {
+                  title: post.title,
+                  author: post.author,
+                  score: post.score,
+                  num_comments: post.num_comments,
+                  selftext: post.selftext,
+                  created_utc: post.created_utc
+                },
+                comments: formattedComments,
+                total_comments: formattedComments.length
+              });
+            }
+          }
+        } catch (fallbackError) {
+          console.error('Fallback also failed:', fallbackError);
+        }
+        
+        // Provide informative fallback response
         return res.json({
           success: true,
           post: {
