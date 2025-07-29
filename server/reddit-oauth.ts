@@ -44,7 +44,18 @@ class RedditOAuthClient {
    * Exchange authorization code for access token
    */
   async exchangeCodeForToken(code: string): Promise<RedditTokenResponse> {
+    console.log('🔑 Exchanging code for token...');
+    console.log('📝 Using redirect URI:', this.config.redirectUri);
+    
     const credentials = Buffer.from(`${this.config.clientId}:${this.config.clientSecret}`).toString('base64');
+    
+    const body = new URLSearchParams({
+      grant_type: 'authorization_code',
+      code: code,
+      redirect_uri: this.config.redirectUri,
+    });
+    
+    console.log('📤 Token request body:', body.toString());
     
     const response = await fetch('https://www.reddit.com/api/v1/access_token', {
       method: 'POST',
@@ -53,23 +64,25 @@ class RedditOAuthClient {
         'Content-Type': 'application/x-www-form-urlencoded',
         'User-Agent': this.config.userAgent,
       },
-      body: new URLSearchParams({
-        grant_type: 'authorization_code',
-        code: code,
-        redirect_uri: this.config.redirectUri,
-      }).toString(),
+      body: body.toString(),
     });
 
+    console.log('📥 Reddit token response status:', response.status);
+    
     if (!response.ok) {
       const errorText = await response.text();
+      console.error('❌ Token exchange failed:', errorText);
       throw new Error(`Reddit OAuth token exchange failed: ${response.status} - ${errorText}`);
     }
 
     const tokenData: RedditTokenResponse = await response.json();
+    console.log('✅ Token received successfully');
     
     // Store token with expiration
     const expiresAt = Date.now() + (tokenData.expires_in * 1000);
     this.tokens.set('current', { token: tokenData.access_token, expires: expiresAt });
+    
+    console.log('💾 Token stored, expires at:', new Date(expiresAt));
     
     return tokenData;
   }

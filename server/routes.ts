@@ -298,19 +298,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Reddit OAuth Authentication Routes
   app.get("/auth/reddit", (req, res) => {
-    const state = Math.random().toString(36).substring(7); // Generate random state
-    const authUrl = redditOAuth.getAuthUrl(state);
-    
-    // Store state in temporary memory for verification (in production, use proper session management)
-    // Note: This is a simplified implementation - use Redis or database sessions in production
-    (global as any).redditStates = (global as any).redditStates || new Map();
-    (global as any).redditStates.set(state, Date.now());
-    
-    res.json({
-      success: true,
-      authUrl: authUrl,
-      message: "Visit this URL to authenticate with Reddit"
-    });
+    try {
+      const state = Math.random().toString(36).substring(7); // Generate random state
+      const authUrl = redditOAuth.getAuthUrl(state);
+      
+      // Store state in temporary memory for verification
+      (global as any).redditStates = (global as any).redditStates || new Map();
+      (global as any).redditStates.set(state, Date.now());
+      
+      console.log('🔑 Generated OAuth state:', state);
+      console.log('🔗 Reddit auth URL:', authUrl);
+      
+      res.json({
+        success: true,
+        authUrl: authUrl,
+        message: "Visit this URL to authenticate with Reddit"
+      });
+    } catch (error) {
+      console.error('Error generating Reddit auth URL:', error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to generate authentication URL"
+      });
+    }
   });
 
   app.get("/thread-discovery/auth/reddit/callback", async (req, res) => {
