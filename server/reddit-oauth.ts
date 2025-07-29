@@ -151,15 +151,20 @@ class RedditOAuthClient {
 // Initialize Reddit OAuth client with environment variables
 const getRedirectUri = () => {
   if (process.env.REDDIT_REDIRECT_URI) {
+    console.log('🔗 Using explicit REDDIT_REDIRECT_URI:', process.env.REDDIT_REDIRECT_URI);
     return process.env.REDDIT_REDIRECT_URI;
   }
   
   // Auto-detect Replit domain or use localhost for development
   if (process.env.REPLIT_DOMAINS) {
-    return `https://${process.env.REPLIT_DOMAINS}/auth/reddit/callback`;
+    const autoUri = `https://${process.env.REPLIT_DOMAINS}/auth/reddit/callback`;
+    console.log('🔗 Auto-detected redirect URI:', autoUri);
+    return autoUri;
   }
   
-  return 'http://localhost:5000/auth/reddit/callback';
+  const fallbackUri = 'http://localhost:5000/auth/reddit/callback';
+  console.log('🔗 Using fallback redirect URI:', fallbackUri);
+  return fallbackUri;
 };
 
 const redditOAuth = new RedditOAuthClient({

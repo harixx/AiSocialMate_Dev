@@ -339,20 +339,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.redirect('/thread-discovery?auth=error&message=Missing authorization code or state parameter');
       }
 
-      // Verify state parameter (in production, check against proper session storage)
+      // Verify state parameter (simplified for development)
       const storedStates = (global as any).redditStates;
       console.log('🔍 Stored states:', storedStates ? Array.from(storedStates.keys()) : 'undefined');
       console.log('🔍 Received state:', state);
       
-      if (!storedStates || !storedStates.has(state)) {
-        console.log('❌ State verification failed - stored states:', storedStates ? 'exists' : 'undefined');
-        // In development, we'll be more lenient with state verification
-        // since server restarts can clear the in-memory state store
-        console.log('⚠️ Proceeding with authentication (development mode)');
-      } else {
-        // Clean up used state
+      // For development, we'll skip strict state verification due to server restarts
+      // In production, implement proper session-based state management
+      if (storedStates && storedStates.has(state)) {
         storedStates.delete(state);
         console.log('✅ State verified and cleaned up');
+      } else {
+        console.log('⚠️ State not found in memory (likely due to server restart) - proceeding anyway');
       }
 
       // Exchange code for token
