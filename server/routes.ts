@@ -318,27 +318,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { code, state, error } = req.query;
       
       if (error) {
-        return res.status(400).json({
-          success: false,
-          message: `Reddit OAuth error: ${error}`,
-          description: "User denied access or authentication failed"
-        });
+        return res.redirect('/?auth=error&message=Reddit OAuth error: User denied access or authentication failed');
       }
 
       if (!code || !state) {
-        return res.status(400).json({
-          success: false,
-          message: "Missing authorization code or state parameter"
-        });
+        return res.redirect('/?auth=error&message=Missing authorization code or state parameter');
       }
 
       // Verify state parameter (in production, check against proper session storage)
       const storedStates = (global as any).redditStates;
       if (!storedStates || !storedStates.has(state)) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid state parameter - possible CSRF attack"
-        });
+        return res.redirect('/?auth=error&message=Invalid state parameter - possible CSRF attack');
       }
       
       // Clean up used state
@@ -347,23 +337,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Exchange code for token
       const tokenData = await redditOAuth.exchangeCodeForToken(code as string);
       
-      res.json({
-        success: true,
-        message: "Reddit authentication successful!",
-        tokenInfo: {
-          expires_in: tokenData.expires_in,
-          scope: tokenData.scope,
-          token_type: tokenData.token_type
-        }
-      });
+      // Redirect to Thread Discovery page with success message
+      res.redirect('/?auth=success&message=Reddit authentication successful! You can now access full Reddit API features.');
 
     } catch (error) {
       console.error('Reddit OAuth callback error:', error);
-      res.status(500).json({
-        success: false,
-        message: "Failed to complete Reddit authentication",
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
+      // Redirect to Thread Discovery page with error message
+      res.redirect('/?auth=error&message=Reddit authentication failed. Please try again.');
     }
   });
 

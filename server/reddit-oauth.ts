@@ -136,10 +136,23 @@ class RedditOAuthClient {
 }
 
 // Initialize Reddit OAuth client with environment variables
+const getRedirectUri = () => {
+  if (process.env.REDDIT_REDIRECT_URI) {
+    return process.env.REDDIT_REDIRECT_URI;
+  }
+  
+  // Auto-detect Replit domain or use localhost for development
+  if (process.env.REPLIT_DOMAINS) {
+    return `https://${process.env.REPLIT_DOMAINS}/auth/reddit/callback`;
+  }
+  
+  return 'http://localhost:5000/auth/reddit/callback';
+};
+
 const redditOAuth = new RedditOAuthClient({
   clientId: process.env.REDDIT_CLIENT_ID || '',
   clientSecret: process.env.REDDIT_CLIENT_SECRET || '',
-  redirectUri: process.env.REDDIT_REDIRECT_URI || 'http://localhost:5000/auth/reddit/callback',
+  redirectUri: getRedirectUri(),
   userAgent: 'SocialMonitor:v1.0.0 (by /u/socialmonitor)'
 });
 
