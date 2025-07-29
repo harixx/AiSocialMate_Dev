@@ -28,37 +28,48 @@ function formatTimeAgo(timestamp: number): string {
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
-function CommentThread({ comment, maxDepth = 3 }: { comment: Comment; maxDepth?: number }) {
+function CommentThread({ comment, maxDepth = 5 }: { comment: Comment; maxDepth?: number }) {
   const [showReplies, setShowReplies] = useState(true);
   
+  const getIndentColor = (depth: number) => {
+    const colors = [
+      'border-blue-300',
+      'border-green-300', 
+      'border-yellow-300',
+      'border-purple-300',
+      'border-pink-300'
+    ];
+    return colors[depth % colors.length];
+  };
+  
   return (
-    <div className={`${comment.depth > 0 ? 'ml-4 border-l-2 border-gray-200 pl-4' : ''}`}>
-      <div className="bg-gray-50 rounded-lg p-3 mb-2">
+    <div className={`${comment.depth > 0 ? `ml-3 border-l-2 ${getIndentColor(comment.depth)} pl-3` : ''}`}>
+      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 mb-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
         <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center space-x-2 text-sm text-gray-600">
+          <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
             <User className="h-3 w-3" />
-            <span className="font-medium">{comment.author}</span>
+            <span className="font-medium text-gray-900 dark:text-gray-100">{comment.author}</span>
             <Clock className="h-3 w-3" />
             <span>{formatTimeAgo(comment.created_utc)}</span>
             <div className="flex items-center space-x-1">
-              <ArrowUp className="h-3 w-3" />
-              <span>{comment.score}</span>
+              <ArrowUp className="h-3 w-3 text-green-600" />
+              <span className="font-medium">{comment.score}</span>
             </div>
           </div>
         </div>
         
-        <div className="text-sm text-gray-800 whitespace-pre-wrap">
+        <div className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap leading-relaxed">
           {comment.body}
         </div>
         
         {comment.replies.length > 0 && (
           <button
             onClick={() => setShowReplies(!showReplies)}
-            className="flex items-center space-x-1 text-xs text-blue-600 hover:text-blue-800 mt-2"
+            className="flex items-center space-x-1 text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 mt-3 p-1 rounded transition-colors"
           >
             <MessageCircle className="h-3 w-3" />
             <span>
-              {showReplies ? 'Hide' : 'Show'} {comment.replies.length} replies
+              {showReplies ? 'Hide' : 'Show'} {comment.replies.length} {comment.replies.length === 1 ? 'reply' : 'replies'}
             </span>
           </button>
         )}
@@ -171,11 +182,19 @@ export default function RedditComments({ url }: RedditCommentsProps) {
           </div>
         </div>
         
-        <div className="space-y-3 max-h-96 overflow-y-auto">
-          {data.comments.map((comment: Comment) => (
-            <CommentThread key={comment.id} comment={comment} />
-          ))}
-        </div>
+        {data.comments.length === 0 ? (
+          <div className="text-center text-gray-500 dark:text-gray-400 py-8">
+            <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+            <p>No comments available for this thread</p>
+            <p className="text-xs mt-1">Try authenticating with Reddit for full access</p>
+          </div>
+        ) : (
+          <div className="space-y-3 max-h-96 overflow-y-auto">
+            {data.comments.map((comment: Comment) => (
+              <CommentThread key={comment.id} comment={comment} maxDepth={5} />
+            ))}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

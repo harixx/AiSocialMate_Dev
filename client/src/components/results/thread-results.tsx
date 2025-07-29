@@ -144,7 +144,9 @@ export default function ThreadResults({ results, totalResults, query }: ThreadRe
                 </div>
                 
                 {expandedThreads.has(index) && isRedditPostWithComments(thread.url) && (
-                  <RedditComments url={thread.url} />
+                  <div className="mt-4 border-t border-gray-200 pt-4">
+                    <RedditComments url={thread.url} />
+                  </div>
                 )}
               </div>
             ))}
