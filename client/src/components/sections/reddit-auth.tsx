@@ -1,9 +1,8 @@
-import { useState } from "react";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/api";
 import { ExternalLink, Shield, CheckCircle, AlertCircle } from "lucide-react";
 
 interface RedditAuthProps {
@@ -16,7 +15,8 @@ export default function RedditAuth({ onAuthChange }: RedditAuthProps) {
   // Check authentication status
   const { data: authStatus, isLoading } = useQuery({
     queryKey: ['/api/reddit/auth-status'],
-    refetchInterval: 30000, // Check every 30 seconds
+    refetchInterval: false, // Disable automatic polling
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
   });
 
   // Initiate Reddit authentication
@@ -31,18 +31,18 @@ export default function RedditAuth({ onAuthChange }: RedditAuthProps) {
         // Open Reddit OAuth in new window
         window.open(data.authUrl, 'reddit-auth', 'width=500,height=600');
         
-        // Listen for authentication completion
+        // Listen for authentication completion with reasonable interval
         const checkAuth = setInterval(() => {
           queryClient.invalidateQueries({ queryKey: ['/api/reddit/auth-status'] });
-        }, 2000);
+        }, 10000); // Check every 10 seconds instead of 2
 
-        // Stop checking after 5 minutes
-        setTimeout(() => clearInterval(checkAuth), 300000);
+        // Stop checking after 2 minutes to reduce load
+        setTimeout(() => clearInterval(checkAuth), 120000);
       }
     },
   });
 
-  const isAuthenticated = authStatus?.authenticated;
+  const isAuthenticated = authStatus?.authenticated as boolean;
 
   // Notify parent component of auth changes
   if (onAuthChange && !isLoading) {

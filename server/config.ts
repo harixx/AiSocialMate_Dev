@@ -77,6 +77,11 @@ function createConfig(): AppConfig {
       Get your API key from: https://serper.dev/`
     );
   }
+
+  // Reddit OAuth configuration (optional)
+  const redditClientId = process.env.REDDIT_CLIENT_ID || '';
+  const redditClientSecret = process.env.REDDIT_CLIENT_SECRET || '';
+  const redditRedirectUri = process.env.REDDIT_REDIRECT_URI || '';
   
   return {
     nodeEnv,
@@ -95,9 +100,9 @@ function createConfig(): AppConfig {
       url: process.env.DATABASE_URL
     },
     reddit: {
-      clientId: process.env.REDDIT_CLIENT_ID || '',
-      clientSecret: process.env.REDDIT_CLIENT_SECRET || '',
-      redirectUri: process.env.REDDIT_REDIRECT_URI || ''
+      clientId: redditClientId,
+      clientSecret: redditClientSecret,
+      redirectUri: redditRedirectUri
     }
   };
 }
