@@ -139,6 +139,9 @@ export default function RedditComments({ url }: RedditCommentsProps) {
     );
   }
 
+  // Show special styling for blocked content
+  const isBlocked = data.blocked;
+
   return (
     <Card className="mt-4">
       <CardContent className="p-4">
@@ -146,7 +149,14 @@ export default function RedditComments({ url }: RedditCommentsProps) {
           <h4 className="font-medium text-gray-900">
             Comments ({data.total_comments})
           </h4>
-          <Badge variant="outline">Reddit</Badge>
+          <div className="flex items-center space-x-2">
+            {isBlocked && (
+              <Badge variant="destructive" className="text-xs">
+                Access Limited
+              </Badge>
+            )}
+            <Badge variant="outline">Reddit</Badge>
+          </div>
         </div>
         
         <div className="space-y-3 max-h-96 overflow-y-auto">
