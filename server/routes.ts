@@ -197,7 +197,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              q: `${keywords} site:${getPlatformDomain(platform)}`,
+              q: platform === 'Reddit' 
+                ? `${keywords} site:reddit.com/r/ "comments"` // Focus on actual Reddit posts with comments
+                : `${keywords} site:${getPlatformDomain(platform)}`,
               num: Math.min(maxResults, 10),
               hl: 'en',
               gl: 'us'
@@ -304,7 +306,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Extract Reddit post details from URL with comprehensive URL parsing
       const redditUrl = url as string;
-      console.log(`Processing Reddit URL: ${redditUrl}`);
+      console.log(`🔍 Processing Reddit URL: ${redditUrl}`);
+      
+      // Check if this is a subreddit page (no comments)
+      if (redditUrl.match(/\/r\/[^\/]+\/?$/) && !redditUrl.includes('/comments/')) {
+        console.log(`❌ URL is a subreddit page, not a post: ${redditUrl}`);
+        return res.status(400).json({ 
+          message: "Cannot fetch comments for subreddit pages", 
+          explanation: "This URL points to a subreddit homepage, not a specific post with comments.",
+          expected: "Expected format: reddit.com/r/subreddit/comments/post_id/title",
+          received: redditUrl,
+          suggestion: "Please use a specific Reddit post URL that contains '/comments/'"
+        });
+      }
       
       // Comprehensive regex patterns to handle all possible Reddit URL formats
       const patterns = [
@@ -324,7 +338,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const match = redditUrl.match(pattern);
         if (match) {
           [, subreddit, articleId] = match;
-          console.log(`✓ URL parsed successfully: subreddit=${subreddit}, articleId=${articleId}`);
+          console.log(`✅ URL parsed successfully: subreddit=${subreddit}, articleId=${articleId}`);
           break;
         }
       }
@@ -333,8 +347,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error(`❌ Failed to parse Reddit URL: ${redditUrl}`);
         return res.status(400).json({ 
           message: "Invalid Reddit URL format", 
-          expected: "Expected format: reddit.com/r/subreddit/comments/post_id/",
-          received: redditUrl
+          explanation: "The URL does not match the expected Reddit post format.",
+          expected: "Expected format: reddit.com/r/subreddit/comments/post_id/title",
+          received: redditUrl,
+          examples: [
+            "https://www.reddit.com/r/programming/comments/abc123/my_post_title/",
+            "https://old.reddit.com/r/askreddit/comments/xyz789/"
+          ]
         });
       }
       

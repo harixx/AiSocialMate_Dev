@@ -40,6 +40,11 @@ export default function ThreadResults({ results, totalResults, query }: ThreadRe
     return url.includes('reddit.com');
   };
 
+  const isRedditPostWithComments = (url: string) => {
+    // Only show comments button for actual Reddit posts (not subreddit pages)
+    return url.includes('reddit.com') && url.includes('/comments/');
+  };
+
   return (
     <div className="mt-8">
       <Card>
@@ -106,7 +111,7 @@ export default function ThreadResults({ results, totalResults, query }: ThreadRe
                       </a>
                     </Button>
                     
-                    {isRedditUrl(thread.url) && (
+                    {isRedditPostWithComments(thread.url) && (
                       <Button 
                         variant="outline" 
                         size="sm"
@@ -138,7 +143,7 @@ export default function ThreadResults({ results, totalResults, query }: ThreadRe
                   </Button>
                 </div>
                 
-                {expandedThreads.has(index) && isRedditUrl(thread.url) && (
+                {expandedThreads.has(index) && isRedditPostWithComments(thread.url) && (
                   <RedditComments url={thread.url} />
                 )}
               </div>
