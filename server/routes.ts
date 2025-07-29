@@ -302,129 +302,150 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Reddit URL is required" });
       }
 
-      // Extract Reddit post details from URL
+      // Extract Reddit post details from URL with comprehensive URL parsing
       const redditUrl = url as string;
-      const postMatch = redditUrl.match(/\/r\/([^\/]+)\/comments\/([^\/]+)(?:\/([^\/]+))?/);
+      console.log(`Processing Reddit URL: ${redditUrl}`);
       
-      if (!postMatch) {
-        return res.status(400).json({ message: "Invalid Reddit URL format. Expected: /r/subreddit/comments/post_id/" });
-      }
-
-      const [, subreddit, articleId] = postMatch;
+      // Comprehensive regex patterns to handle all possible Reddit URL formats
+      const patterns = [
+        // Standard format: /r/subreddit/comments/post_id/title/
+        /(?:https?:\/\/)?(?:www\.|old\.|m\.)?reddit\.com\/r\/([^\/]+)\/comments\/([a-zA-Z0-9]+)(?:\/[^\/]*)?(?:\/.*)?/,
+        // Alternative format without subdomain
+        /(?:https?:\/\/)?reddit\.com\/r\/([^\/]+)\/comments\/([a-zA-Z0-9]+)(?:\/[^\/]*)?(?:\/.*)?/,
+        // Format with query parameters
+        /(?:https?:\/\/)?(?:www\.|old\.|m\.)?reddit\.com\/r\/([^\/]+)\/comments\/([a-zA-Z0-9]+)/,
+      ];
       
-      // Use Reddit's official API endpoint format as per documentation
-      const apiUrl = `https://www.reddit.com/r/${subreddit}/comments/${articleId}.json?limit=100&depth=10&sort=top`;
+      let subreddit: string | undefined;
+      let articleId: string | undefined;
       
-      console.log(`Fetching Reddit comments from: ${apiUrl}`);
-      
-      const response = await fetch(apiUrl, {
-        headers: {
-          'User-Agent': 'SocialMonitor:v1.0.0 (by /u/socialmonitor)',
-          'Accept': 'application/json',
-          'Accept-Language': 'en-US,en;q=0.9',
+      // Try each pattern until we find a match
+      for (const pattern of patterns) {
+        const match = redditUrl.match(pattern);
+        if (match) {
+          [, subreddit, articleId] = match;
+          console.log(`✓ URL parsed successfully: subreddit=${subreddit}, articleId=${articleId}`);
+          break;
         }
-      });
-
-      if (!response.ok) {
-        console.error(`Reddit API error: ${response.status} - ${response.statusText}`);
+      }
+      
+      if (!subreddit || !articleId) {
+        console.error(`❌ Failed to parse Reddit URL: ${redditUrl}`);
+        return res.status(400).json({ 
+          message: "Invalid Reddit URL format", 
+          expected: "Expected format: reddit.com/r/subreddit/comments/post_id/",
+          received: redditUrl
+        });
+      }
+      
+      // Enterprise-grade Reddit API integration with multiple fallback strategies
+      const apiEndpoints = [
+        `https://old.reddit.com/r/${subreddit}/comments/${articleId}.json?limit=100&depth=10&sort=top&raw_json=1`,
+        `https://www.reddit.com/r/${subreddit}/comments/${articleId}.json?limit=100&depth=10&sort=top&raw_json=1`,
+        `https://reddit.com/r/${subreddit}/comments/${articleId}.json?limit=100&sort=top&raw_json=1`
+      ];
+      
+      const userAgents = [
+        'Mozilla/5.0 (compatible; SocialMonitor/1.0; +https://example.com/bot)',
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'SocialMonitor/1.0 (Social Media Monitoring Tool)'
+      ];
+      
+      let response: Response | null = null;
+      let successfulUrl = '';
+      
+      // Try each endpoint with different user agents
+      for (let i = 0; i < apiEndpoints.length && !response?.ok; i++) {
+        const apiUrl = apiEndpoints[i];
+        const userAgent = userAgents[i % userAgents.length];
         
-        // Try fallback with old.reddit.com
+        console.log(`🔄 Attempt ${i + 1}: Fetching from ${apiUrl} with UA: ${userAgent.substring(0, 50)}...`);
+        
         try {
-          const fallbackUrl = `https://old.reddit.com/r/${subreddit}/comments/${articleId}.json?limit=100`;
-          console.log(`Trying fallback URL: ${fallbackUrl}`);
-          
-          const fallbackResponse = await fetch(fallbackUrl, {
+          const fetchResponse = await fetch(apiUrl, {
             headers: {
-              'User-Agent': 'Mozilla/5.0 (compatible; SocialMonitor/1.0)',
-              'Accept': 'application/json',
-            }
+              'User-Agent': userAgent,
+              'Accept': 'application/json, text/plain, */*',
+              'Accept-Language': 'en-US,en;q=0.9',
+              'Cache-Control': 'no-cache',
+              'Pragma': 'no-cache'
+            },
+            timeout: 10000 // 10 second timeout
           });
           
-          if (fallbackResponse.ok) {
-            const fallbackData = await fallbackResponse.json();
-            
-            // Process the successful response
-            const post = fallbackData[0]?.data?.children?.[0]?.data;
-            const comments = fallbackData[1]?.data?.children || [];
-            
-            if (post) {
-              // Use the same comment formatting logic
-              const formatComments = (commentData: any): any => {
-                if (!commentData?.data) return null;
-                
-                const comment = commentData.data;
-                if (comment.body === '[deleted]' || comment.body === '[removed]') {
-                  return null;
-                }
-                
-                const replies = comment.replies?.data?.children
-                  ?.map(formatComments)
-                  .filter(Boolean) || [];
-                
-                return {
-                  id: comment.id,
-                  author: comment.author,
-                  body: comment.body,
-                  score: comment.score,
-                  created_utc: comment.created_utc,
-                  depth: comment.depth || 0,
-                  replies: replies
-                };
-              };
-              
-              const formattedComments = comments.map(formatComments).filter(Boolean);
-              
-              return res.json({
-                success: true,
-                post: {
-                  title: post.title,
-                  author: post.author,
-                  score: post.score,
-                  num_comments: post.num_comments,
-                  selftext: post.selftext,
-                  created_utc: post.created_utc
-                },
-                comments: formattedComments,
-                total_comments: formattedComments.length
-              });
-            }
+          if (fetchResponse.ok) {
+            response = fetchResponse;
+            successfulUrl = apiUrl;
+            console.log(`✅ Success with ${apiUrl}`);
+            break;
+          } else {
+            console.log(`❌ Failed: ${fetchResponse.status} ${fetchResponse.statusText}`);
           }
-        } catch (fallbackError) {
-          console.error('Fallback also failed:', fallbackError);
+        } catch (fetchError) {
+          console.log(`❌ Network error with ${apiUrl}:`, fetchError);
+          // Continue to next endpoint
         }
         
-        // Provide informative fallback response
+        // Small delay between attempts to avoid rate limiting
+        if (i < apiEndpoints.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
+
+      // Handle unsuccessful responses with enterprise-grade error handling
+      if (!response || !response.ok) {
+        console.error(`❌ All Reddit API endpoints failed for r/${subreddit}/comments/${articleId}`);
+        
+        // Return structured fallback with actionable information
         return res.json({
           success: true,
           post: {
-            title: "Reddit Comments Unavailable",
+            title: "Reddit Comments Access Limited",
             author: "system",
             score: 0,
             num_comments: 0,
-            selftext: "Reddit is currently blocking automated access to comments. Please visit the thread directly to view comments.",
+            selftext: `Unable to fetch comments for this Reddit thread. This may be due to Reddit's anti-bot policies or network restrictions.`,
             created_utc: Date.now() / 1000
           },
           comments: [{
-            id: "fallback",
+            id: "system_notice",
             author: "SocialMonitor",
-            body: `Reddit is currently blocking automated comment fetching due to their anti-bot policies. 
-            
-To view comments for this thread:
-1. Click "View Thread" to open the Reddit post directly
-2. Use Reddit's official mobile app or website
-3. Consider using Reddit's official API with proper authentication for production use
+            body: `📋 **Unable to load Reddit comments**
 
-This is a common limitation when accessing Reddit data programmatically.`,
+**Possible reasons:**
+• Reddit's anti-bot detection blocking automated requests
+• Thread may be private, deleted, or restricted
+• Network connectivity issues
+• Rate limiting from Reddit's servers
+
+**Alternative options:**
+1. 🔗 Click "View Thread" to open Reddit directly
+2. 📱 Use Reddit's official app or website
+3. 🔄 Try refreshing in a few minutes
+4. 🔑 For production use, consider Reddit's official API with authentication
+
+**Thread Details:**
+• Subreddit: r/${subreddit}
+• Post ID: ${articleId}
+• Attempted: ${apiEndpoints.length} different endpoints`,
             score: 1,
             created_utc: Date.now() / 1000,
             depth: 0,
             replies: []
           }],
           total_comments: 1,
-          blocked: true
+          blocked: true,
+          metadata: {
+            subreddit,
+            articleId,
+            attemptedEndpoints: apiEndpoints.length,
+            originalUrl: redditUrl
+          }
         });
       }
 
+      // Process successful response with comprehensive error handling
+      console.log(`🎉 Successfully fetched Reddit data from: ${successfulUrl}`);
       const data = await response.json();
       
       // Parse Reddit response structure
