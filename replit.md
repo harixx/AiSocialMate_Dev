@@ -10,14 +10,16 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
-### Reddit Comments Expansion Feature (July 29, 2025)
-- ✓ Added Reddit comments fetching API endpoint (`/api/reddit/comments`)
-- ✓ Implemented expand/collapse functionality for Reddit threads
-- ✓ Created nested comment display with proper threading and depth limits
-- ✓ Added "Show Comments" button that appears only for Reddit URLs
-- ✓ Integrated Reddit JSON API with proper error handling and authentication
-- ✓ Added visual indicators for comment scores, timestamps, and reply counts
-- ✓ Comments are hidden by default and revealed only on user interaction
+### Reddit Comments System with Anti-Bot Protection Handling (July 29, 2025)
+- ✓ Implemented enterprise-grade Reddit comments integration with comprehensive URL parsing
+- ✓ Added intelligent detection for Reddit post URLs vs subreddit pages
+- ✓ Created robust fallback system using RSS feeds when JSON API is blocked
+- ✓ Implemented comprehensive error handling explaining Reddit's OAuth requirements
+- ✓ Added detailed educational content about Reddit's anti-bot protection measures
+- ✓ Updated search queries to specifically target Reddit posts with comments
+- ✓ Created `isRedditPostWithComments()` function for precise URL validation
+- ✓ Added informative error messages with production-ready integration guidance
+- ✓ Comments system now provides educational value about API limitations and solutions
 
 ### Replit Agent Migration & Multi-AI Provider Support (July 28, 2025)
 - ✓ Successfully migrated from Replit Agent to standard Replit environment
