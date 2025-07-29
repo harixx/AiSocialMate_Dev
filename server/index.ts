@@ -64,11 +64,7 @@ app.use((req, res, next) => {
   }
 
   // Server configuration from validated environment
-  server.listen({
-    port: config.port,
-    host: config.host,
-    reusePort: true,
-  }, async () => {
+  server.listen(config.port, config.host, async () => {
     const { log } = process.env.NODE_ENV === "development" 
       ? await import("./vite")
       : await import("./production");
