@@ -5,6 +5,7 @@ import { insertAlertSchema, insertSearchResultSchema, insertGeneratedReplySchema
 import OpenAI from "openai";
 import { GoogleGenAI } from "@google/genai";
 import { config } from "./config";
+import { redditOAuth } from "./reddit-oauth";
 
 // Initialize OpenAI client with validated configuration
 const openai = new OpenAI({ 
@@ -295,7 +296,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Reddit Comments Fetching
+  // Reddit OAuth Authentication Routes
+  app.get("/auth/reddit", (req, res) => {
+    const state = Math.random().toString(36).substring(7); // Generate random state
+    const authUrl = redditOAuth.getAuthUrl(state);
+    
+    // Store state in temporary memory for verification (in production, use proper session management)
+    // Note: This is a simplified implementation - use Redis or database sessions in production
+    (global as any).redditStates = (global as any).redditStates || new Map();
+    (global as any).redditStates.set(state, Date.now());
+    
+    res.json({
+      success: true,
+      authUrl: authUrl,
+      message: "Visit this URL to authenticate with Reddit"
+    });
+  });
+
+  app.get("/auth/reddit/callback", async (req, res) => {
+    try {
+      const { code, state, error } = req.query;
+      
+      if (error) {
+        return res.status(400).json({
+          success: false,
+          message: `Reddit OAuth error: ${error}`,
+          description: "User denied access or authentication failed"
+        });
+      }
+
+      if (!code || !state) {
+        return res.status(400).json({
+          success: false,
+          message: "Missing authorization code or state parameter"
+        });
+      }
+
+      // Verify state parameter (in production, check against proper session storage)
+      const storedStates = (global as any).redditStates;
+      if (!storedStates || !storedStates.has(state)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid state parameter - possible CSRF attack"
+        });
+      }
+      
+      // Clean up used state
+      storedStates.delete(state);
+
+      // Exchange code for token
+      const tokenData = await redditOAuth.exchangeCodeForToken(code as string);
+      
+      res.json({
+        success: true,
+        message: "Reddit authentication successful!",
+        tokenInfo: {
+          expires_in: tokenData.expires_in,
+          scope: tokenData.scope,
+          token_type: tokenData.token_type
+        }
+      });
+
+    } catch (error) {
+      console.error('Reddit OAuth callback error:', error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to complete Reddit authentication",
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  app.get("/api/reddit/auth-status", (req, res) => {
+    const isAuthenticated = redditOAuth.isAuthenticated();
+    res.json({
+      success: true,
+      authenticated: isAuthenticated,
+      message: isAuthenticated 
+        ? "Reddit authentication is active"
+        : "Reddit authentication required"
+    });
+  });
+
+  // Reddit Comments Fetching (with OAuth support)
   app.get("/api/reddit/comments", async (req, res) => {
     try {
       const { url } = req.query;
@@ -357,10 +440,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Alternative approach: Use Reddit RSS feeds which are more accessible
+      // First, try authenticated Reddit API if user has logged in
+      if (redditOAuth.isAuthenticated()) {
+        console.log(`🔑 Using authenticated Reddit API`);
+        
+        try {
+          const data = await redditOAuth.fetchComments(subreddit, articleId);
+          
+          // Parse Reddit response structure
+          const post = data[0]?.data?.children?.[0]?.data;
+          const comments = data[1]?.data?.children || [];
+
+          if (post) {
+            // Format comments recursively
+            const formatComments = (commentData: any): any => {
+              if (!commentData?.data) return null;
+              
+              const comment = commentData.data;
+              
+              // Skip deleted/removed comments
+              if (comment.body === '[deleted]' || comment.body === '[removed]') {
+                return null;
+              }
+
+              const replies = comment.replies?.data?.children
+                ?.map(formatComments)
+                .filter(Boolean) || [];
+
+              return {
+                id: comment.id,
+                author: comment.author,
+                body: comment.body,
+                score: comment.score,
+                created_utc: comment.created_utc,
+                depth: comment.depth || 0,
+                replies: replies
+              };
+            };
+
+            const formattedComments = comments
+              .map(formatComments)
+              .filter(Boolean);
+
+            return res.json({
+              success: true,
+              post: {
+                title: post.title,
+                author: post.author,
+                score: post.score,
+                num_comments: post.num_comments,
+                selftext: post.selftext,
+                created_utc: post.created_utc
+              },
+              comments: formattedComments,
+              total_comments: formattedComments.length,
+              source: 'oauth_api',
+              authenticated: true
+            });
+          }
+        } catch (oauthError) {
+          console.log(`❌ OAuth API failed:`, oauthError);
+          // Fall through to RSS approach
+        }
+      }
+
+      // Alternative approach: Use Reddit RSS feeds for basic info
       console.log(`📡 Attempting to fetch Reddit post via RSS approach`);
       
-      // Reddit provides RSS feeds that are less restrictive
       const rssUrl = `https://www.reddit.com/r/${subreddit}/comments/${articleId}/.rss?limit=100`;
       
       try {
@@ -376,7 +522,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const rssText = await rssResponse.text();
           console.log(`✅ Successfully fetched RSS data`);
           
-          // Parse RSS to extract basic post info and return structured response
           const postTitle = rssText.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/)?.[1] || "Reddit Post";
           const postDescription = rssText.match(/<description><!\[CDATA\[(.*?)\]\]><\/description>/)?.[1] || "";
           
@@ -391,30 +536,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
               created_utc: Date.now() / 1000
             },
             comments: [{
-              id: "rss_info",
+              id: "auth_upgrade_info",
               author: "SocialMonitor",
-              body: `📋 **Reddit Comments Access via RSS**
+              body: `🔑 **Upgrade to Full Reddit API Access**
 
-**Post Information:**
+**Current Access:** Basic post information via RSS feed
+
+**For Full Comments Access:**
+1. 🔓 **Authenticate with Reddit** - Click the "Authenticate Reddit" button to login
+2. ✅ **OAuth Integration** - Proper authentication enables full comment threading
+3. 📊 **Real-time Data** - Get live comment scores, replies, and complete discussions
+
+**Post Information (RSS):**
 • Title: ${postTitle}
 • Subreddit: r/${subreddit}
 • Post ID: ${articleId}
 
-**About Reddit's Anti-Bot Protection:**
-Reddit implements strict OAuth authentication and rate limiting (100 requests/minute) to prevent automated access. They detect bots through:
+**Why Authentication?**
+Reddit requires OAuth login for full API access to prevent abuse and ensure user privacy. This is the industry-standard approach used by all legitimate Reddit applications.
 
-• Request patterns and frequency
-• User-Agent analysis  
-• Behavioral patterns
-• Missing authentication tokens
-
-**To view full comments:**
-1. 🔗 Click "View Thread" to open the post directly on Reddit
-2. 📱 Use Reddit's official mobile app
-3. 💻 Browse reddit.com in your web browser
-4. 🔑 For production use, implement proper OAuth authentication with Reddit's API
-
-**Current Status:** Using RSS feed for basic post information only.`,
+**Alternative Options:**
+• 🌐 Click "View Thread" to open Reddit directly
+• 📱 Use Reddit's official app for mobile access`,
               score: 1,
               created_utc: Date.now() / 1000,
               depth: 0,
@@ -422,6 +565,8 @@ Reddit implements strict OAuth authentication and rate limiting (100 requests/mi
             }],
             total_comments: 1,
             source: 'rss',
+            authenticated: false,
+            upgrade_available: true,
             metadata: {
               subreddit,
               articleId,

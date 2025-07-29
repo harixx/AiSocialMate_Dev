@@ -141,6 +141,8 @@ export default function RedditComments({ url }: RedditCommentsProps) {
 
   // Show special styling for blocked content
   const isBlocked = data.blocked;
+  const isAuthenticated = data.authenticated;
+  const upgradeAvailable = data.upgrade_available;
 
   return (
     <Card className="mt-4">
@@ -150,6 +152,16 @@ export default function RedditComments({ url }: RedditCommentsProps) {
             Comments ({data.total_comments})
           </h4>
           <div className="flex items-center space-x-2">
+            {isAuthenticated && (
+              <Badge variant="default" className="bg-green-500 text-xs">
+                OAuth API
+              </Badge>
+            )}
+            {upgradeAvailable && (
+              <Badge variant="secondary" className="text-xs">
+                Upgrade Available
+              </Badge>
+            )}
             {isBlocked && (
               <Badge variant="destructive" className="text-xs">
                 Access Limited

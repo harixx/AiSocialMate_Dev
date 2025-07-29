@@ -1,6 +1,7 @@
 import { useState } from "react";
 import ThreadSearchForm from "@/components/forms/thread-search-form";
 import ThreadResults from "../results/thread-results";
+import RedditAuth from "@/components/sections/reddit-auth";
 import { useSearch } from "../../hooks/use-search";
 
 export default function ThreadDiscovery() {
@@ -19,6 +20,10 @@ export default function ThreadDiscovery() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Thread Discovery</h1>
         <p className="text-gray-600">Discover relevant threads and conversations across social platforms using keywords.</p>
+      </div>
+
+      <div className="mb-6">
+        <RedditAuth />
       </div>
 
       <ThreadSearchForm 
