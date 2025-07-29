@@ -128,7 +128,7 @@ export default function RedditAuth({ onAuthChange }: RedditAuthProps) {
                     Check the console for the redirect URL and paste it in your browser.
                   </p>
                   <p className="text-xs font-mono mt-2 p-2 bg-yellow-100 dark:bg-yellow-800/30 rounded">
-                    Expected redirect: https://22de06aa-45ed-4ff1-b8c7-35d8a3451ec7-00-2aq04stkmi7mz.worf.replit.dev/thread-discovery/auth/reddit/callback
+                    Expected redirect: {window.location.origin}/thread-discovery/auth/reddit/callback
                   </p>
                 </div>
               )}

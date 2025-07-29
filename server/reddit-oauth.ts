@@ -157,12 +157,12 @@ const getRedirectUri = () => {
   
   // Auto-detect Replit domain or use localhost for development
   if (process.env.REPLIT_DOMAINS) {
-    const autoUri = `https://${process.env.REPLIT_DOMAINS}/auth/reddit/callback`;
+    const autoUri = `https://${process.env.REPLIT_DOMAINS}/thread-discovery/auth/reddit/callback`;
     console.log('🔗 Auto-detected redirect URI:', autoUri);
     return autoUri;
   }
   
-  const fallbackUri = 'http://localhost:5000/auth/reddit/callback';
+  const fallbackUri = 'http://localhost:5000/thread-discovery/auth/reddit/callback';
   console.log('🔗 Using fallback redirect URI:', fallbackUri);
   return fallbackUri;
 };
