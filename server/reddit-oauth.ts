@@ -135,7 +135,7 @@ class RedditOAuthClient {
   }
 }
 
-// Initialize Reddit OAuth client
+// Initialize Reddit OAuth client with environment variables
 const redditOAuth = new RedditOAuthClient({
   clientId: process.env.REDDIT_CLIENT_ID || '',
   clientSecret: process.env.REDDIT_CLIENT_SECRET || '',

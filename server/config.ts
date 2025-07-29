@@ -19,6 +19,11 @@ interface AppConfig {
   database: {
     url?: string;
   };
+  reddit: {
+    clientId: string;
+    clientSecret: string;
+    redirectUri: string;
+  };
 }
 
 /**
@@ -88,6 +93,11 @@ function createConfig(): AppConfig {
     },
     database: {
       url: process.env.DATABASE_URL
+    },
+    reddit: {
+      clientId: process.env.REDDIT_CLIENT_ID || '',
+      clientSecret: process.env.REDDIT_CLIENT_SECRET || '',
+      redirectUri: process.env.REDDIT_REDIRECT_URI || ''
     }
   };
 }
@@ -113,4 +123,5 @@ export async function logConfigStatus() {
   log(`Gemini API: ${config.gemini.apiKey ? '✓ Configured' : '✗ Missing'}`);
   log(`Serper API: ${config.serper.apiKey ? '✓ Configured' : '✗ Missing'}`);
   log(`Database: ${config.database.url ? '✓ Configured' : '✗ Not set'}`);
+  log(`Reddit OAuth: ${config.reddit.clientId && config.reddit.clientSecret ? '✓ Configured' : '✗ Missing'}`);
 }
