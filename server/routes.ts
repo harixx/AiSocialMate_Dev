@@ -313,7 +313,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  app.get("/auth/reddit/callback", async (req, res) => {
+  app.get("/thread-discovery/auth/reddit/callback", async (req, res) => {
     try {
       const { code, state, error } = req.query;
       
@@ -338,12 +338,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const tokenData = await redditOAuth.exchangeCodeForToken(code as string);
       
       // Redirect to Thread Discovery page with success message
-      res.redirect('/?auth=success&message=Reddit authentication successful! You can now access full Reddit API features.');
+      res.redirect('/thread-discovery?auth=success&message=Reddit authentication successful! You can now access full Reddit API features.');
 
     } catch (error) {
       console.error('Reddit OAuth callback error:', error);
       // Redirect to Thread Discovery page with error message
-      res.redirect('/?auth=error&message=Reddit authentication failed. Please try again.');
+      res.redirect('/thread-discovery?auth=error&message=Reddit authentication failed. Please try again.');
     }
   });
 

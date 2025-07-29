@@ -15,8 +15,8 @@ export default function RedditAuth({ onAuthChange }: RedditAuthProps) {
   // Check authentication status
   const { data: authStatus, isLoading } = useQuery({
     queryKey: ['/api/reddit/auth-status'],
-    refetchInterval: false, // Disable automatic polling
-    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+    refetchInterval: 5000, // Check every 5 seconds when component is active
+    staleTime: 30 * 1000, // Consider data fresh for 30 seconds
   });
 
   // Initiate Reddit authentication
@@ -29,15 +29,27 @@ export default function RedditAuth({ onAuthChange }: RedditAuthProps) {
     onSuccess: (data) => {
       if (data.authUrl) {
         // Open Reddit OAuth in new window
-        window.open(data.authUrl, 'reddit-auth', 'width=500,height=600');
+        const authWindow = window.open(data.authUrl, 'reddit-auth', 'width=500,height=600');
         
-        // Listen for authentication completion with reasonable interval
+        // Listen for when the auth window closes (user completes or cancels auth)
+        const checkClosed = setInterval(() => {
+          if (authWindow?.closed) {
+            clearInterval(checkClosed);
+            // Immediately check auth status when window closes
+            queryClient.invalidateQueries({ queryKey: ['/api/reddit/auth-status'] });
+          }
+        }, 1000); // Check if window closed every second
+        
+        // Also check auth status periodically while window is open
         const checkAuth = setInterval(() => {
           queryClient.invalidateQueries({ queryKey: ['/api/reddit/auth-status'] });
-        }, 10000); // Check every 10 seconds instead of 2
+        }, 3000); // Check every 3 seconds
 
-        // Stop checking after 2 minutes to reduce load
-        setTimeout(() => clearInterval(checkAuth), 120000);
+        // Stop checking after 3 minutes to reduce load
+        setTimeout(() => {
+          clearInterval(checkAuth);
+          clearInterval(checkClosed);
+        }, 180000);
       }
     },
   });
