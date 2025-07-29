@@ -103,21 +103,36 @@ export default function RedditAuth({ onAuthChange }: RedditAuthProps) {
 
         <div className="text-sm text-gray-600 space-y-2">
           {isAuthenticated ? (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-              <p className="text-green-800 font-medium">✅ Reddit API Access Enabled</p>
-              <p className="text-green-700 text-xs mt-1">
+            <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
+              <p className="text-green-800 dark:text-green-200 font-medium">✅ Reddit API Access Enabled</p>
+              <p className="text-green-700 dark:text-green-300 text-xs mt-1">
                 You can now fetch full Reddit comments with real-time data, including comment scores, 
                 nested replies, and complete threading information.
               </p>
             </div>
           ) : (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <p className="text-blue-800 font-medium">🔐 Authentication Required</p>
-              <p className="text-blue-700 text-xs mt-1">
-                Reddit requires OAuth authentication for full API access. Click "Authenticate Reddit" 
-                to login and enable complete comment fetching with threading and real-time scores.
-              </p>
-            </div>
+            <>
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                <p className="text-blue-800 dark:text-blue-200 font-medium">🔐 Authentication Required</p>
+                <p className="text-blue-700 dark:text-blue-300 text-xs mt-1">
+                  Reddit requires OAuth authentication for full API access. Click "Authenticate Reddit" 
+                  to login and enable complete comment fetching with threading and real-time scores.
+                </p>
+              </div>
+              
+              {initiateAuth.isPending && (
+                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
+                  <p className="text-yellow-800 dark:text-yellow-200 font-medium">⏳ Authentication in Progress</p>
+                  <p className="text-yellow-700 dark:text-yellow-300 text-xs mt-1">
+                    If the Reddit popup doesn't complete automatically, you may need to copy the callback URL manually. 
+                    Check the console for the redirect URL and paste it in your browser.
+                  </p>
+                  <p className="text-xs font-mono mt-2 p-2 bg-yellow-100 dark:bg-yellow-800/30 rounded">
+                    Expected redirect: https://22de06aa-45ed-4ff1-b8c7-35d8a3451ec7-00-2aq04stkmi7mz.worf.replit.dev/thread-discovery/auth/reddit/callback
+                  </p>
+                </div>
+              )}
+            </>
           )}
         </div>
 

@@ -323,6 +323,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Test route to verify external accessibility and provide debug info
+  app.get("/test", (req, res) => {
+    res.json({ 
+      message: "SocialMonitor AI - External access working!", 
+      timestamp: new Date().toISOString(),
+      redditCallbackUrl: "https://22de06aa-45ed-4ff1-b8c7-35d8a3451ec7-00-2aq04stkmi7mz.worf.replit.dev/thread-discovery/auth/reddit/callback",
+      environment: process.env.NODE_ENV,
+      host: req.get('host'),
+      userAgent: req.get('user-agent')
+    });
+  });
+
   app.get("/thread-discovery/auth/reddit/callback", async (req, res) => {
     try {
       const { code, state, error } = req.query;
@@ -354,15 +366,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Exchange code for token
+      console.log('🔄 Starting token exchange with code:', code);
       const tokenData = await redditOAuth.exchangeCodeForToken(code as string);
+      console.log('✅ Token exchange successful');
       
       // Redirect to Thread Discovery page with success message
-      res.redirect('/thread-discovery?auth=success&message=Reddit authentication successful! You can now access full Reddit API features.');
+      const successUrl = '/thread-discovery?auth=success&message=Reddit authentication successful! You can now access full Reddit API features.';
+      console.log('🔄 Redirecting to:', successUrl);
+      res.redirect(successUrl);
 
     } catch (error) {
-      console.error('Reddit OAuth callback error:', error);
+      console.error('❌ Reddit OAuth callback error:', error);
+      const errorMessage = error.message.includes('400') 
+        ? 'Reddit authentication failed - invalid authorization code. Please try authenticating again.'
+        : 'Reddit authentication failed. Please try again.';
+      
       // Redirect to Thread Discovery page with error message
-      res.redirect('/thread-discovery?auth=error&message=Reddit authentication failed. Please try again.');
+      res.redirect(`/thread-discovery?auth=error&message=${encodeURIComponent(errorMessage)}`);
     }
   });
 
