@@ -135,9 +135,6 @@ class RedditOAuthClient {
   }
 }
 
-// Dynamic Reddit OAuth credentials storage
-let dynamicCredentials: RedditOAuthConfig | null = null;
-
 // Initialize Reddit OAuth client with environment variables
 const getRedirectUri = () => {
   if (process.env.REDDIT_REDIRECT_URI) {
@@ -152,35 +149,12 @@ const getRedirectUri = () => {
   return 'http://localhost:5000/auth/reddit/callback';
 };
 
-// Create Reddit OAuth client with current credentials
-const createRedditOAuthClient = (): RedditOAuthClient => {
-  const config = dynamicCredentials || {
-    clientId: process.env.REDDIT_CLIENT_ID || '',
-    clientSecret: process.env.REDDIT_CLIENT_SECRET || '',
-    redirectUri: getRedirectUri(),
-    userAgent: 'SocialMonitor:v1.0.0 (by /u/socialmonitor)'
-  };
-  
-  return new RedditOAuthClient(config);
-};
+const redditOAuth = new RedditOAuthClient({
+  clientId: process.env.REDDIT_CLIENT_ID || '',
+  clientSecret: process.env.REDDIT_CLIENT_SECRET || '',
+  redirectUri: getRedirectUri(),
+  userAgent: 'SocialMonitor:v1.0.0 (by /u/socialmonitor)'
+});
 
-// Set dynamic Reddit OAuth credentials
-const setRedditCredentials = (credentials: { clientId: string; clientSecret: string; redirectUri: string }) => {
-  dynamicCredentials = {
-    ...credentials,
-    userAgent: 'SocialMonitor:v1.0.0 (by /u/socialmonitor)'
-  };
-};
-
-// Check if credentials are configured
-const hasRedditCredentials = (): boolean => {
-  if (dynamicCredentials) {
-    return !!(dynamicCredentials.clientId && dynamicCredentials.clientSecret && dynamicCredentials.redirectUri);
-  }
-  return !!(process.env.REDDIT_CLIENT_ID && process.env.REDDIT_CLIENT_SECRET);
-};
-
-const redditOAuth = createRedditOAuthClient();
-
-export { redditOAuth, RedditOAuthClient, setRedditCredentials, hasRedditCredentials, createRedditOAuthClient };
+export { redditOAuth, RedditOAuthClient };
 export type { RedditTokenResponse, RedditOAuthConfig };

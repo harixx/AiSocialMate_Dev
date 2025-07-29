@@ -5,7 +5,7 @@ import { insertAlertSchema, insertSearchResultSchema, insertGeneratedReplySchema
 import OpenAI from "openai";
 import { GoogleGenAI } from "@google/genai";
 import { config } from "./config";
-import { redditOAuth, setRedditCredentials, hasRedditCredentials, createRedditOAuthClient } from "./reddit-oauth";
+import { redditOAuth } from "./reddit-oauth";
 
 // Initialize OpenAI client with validated configuration
 const openai = new OpenAI({ 
@@ -296,53 +296,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Reddit OAuth Credentials Configuration
-  app.post("/api/reddit/configure", (req, res) => {
-    try {
-      const { clientId, clientSecret, redirectUri } = req.body;
-      
-      if (!clientId || !clientSecret || !redirectUri) {
-        return res.status(400).json({ 
-          message: "Client ID, Client Secret, and Redirect URI are required" 
-        });
-      }
-      
-      // Validate redirect URI format
-      try {
-        new URL(redirectUri);
-      } catch {
-        return res.status(400).json({ message: "Invalid redirect URI format" });
-      }
-      
-      // Set the dynamic credentials
-      setRedditCredentials({ clientId, clientSecret, redirectUri });
-      
-      res.json({
-        success: true,
-        message: "Reddit OAuth credentials configured successfully"
-      });
-      
-    } catch (error) {
-      console.error('Reddit credentials configuration error:', error);
-      res.status(500).json({ 
-        message: "Failed to configure Reddit credentials",
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
-    }
-  });
-
   // Reddit OAuth Authentication Routes
   app.get("/auth/reddit", (req, res) => {
-    if (!hasRedditCredentials()) {
-      return res.status(400).json({
-        success: false,
-        message: "Reddit OAuth credentials not configured. Please configure them first."
-      });
-    }
-    
-    const currentClient = createRedditOAuthClient();
     const state = Math.random().toString(36).substring(7); // Generate random state
-    const authUrl = currentClient.getAuthUrl(state);
+    const authUrl = redditOAuth.getAuthUrl(state);
     
     // Store state in temporary memory for verification (in production, use proper session management)
     // Note: This is a simplified implementation - use Redis or database sessions in production
@@ -378,8 +335,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       storedStates.delete(state);
 
       // Exchange code for token
-      const currentClient = createRedditOAuthClient();
-      const tokenData = await currentClient.exchangeCodeForToken(code as string);
+      const tokenData = await redditOAuth.exchangeCodeForToken(code as string);
       
       // Redirect to Thread Discovery page with success message
       res.redirect('/?auth=success&message=Reddit authentication successful! You can now access full Reddit API features.');
@@ -392,19 +348,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get("/api/reddit/auth-status", (req, res) => {
-    const currentClient = createRedditOAuthClient();
-    const isAuthenticated = currentClient.isAuthenticated();
-    const credentialsConfigured = hasRedditCredentials();
-    
+    const isAuthenticated = redditOAuth.isAuthenticated();
     res.json({
       success: true,
       authenticated: isAuthenticated,
-      credentialsConfigured: credentialsConfigured,
       message: isAuthenticated 
         ? "Reddit authentication is active"
-        : credentialsConfigured 
-        ? "Reddit authentication required"
-        : "Reddit OAuth credentials required"
+        : "Reddit authentication required"
     });
   });
 
@@ -471,12 +421,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // First, try authenticated Reddit API if user has logged in
-      const currentClient = createRedditOAuthClient();
-      if (currentClient.isAuthenticated()) {
+      if (redditOAuth.isAuthenticated()) {
         console.log(`🔑 Using authenticated Reddit API`);
         
         try {
-          const data = await currentClient.fetchComments(subreddit, articleId);
+          const data = await redditOAuth.fetchComments(subreddit, articleId);
           
           // Parse Reddit response structure
           const post = data[0]?.data?.children?.[0]?.data;
