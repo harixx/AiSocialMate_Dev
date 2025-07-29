@@ -42,7 +42,7 @@ export default function RedditAuth({ onAuthChange }: RedditAuthProps) {
     },
   });
 
-  const isAuthenticated = authStatus?.authenticated as boolean;
+  const isAuthenticated = (authStatus as any)?.authenticated as boolean;
 
   // Notify parent component of auth changes
   if (onAuthChange && !isLoading) {

@@ -82,6 +82,12 @@ function createConfig(): AppConfig {
   const redditClientId = process.env.REDDIT_CLIENT_ID || '';
   const redditClientSecret = process.env.REDDIT_CLIENT_SECRET || '';
   const redditRedirectUri = process.env.REDDIT_REDIRECT_URI || '';
+
+  // Auto-detect Replit domain for OAuth if not explicitly set
+  if (!redditRedirectUri && process.env.REPLIT_DOMAINS) {
+    const replitDomain = process.env.REPLIT_DOMAINS.split(',')[0];
+    process.env.REDDIT_REDIRECT_URI = `https://${replitDomain}/auth/reddit/callback`;
+  }
   
   return {
     nodeEnv,
