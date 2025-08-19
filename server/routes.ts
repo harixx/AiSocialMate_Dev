@@ -60,10 +60,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const answer = firstResponse.choices[0].message.content || '';
 
-      // Second ChatGPT query for source citation
+      // Second ChatGPT query for source citation with proper conversation context
       const sourceResponse = await openai.chat.completions.create({
         model: 'gpt-4o',
         messages: [
+          {
+            role: 'user',
+            content: title
+          },
+          {
+            role: 'assistant',
+            content: answer
+          },
           {
             role: 'user',
             content: `For the previous answer, provide exact and verifiable sources. If using online references, include direct URLs. If relying on books, papers, or other publications, cite them with full details (author, title, year). If no external sources were used and the answer is based solely on AI training data or general knowledge, explicitly state that.`
