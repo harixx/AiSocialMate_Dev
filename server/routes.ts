@@ -74,7 +74,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           },
           {
             role: 'user',
-            content: `For the previous answer, provide exact and verifiable sources. IMPORTANT: If there are relevant Reddit discussions about this topic, include the direct Reddit URLs (reddit.com/r/subreddit/comments/...). Also include any other online references with direct URLs. If relying on books, papers, or other publications, cite them with full details (author, title, year). If no external sources were used and the answer is based solely on AI training data or general knowledge, explicitly state that.`
+            content: `For every response, search for and include direct links to relevant Reddit discussions on the topic. Only provide Reddit URLs that are accessible and directly related to the subject. If no relevant Reddit threads exist, explicitly state that none were found.`
           }
         ],
         temperature: 0.1,
