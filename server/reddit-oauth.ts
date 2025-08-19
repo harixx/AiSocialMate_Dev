@@ -148,29 +148,13 @@ class RedditOAuthClient {
   }
 }
 
-// Initialize Reddit OAuth client with environment variables
-const getRedirectUri = () => {
-  if (process.env.REDDIT_REDIRECT_URI) {
-    console.log('🔗 Using explicit REDDIT_REDIRECT_URI:', process.env.REDDIT_REDIRECT_URI);
-    return process.env.REDDIT_REDIRECT_URI;
-  }
-  
-  // Auto-detect Replit domain or use localhost for development
-  if (process.env.REPLIT_DOMAINS) {
-    const autoUri = `https://${process.env.REPLIT_DOMAINS}/thread-discovery/auth/reddit/callback`;
-    console.log('🔗 Auto-detected redirect URI:', autoUri);
-    return autoUri;
-  }
-  
-  const fallbackUri = 'http://localhost:5000/thread-discovery/auth/reddit/callback';
-  console.log('🔗 Using fallback redirect URI:', fallbackUri);
-  return fallbackUri;
-};
+// Reddit OAuth client is now initialized with runtime credentials only
+// No environment variables required for Reddit integration
 
 const redditOAuth = new RedditOAuthClient({
-  clientId: process.env.REDDIT_CLIENT_ID || '',
-  clientSecret: process.env.REDDIT_CLIENT_SECRET || '',
-  redirectUri: getRedirectUri(),
+  clientId: '', // Will be set via runtime authentication
+  clientSecret: '', // Will be set via runtime authentication
+  redirectUri: '', // Not needed for runtime authentication approach
   userAgent: 'SocialMonitor:v1.0.0 (by /u/socialmonitor)'
 });
 

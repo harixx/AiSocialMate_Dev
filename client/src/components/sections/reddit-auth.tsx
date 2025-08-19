@@ -173,6 +173,7 @@ export default function RedditAuth({ onAuthChange }: RedditAuthProps) {
                     <li>Copy the Client ID and Client Secret</li>
                   </ol>
                   <p className="mt-2"><strong>Security:</strong> Credentials are stored only in your browser session and never sent to our servers permanently.</p>
+                  <p className="mt-1 text-green-600"><strong>✅ No Environment Variables Required:</strong> This app doesn't need Reddit credentials in server environment variables - everything is handled through this UI.</p>
                 </div>
               </div>
             )}
