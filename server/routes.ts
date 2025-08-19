@@ -1045,32 +1045,10 @@ function enhancedSentimentAnalysis(text: string): 'positive' | 'negative' | 'neu
   return 'neutral';
 }
 
-// Enhanced stats extraction - Issue #2 fix
+// Only extract real platform statistics - no fake data
 function extractPlatformStats(result: any, platform: string): any {
-  const stats: any = {};
-  
-  if (platform === 'Reddit') {
-    stats.votes = result.upvotes || Math.floor(Math.random() * 500) + 50;
-    stats.comments = result.comments || Math.floor(Math.random() * 100) + 10;
-  } else if (platform === 'Quora') {
-    stats.views = result.views || Math.floor(Math.random() * 10000) + 1000;
-    stats.votes = result.upvotes || Math.floor(Math.random() * 200) + 20;
-  } else if (platform === 'Twitter' || platform === 'Twitter/X') {
-    stats.likes = result.likes || Math.floor(Math.random() * 1000) + 100;
-    stats.retweets = result.retweets || Math.floor(Math.random() * 300) + 30;
-    stats.shares = result.shares || Math.floor(Math.random() * 150) + 15;
-  } else if (platform === 'Facebook') {
-    stats.likes = result.likes || Math.floor(Math.random() * 800) + 80;
-    stats.shares = result.shares || Math.floor(Math.random() * 200) + 20;
-  } else if (platform === 'LinkedIn') {
-    stats.likes = result.likes || Math.floor(Math.random() * 600) + 60;
-    stats.shares = result.shares || Math.floor(Math.random() * 100) + 10;
-  } else if (platform === 'YouTube') {
-    stats.views = result.views || Math.floor(Math.random() * 50000) + 5000;
-    stats.likes = result.likes || Math.floor(Math.random() * 2000) + 200;
-  }
-  
-  return stats;
+  // Return empty object - only real stats will be included elsewhere
+  return {};
 }
 
 function getPlatformDomain(platform: string): string {

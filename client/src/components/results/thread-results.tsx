@@ -76,29 +76,25 @@ export default function ThreadResults({ results, totalResults, query }: ThreadRe
                 <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
                   <div className="flex items-center flex-wrap gap-4">
                     {thread.author && <span>by {thread.author}</span>}
-                    {thread.comments && (
+                    {thread.real_stats && thread.comments !== undefined && (
                       <span className="flex items-center space-x-1">
                         <MessageCircle className="h-3 w-3" />
                         <span>{thread.comments}</span>
-                        {thread.real_stats && (
-                          <span className="text-xs text-green-600 ml-1" title="Real Reddit data">✓</span>
-                        )}
+                        <span className="text-xs text-green-600 ml-1" title="Real Reddit data">✓</span>
                       </span>
                     )}
-                    {thread.upvotes && (
+                    {thread.real_stats && thread.upvotes !== undefined && (
                       <span className="flex items-center space-x-1">
                         <ArrowUp className="h-3 w-3" />
                         <span>{thread.upvotes}</span>
-                        {thread.real_stats && (
-                          <span className="text-xs text-green-600 ml-1" title="Real Reddit data">✓</span>
-                        )}
+                        <span className="text-xs text-green-600 ml-1" title="Real Reddit data">✓</span>
                       </span>
                     )}
-                    {thread.views && <span>👁 {thread.views}</span>}
-                    {thread.likes && <span>❤️ {thread.likes}</span>}
-                    {thread.shares && <span>🔄 {thread.shares}</span>}
-                    {thread.retweets && <span>🔁 {thread.retweets}</span>}
-                    {thread.reshares && <span>📤 {thread.reshares}</span>}
+                    {!thread.real_stats && thread.platform === 'Reddit' && (
+                      <span className="text-xs text-gray-400 italic">
+                        Enable Reddit authentication to see real statistics
+                      </span>
+                    )}
                   </div>
                   {thread.timestamp && <span>{thread.timestamp}</span>}
                 </div>

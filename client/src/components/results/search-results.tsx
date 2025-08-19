@@ -25,20 +25,9 @@ export default function SearchResults({ results, type, totalResults, query }: Se
     setLocation(`/ai-reply-generator?threadUrl=${encodeURIComponent(threadUrl)}&title=${encodeURIComponent(threadTitle)}`);
   };
 
-  // Issue #1 fix - Generate realistic statistics based on platform
-  const generateRealisticStats = (platform: string, index: number) => {
-    const seed = platform.length + index;
-    const baseViews = Math.floor(Math.random() * 10000) + 500 + (seed * 50);
-    const baseEngagement = Math.floor(baseViews * (0.02 + Math.random() * 0.08));
-    
-    return {
-      views: baseViews,
-      likes: Math.floor(baseEngagement * (0.6 + Math.random() * 0.4)),
-      votes: Math.floor(baseEngagement * (0.4 + Math.random() * 0.6)), 
-      comments: Math.floor(baseEngagement * (0.1 + Math.random() * 0.3)),
-      shares: Math.floor(baseEngagement * (0.05 + Math.random() * 0.15)),
-      retweets: Math.floor(baseEngagement * (0.3 + Math.random() * 0.4))
-    };
+  // Only show real statistics when available
+  const hasRealStats = (result: any) => {
+    return result.real_stats === true;
   };
 
   return (
@@ -69,105 +58,42 @@ export default function SearchResults({ results, type, totalResults, query }: Se
                   </p>
                 )}
                 
-                {/* Enhanced Platform-specific stats - Issue #1 fix */}
+                {/* Only show real platform statistics */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4 text-sm text-gray-500">
-                    {(() => {
-                      const stats = generateRealisticStats(result.platform, index);
-                      return (
-                        <>
-                          {result.platform === 'Reddit' && (
-                            <>
-                              <Tooltip>
-                                <TooltipTrigger>
-                                  <span className="flex items-center space-x-1 bg-orange-100 px-2 py-1 rounded">
-                                    <ArrowUp className="h-3 w-3 text-orange-600" />
-                                    <span className="font-medium text-orange-700">
-                                      {result.upvotes !== undefined ? result.upvotes : stats.votes}
-                                    </span>
-                                    {result.real_stats && (
-                                      <span className="text-xs text-green-600 ml-1">✓</span>
-                                    )}
-                                  </span>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  {result.real_stats ? "Real Reddit Upvotes" : "Estimated Reddit Votes"}
-                                </TooltipContent>
-                              </Tooltip>
-                              <Tooltip>
-                                <TooltipTrigger>
-                                  <span className="flex items-center space-x-1 bg-blue-100 px-2 py-1 rounded">
-                                    <MessageSquare className="h-3 w-3 text-blue-600" />
-                                    <span className="font-medium text-blue-700">
-                                      {result.comments !== undefined ? result.comments : stats.comments}
-                                    </span>
-                                    {result.real_stats && (
-                                      <span className="text-xs text-green-600 ml-1">✓</span>
-                                    )}
-                                  </span>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  {result.real_stats ? "Real Reddit Comments" : "Estimated Reddit Comments"}
-                                </TooltipContent>
-                              </Tooltip>
-                            </>
-                          )}
-                          {result.platform === 'Quora' && (
-                            <>
-                              <Tooltip>
-                                <TooltipTrigger>
-                                  <span className="flex items-center space-x-1 bg-green-100 px-2 py-1 rounded">
-                                    <Eye className="h-3 w-3 text-green-600" />
-                                    <span className="font-medium text-green-700">{stats.views}</span>
-                                  </span>
-                                </TooltipTrigger>
-                                <TooltipContent>Quora Views</TooltipContent>
-                              </Tooltip>
-                              <Tooltip>
-                                <TooltipTrigger>
-                                  <span className="flex items-center space-x-1 bg-purple-100 px-2 py-1 rounded">
-                                    <ThumbsUp className="h-3 w-3 text-purple-600" />
-                                    <span className="font-medium text-purple-700">{stats.votes}</span>
-                                  </span>
-                                </TooltipTrigger>
-                                <TooltipContent>Quora Votes</TooltipContent>
-                              </Tooltip>
-                            </>
-                          )}
-                          {(result.platform === 'Twitter/X' || result.platform === 'Twitter') && (
-                            <>
-                              <Tooltip>
-                                <TooltipTrigger>
-                                  <span className="flex items-center space-x-1 bg-red-100 px-2 py-1 rounded">
-                                    <Heart className="h-3 w-3 text-red-600" />
-                                    <span className="font-medium text-red-700">{stats.likes}</span>
-                                  </span>
-                                </TooltipTrigger>
-                                <TooltipContent>Twitter Likes</TooltipContent>
-                              </Tooltip>
-                              <Tooltip>
-                                <TooltipTrigger>
-                                  <span className="flex items-center space-x-1 bg-cyan-100 px-2 py-1 rounded">
-                                    <Repeat2 className="h-3 w-3 text-cyan-600" />
-                                    <span className="font-medium text-cyan-700">{stats.retweets}</span>
-                                  </span>
-                                </TooltipTrigger>
-                                <TooltipContent>Twitter Retweets</TooltipContent>
-                              </Tooltip>
-                              <Tooltip>
-                                <TooltipTrigger>
-                                  <span className="flex items-center space-x-1 bg-teal-100 px-2 py-1 rounded">
-                                    <Share2 className="h-3 w-3 text-teal-600" />
-                                    <span className="font-medium text-teal-700">{stats.shares}</span>
-                                  </span>
-                                </TooltipTrigger>
-                                <TooltipContent>Twitter Shares</TooltipContent>
-                              </Tooltip>
-                            </>
-                          )}
-                        </>
-                      );
-                    })()}
+                    {result.platform === 'Reddit' && hasRealStats(result) && (
+                      <>
+                        {result.upvotes !== undefined && (
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <span className="flex items-center space-x-1 bg-orange-100 px-2 py-1 rounded">
+                                <ArrowUp className="h-3 w-3 text-orange-600" />
+                                <span className="font-medium text-orange-700">{result.upvotes}</span>
+                                <span className="text-xs text-green-600 ml-1">✓</span>
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent>Real Reddit Upvotes</TooltipContent>
+                          </Tooltip>
+                        )}
+                        {result.comments !== undefined && (
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <span className="flex items-center space-x-1 bg-blue-100 px-2 py-1 rounded">
+                                <MessageSquare className="h-3 w-3 text-blue-600" />
+                                <span className="font-medium text-blue-700">{result.comments}</span>
+                                <span className="text-xs text-green-600 ml-1">✓</span>
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent>Real Reddit Comments</TooltipContent>
+                          </Tooltip>
+                        )}
+                      </>
+                    )}
+                    {result.platform === 'Reddit' && !hasRealStats(result) && (
+                      <span className="text-xs text-gray-400 italic">
+                        Enable Reddit authentication to see real statistics
+                      </span>
+                    )}
                     
                     {result.sentiment && (
                       <Badge variant="outline" className="text-xs">
