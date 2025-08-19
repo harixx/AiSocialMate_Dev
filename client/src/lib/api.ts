@@ -3,11 +3,35 @@ import { apiRequest } from "./queryClient";
 export const api = {
   // Search APIs
   searchBrandOpportunities: async (data: any) => {
+    // Include Reddit runtime auth if available
+    const redditAuth = sessionStorage.getItem('reddit_runtime_auth');
+    if (redditAuth) {
+      const authData = JSON.parse(redditAuth);
+      data = {
+        ...data,
+        runtimeClientId: authData.clientId,
+        runtimeClientSecret: authData.clientSecret,
+        runtimeUsername: authData.username,
+        runtimePassword: authData.password
+      };
+    }
     const response = await apiRequest('POST', '/api/search/brand-opportunities', data);
     return response.json();
   },
 
   searchThreads: async (data: any) => {
+    // Include Reddit runtime auth if available
+    const redditAuth = sessionStorage.getItem('reddit_runtime_auth');
+    if (redditAuth) {
+      const authData = JSON.parse(redditAuth);
+      data = {
+        ...data,
+        runtimeClientId: authData.clientId,
+        runtimeClientSecret: authData.clientSecret,
+        runtimeUsername: authData.username,
+        runtimePassword: authData.password
+      };
+    }
     const response = await apiRequest('POST', '/api/search/threads', data);
     return response.json();
   },

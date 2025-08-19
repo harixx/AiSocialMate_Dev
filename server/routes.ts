@@ -140,12 +140,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
             // Extract real Reddit statistics if this is a Reddit URL
             if (pr.platform === 'Reddit' && result.link.includes('reddit.com')) {
-              const realStats = await extractRealRedditStats(result.link, req);
+              const realStats = await extractRealRedditStats(result.link, req.body);
               if (realStats.real_stats) {
                 result = { ...result, ...realStats };
               } else {
                 // Mark that Reddit auth is available but stats couldn't be fetched
-                result.reddit_auth_available = hasRedditAuth(req);
+                result.reddit_auth_available = hasRedditAuth(req.body);
               }
             }
 
@@ -277,12 +277,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Extract real Reddit statistics if this is a Reddit URL
           let realStats = {};
           if (pr.platform === 'Reddit' && result.link.includes('reddit.com')) {
-            const realStats = await extractRealRedditStats(result.link, req);
+            const realStats = await extractRealRedditStats(result.link, req.body);
             if (realStats.real_stats) {
               result = { ...result, ...realStats };
             } else {
               // Mark that Reddit auth is available but stats couldn't be fetched
-              result.reddit_auth_available = hasRedditAuth(req);
+              result.reddit_auth_available = hasRedditAuth(req.body);
             }
           }
 
@@ -1077,13 +1077,13 @@ function getPlatformDomain(platform: string): string {
 }
 
 // Check if Reddit runtime authentication is available
-function hasRedditAuth(req: any): boolean {
-  const { runtimeClientId, runtimeClientSecret } = req.query;
+function hasRedditAuth(reqBody: any): boolean {
+  const { runtimeClientId, runtimeClientSecret } = reqBody;
   return !!(runtimeClientId && runtimeClientSecret);
 }
 
 // Extract real Reddit statistics from Reddit URLs
-async function extractRealRedditStats(redditUrl: string, req: any): Promise<any> {
+async function extractRealRedditStats(redditUrl: string, reqBody: any): Promise<any> {
   try {
     console.log(`🔍 Extracting real Reddit stats from: ${redditUrl}`);
 
@@ -1110,23 +1110,25 @@ async function extractRealRedditStats(redditUrl: string, req: any): Promise<any>
     }
 
     // Check for runtime authentication credentials
-    const runtimeAuth = process.env.REDDIT_RUNTIME_AUTH;
+    const runtimeClientId = reqBody.runtimeClientId;
+    const runtimeClientSecret = reqBody.runtimeClientSecret;
+    const runtimeUsername = reqBody.runtimeUsername;
+    const runtimePassword = reqBody.runtimePassword;
+
     let accessToken = null;
 
-    if (runtimeAuth) {
+    if (runtimeClientId && runtimeClientSecret) {
       try {
-        const authData = JSON.parse(runtimeAuth);
-
         // Get access token using runtime credentials
         const tokenResponse = await fetch('https://www.reddit.com/api/v1/access_token', {
           method: 'POST',
           headers: {
-            'Authorization': `Basic ${Buffer.from(`${authData.clientId}:${authData.clientSecret}`).toString('base64')}`,
+            'Authorization': `Basic ${Buffer.from(`${runtimeClientId}:${runtimeClientSecret}`).toString('base64')}`,
             'Content-Type': 'application/x-www-form-urlencoded',
             'User-Agent': 'SocialMonitor:1.0 (by /u/runtime_user)'
           },
-          body: authData.username && authData.password 
-            ? `grant_type=password&username=${authData.username}&password=${authData.password}`
+          body: runtimeUsername && runtimePassword 
+            ? `grant_type=password&username=${runtimeUsername}&password=${runtimePassword}`
             : 'grant_type=client_credentials'
         });
 
