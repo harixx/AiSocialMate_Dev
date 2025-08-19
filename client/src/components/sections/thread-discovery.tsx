@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import ThreadSearchForm from "@/components/forms/thread-search-form";
 import ThreadResults from "../results/thread-results";
-import RedditAuth from "@/components/sections/reddit-auth";
 import { useSearch } from "../../hooks/use-search";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
@@ -34,7 +33,7 @@ export default function ThreadDiscovery() {
           variant: "destructive",
         });
       }
-      
+
       // Clean up URL parameters
       const cleanUrl = window.location.pathname;
       window.history.replaceState({}, document.title, cleanUrl);
@@ -53,10 +52,6 @@ export default function ThreadDiscovery() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Thread Discovery</h1>
         <p className="text-gray-600">Discover relevant threads and conversations across social platforms using keywords.</p>
-      </div>
-
-      <div className="mb-6">
-        <RedditAuth />
       </div>
 
       <ThreadSearchForm 

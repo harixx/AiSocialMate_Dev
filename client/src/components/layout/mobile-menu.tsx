@@ -2,6 +2,7 @@ import { X, ChartLine, Search, MessageCircle, Bot, Bell, Download } from "lucide
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import type { Section } from "@/pages/home";
+import Link from "next/link";
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -26,7 +27,7 @@ export default function MobileMenu({
   setCurrentSection, 
   sections 
 }: MobileMenuProps) {
-  
+
   const handleSectionChange = (sectionId: Section) => {
     setCurrentSection(sectionId);
     onClose();
@@ -43,12 +44,12 @@ export default function MobileMenu({
             <span className="text-xl font-semibold">SocialMonitor AI</span>
           </SheetTitle>
         </SheetHeader>
-        
+
         <nav className="mt-8 space-y-2">
           {sections.map((section) => {
             const Icon = iconMap[section.icon as keyof typeof iconMap];
             const isActive = currentSection === section.id;
-            
+
             return (
               <Button
                 key={section.id}
@@ -62,6 +63,12 @@ export default function MobileMenu({
             );
           })}
         </nav>
+        
+        <div className="absolute bottom-0 left-0 right-0 p-4">
+          <Link href="/api-settings" className="text-gray-700 hover:text-gray-900 px-3 py-2 text-sm font-medium">
+            Settings
+          </Link>
+        </div>
       </SheetContent>
     </Sheet>
   );

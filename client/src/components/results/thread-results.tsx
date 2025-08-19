@@ -92,7 +92,10 @@ export default function ThreadResults({ results, totalResults, query }: ThreadRe
                     )}
                     {!thread.real_stats && thread.platform === 'Reddit' && (
                       <span className="text-xs text-gray-400 italic">
-                        Enable Reddit authentication to see real statistics
+                        {sessionStorage.getItem('reddit_runtime_auth') 
+                          ? 'Real Reddit statistics temporarily unavailable' 
+                          : 'Enable Reddit authentication to see real statistics'
+                        }
                       </span>
                     )}
                   </div>

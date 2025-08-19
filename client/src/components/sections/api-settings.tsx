@@ -7,8 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { Settings, Key, ExternalLink } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Settings, Key, ExternalLink, Shield, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import RedditAuth from "./reddit-auth";
 
 const formSchema = z.object({
   openaiApiKey: z.string().optional(),
@@ -74,11 +76,13 @@ export default function APISettings() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">API Settings</h1>
-        <p className="text-gray-600">Configure your custom API keys for enhanced functionality and higher usage limits.</p>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Settings</h1>
+        <p className="text-gray-600">Configure your API keys and authentication settings for enhanced functionality.</p>
       </div>
 
       <div className="space-y-6">
+        {/* Reddit Authentication Section */}
+        <RedditAuth />
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">

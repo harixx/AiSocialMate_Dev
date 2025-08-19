@@ -18,7 +18,7 @@ const gemini = new GoogleGenAI({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  
+
   // Health check and root endpoints
   app.get("/health", (req, res) => {
     res.json({ 
@@ -35,7 +35,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       service: "SocialMonitor AI API"
     });
   });
-  
+
   // Search endpoints
   app.post("/api/search/brand-opportunities", async (req, res) => {
     try {
@@ -99,13 +99,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const platformResults = await Promise.all(searchPromises);
-      
+
       // Issue #4 fix - Add GPT-4o sentiment analysis for brand opportunities
       const formattedResults = [];
       for (const pr of platformResults) {
         for (const result of pr.results) {
           let detectedSentiment = 'neutral';
-          
+
           // Use GPT-4o for advanced sentiment analysis when sentiment filtering is requested
           if (sentiment && sentiment !== 'all') {
             try {
@@ -124,7 +124,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 temperature: 0.1,
                 max_tokens: 10
               });
-              
+
               const analyzedSentiment = sentimentResponse.choices[0].message.content?.toLowerCase().trim();
               if (['positive', 'negative', 'neutral'].includes(analyzedSentiment || '')) {
                 detectedSentiment = analyzedSentiment || 'neutral';
@@ -137,12 +137,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Only include results matching sentiment filter
           if (sentiment === 'all' || detectedSentiment === sentiment) {
             let realStats = {};
-            
+
             // Extract real Reddit statistics if this is a Reddit URL
             if (pr.platform === 'Reddit' && result.link.includes('reddit.com')) {
-              realStats = await extractRealRedditStats(result.link);
+              const realStats = await extractRealRedditStats(result.link, req);
+              if (realStats.real_stats) {
+                result = { ...result, ...realStats };
+              } else {
+                // Mark that Reddit auth is available but stats couldn't be fetched
+                result.reddit_auth_available = hasRedditAuth(req);
+              }
             }
-            
+
             formattedResults.push({
               title: result.title,
               snippet: result.snippet,
@@ -235,13 +241,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const platformResults = await Promise.all(searchPromises);
-      
+
       // Issue #4 fix - Add GPT-4o sentiment analysis for thread discovery
       const formattedResults = [];
       for (const pr of platformResults) {
         for (const result of pr.results) {
           let detectedSentiment = 'neutral';
-          
+
           // Use GPT-4o for advanced sentiment analysis
           try {
             const sentimentResponse = await openai.chat.completions.create({
@@ -259,7 +265,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               temperature: 0.1,
               max_tokens: 10
             });
-            
+
             const analyzedSentiment = sentimentResponse.choices[0].message.content?.toLowerCase().trim();
             if (['positive', 'negative', 'neutral'].includes(analyzedSentiment || '')) {
               detectedSentiment = analyzedSentiment || 'neutral';
@@ -271,7 +277,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Extract real Reddit statistics if this is a Reddit URL
           let realStats = {};
           if (pr.platform === 'Reddit' && result.link.includes('reddit.com')) {
-            realStats = await extractRealRedditStats(result.link);
+            const realStats = await extractRealRedditStats(result.link, req);
+            if (realStats.real_stats) {
+              result = { ...result, ...realStats };
+            } else {
+              // Mark that Reddit auth is available but stats couldn't be fetched
+              result.reddit_auth_available = hasRedditAuth(req);
+            }
           }
 
           formattedResults.push({
@@ -318,7 +330,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/reddit/comments", async (req, res) => {
     try {
       const { url, runtimeClientId, runtimeClientSecret, runtimeUsername, runtimePassword } = req.query;
-      
+
       if (!url) {
         return res.status(400).json({ message: "Reddit URL is required" });
       }
@@ -326,7 +338,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Extract Reddit post details from URL with comprehensive URL parsing
       const redditUrl = url as string;
       console.log(`🔍 Processing Reddit URL: ${redditUrl}`);
-      
+
       // Check if this is a subreddit page (no comments)
       if (redditUrl.match(/\/r\/[^\/]+\/?$/) && !redditUrl.includes('/comments/')) {
         console.log(`❌ URL is a subreddit page, not a post: ${redditUrl}`);
@@ -338,7 +350,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           suggestion: "Please use a specific Reddit post URL that contains '/comments/'"
         });
       }
-      
+
       // Comprehensive regex patterns to handle all possible Reddit URL formats
       const patterns = [
         // Standard format: /r/subreddit/comments/post_id/title/
@@ -348,10 +360,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Format with query parameters
         /(?:https?:\/\/)?(?:www\.|old\.|m\.)?reddit\.com\/r\/([^\/]+)\/comments\/([a-zA-Z0-9]+)/,
       ];
-      
+
       let subreddit: string | undefined;
       let articleId: string | undefined;
-      
+
       // Try each pattern until we find a match
       for (const pattern of patterns) {
         const match = redditUrl.match(pattern);
@@ -361,7 +373,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           break;
         }
       }
-      
+
       if (!subreddit || !articleId) {
         console.error(`❌ Failed to parse Reddit URL: ${redditUrl}`);
         return res.status(400).json({ 
@@ -375,12 +387,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ]
         });
       }
-      
+
       // First, try runtime authentication if provided
       if (runtimeClientId && runtimeClientSecret) {
         console.log(`🔑 Using runtime Reddit API authentication`);
         console.log(`🔑 Client ID: ${runtimeClientId.substring(0, 4)}...`);
-        
+
         try {
           // Get access token using runtime credentials
           const tokenResponse = await fetch('https://www.reddit.com/api/v1/access_token', {
@@ -405,7 +417,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Fetch comments using runtime token with proper parameters
             const commentsUrl = `https://oauth.reddit.com/r/${subreddit}/comments/${articleId}?limit=100&depth=10&sort=top&raw_json=1`;
             console.log(`📡 Fetching comments from: ${commentsUrl}`);
-            
+
             const commentsResponse = await fetch(commentsUrl, {
               headers: {
                 'Authorization': `Bearer ${accessToken}`,
@@ -419,7 +431,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             if (commentsResponse.ok) {
               const data = await commentsResponse.json();
               console.log(`📊 Reddit API response received`);
-              
+
               // Parse Reddit response structure
               const post = data[0]?.data?.children?.[0]?.data;
               const comments = data[1]?.data?.children || [];
@@ -427,13 +439,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
               if (post) {
                 console.log(`✅ Post found: ${post.title}`);
                 console.log(`📝 Comments count: ${comments.length}`);
-                
+
                 // Format comments recursively
                 const formatComments = (commentData: any): any => {
                   if (!commentData?.data) return null;
-                  
+
                   const comment = commentData.data;
-                  
+
                   // Skip deleted/removed comments
                   if (comment.body === '[deleted]' || comment.body === '[removed]') {
                     return null;
@@ -496,9 +508,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Alternative approach: Use Reddit RSS feeds for basic info
       console.log(`📡 Attempting to fetch Reddit post via RSS approach`);
-      
+
       const rssUrl = `https://www.reddit.com/r/${subreddit}/comments/${articleId}/.rss?limit=100`;
-      
+
       try {
         const rssResponse = await fetch(rssUrl, {
           headers: {
@@ -507,14 +519,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             'Accept-Language': 'en-US,en;q=0.9'
           }
         });
-        
+
         if (rssResponse.ok) {
           const rssText = await rssResponse.text();
           console.log(`✅ Successfully fetched RSS data`);
-          
+
           const postTitle = rssText.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/)?.[1] || "Reddit Post";
           const postDescription = rssText.match(/<description><!\[CDATA\[(.*?)\]\]><\/description>/)?.[1] || "";
-          
+
           return res.json({
             success: true,
             post: {
@@ -568,10 +580,10 @@ Reddit requires OAuth login for full API access to prevent abuse and ensure user
       } catch (rssError) {
         console.log(`❌ RSS approach also failed:`, rssError);
       }
-      
+
       // Final fallback with comprehensive information about Reddit's restrictions
       console.error(`❌ All access methods failed for r/${subreddit}/comments/${articleId}`);
-      
+
       return res.json({
         success: true,
         post: {
@@ -714,13 +726,13 @@ Generate only the final reply text that would be posted.`;
             maxOutputTokens: 500,
           },
         });
-        
+
         generatedText = response.text || "";
       } else {
         // Use OpenAI API (default)
         const apiKey = customApiKey || config.openai.apiKey;
         const client = customApiKey ? new OpenAI({ apiKey: customApiKey }) : openai;
-        
+
         const response = await client.chat.completions.create({
           model: model,
           messages: [
@@ -822,15 +834,15 @@ Generate only the final reply text that would be posted.`;
     try {
       const { feedback } = req.body; // 'like' or 'dislike'
       const replyId = parseInt(req.params.id);
-      
+
       // Update reply with feedback (simplified for mem storage)
       const replies = await storage.getGeneratedReplies();
       const reply = replies.find(r => r.id === replyId);
-      
+
       if (!reply) {
         return res.status(404).json({ message: "Reply not found" });
       }
-      
+
       // In a real implementation, we would update the database
       // For now, just return success
       res.json({ success: true, feedback });
@@ -845,7 +857,7 @@ Generate only the final reply text that would be posted.`;
   app.post("/api/extract-questions", async (req, res) => {
     try {
       const { keyword, platforms } = req.body;
-      
+
       if (!keyword) {
         return res.status(400).json({ message: "Keyword is required" });
       }
@@ -893,7 +905,7 @@ Generate only the final reply text that would be posted.`;
   app.post("/api/generate-faq-answers", async (req, res) => {
     try {
       const { questions, brandName, brandWebsite, brandDescription } = req.body;
-      
+
       if (!questions || questions.length === 0) {
         return res.status(400).json({ message: "Questions are required" });
       }
@@ -1012,21 +1024,21 @@ Generate a JSON object with an array called "faqs" containing objects with "ques
 function enhancedSentimentAnalysis(text: string): 'positive' | 'negative' | 'neutral' {
   const positiveWords = ['good', 'great', 'excellent', 'amazing', 'love', 'best', 'fantastic', 'awesome', 'perfect', 'wonderful', 'outstanding', 'brilliant', 'superb', 'incredible', 'exceptional', 'satisfied', 'pleased', 'happy', 'delighted', 'impressed', 'recommend', 'valuable', 'helpful', 'useful', 'effective', 'successful', 'innovative', 'reliable', 'quality', 'premium'];
   const negativeWords = ['bad', 'terrible', 'awful', 'hate', 'worst', 'horrible', 'disappointing', 'useless', 'broken', 'frustrating', 'annoying', 'pathetic', 'disgusting', 'disaster', 'nightmare', 'failed', 'waste', 'regret', 'avoid', 'scam', 'overpriced', 'outdated', 'buggy', 'slow', 'unreliable', 'poor', 'lacking', 'insufficient', 'problematic', 'issue'];
-  
+
   const lowerText = text.toLowerCase();
   let positiveScore = 0;
   let negativeScore = 0;
-  
+
   positiveWords.forEach(word => {
     const matches = (lowerText.match(new RegExp(word, 'g')) || []).length;
     positiveScore += matches * (word.length > 6 ? 2 : 1);
   });
-  
+
   negativeWords.forEach(word => {
     const matches = (lowerText.match(new RegExp(word, 'g')) || []).length;
     negativeScore += matches * (word.length > 6 ? 2 : 1);
   });
-  
+
   // Check for negation patterns
   const negationPattern = /(not|don't|doesn't|didn't|won't|can't|isn't|aren't|wasn't|weren't)\s+\w+/g;
   const negations = lowerText.match(negationPattern);
@@ -1038,7 +1050,7 @@ function enhancedSentimentAnalysis(text: string): 'positive' | 'negative' | 'neu
     negativeScore += negatedPositive;
     positiveScore += negatedNegative;
   }
-  
+
   const threshold = 2;
   if (positiveScore - negativeScore > threshold) return 'positive';
   if (negativeScore - positiveScore > threshold) return 'negative';
@@ -1064,20 +1076,26 @@ function getPlatformDomain(platform: string): string {
   return domains[platform] || platform.toLowerCase() + '.com';
 }
 
+// Check if Reddit runtime authentication is available
+function hasRedditAuth(req: any): boolean {
+  const { runtimeClientId, runtimeClientSecret } = req.query;
+  return !!(runtimeClientId && runtimeClientSecret);
+}
+
 // Extract real Reddit statistics from Reddit URLs
-async function extractRealRedditStats(redditUrl: string): Promise<any> {
+async function extractRealRedditStats(redditUrl: string, req: any): Promise<any> {
   try {
     console.log(`🔍 Extracting real Reddit stats from: ${redditUrl}`);
-    
+
     // Parse Reddit URL to get subreddit and post ID
     const patterns = [
       /(?:https?:\/\/)?(?:www\.|old\.|m\.)?reddit\.com\/r\/([^\/]+)\/comments\/([a-zA-Z0-9]+)(?:\/[^\/]*)?(?:\/.*)?/,
       /(?:https?:\/\/)?reddit\.com\/r\/([^\/]+)\/comments\/([a-zA-Z0-9]+)(?:\/[^\/]*)?(?:\/.*)?/,
     ];
-    
+
     let subreddit: string | undefined;
     let articleId: string | undefined;
-    
+
     for (const pattern of patterns) {
       const match = redditUrl.match(pattern);
       if (match) {
@@ -1085,20 +1103,20 @@ async function extractRealRedditStats(redditUrl: string): Promise<any> {
         break;
       }
     }
-    
+
     if (!subreddit || !articleId) {
       console.log(`❌ Could not parse Reddit URL: ${redditUrl}`);
       return {};
     }
-    
+
     // Check for runtime authentication credentials
     const runtimeAuth = process.env.REDDIT_RUNTIME_AUTH;
     let accessToken = null;
-    
+
     if (runtimeAuth) {
       try {
         const authData = JSON.parse(runtimeAuth);
-        
+
         // Get access token using runtime credentials
         const tokenResponse = await fetch('https://www.reddit.com/api/v1/access_token', {
           method: 'POST',
@@ -1120,11 +1138,11 @@ async function extractRealRedditStats(redditUrl: string): Promise<any> {
         console.log('Failed to get Reddit token:', error);
       }
     }
-    
+
     // Try to fetch using Reddit API if we have a token
     if (accessToken) {
       const apiUrl = `https://oauth.reddit.com/r/${subreddit}/comments/${articleId}?limit=1&raw_json=1`;
-      
+
       const response = await fetch(apiUrl, {
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -1132,11 +1150,11 @@ async function extractRealRedditStats(redditUrl: string): Promise<any> {
           'Accept': 'application/json'
         }
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         const post = data[0]?.data?.children?.[0]?.data;
-        
+
         if (post) {
           console.log(`✅ Real Reddit stats extracted: ${post.score} upvotes, ${post.num_comments} comments`);
           return {
@@ -1150,7 +1168,7 @@ async function extractRealRedditStats(redditUrl: string): Promise<any> {
         }
       }
     }
-    
+
     // Fallback: Try Reddit JSON API (public, no auth required)
     try {
       const jsonUrl = `${redditUrl.replace(/\/$/, '')}.json?limit=1`;
@@ -1160,11 +1178,11 @@ async function extractRealRedditStats(redditUrl: string): Promise<any> {
           'Accept': 'application/json'
         }
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         const post = data[0]?.data?.children?.[0]?.data;
-        
+
         if (post) {
           console.log(`✅ Real Reddit stats extracted via JSON API: ${post.score} upvotes, ${post.num_comments} comments`);
           return {
@@ -1180,10 +1198,10 @@ async function extractRealRedditStats(redditUrl: string): Promise<any> {
     } catch (jsonError) {
       console.log('JSON API fallback failed:', jsonError);
     }
-    
+
     console.log(`❌ Could not extract real Reddit stats for: ${redditUrl}`);
     return {};
-    
+
   } catch (error) {
     console.error('Error extracting Reddit stats:', error);
     return {};

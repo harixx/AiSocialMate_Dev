@@ -30,6 +30,11 @@ export default function SearchResults({ results, type, totalResults, query }: Se
     return result.real_stats === true;
   };
 
+  // Check if Reddit auth is available in session
+  const hasRedditAuth = () => {
+    return sessionStorage.getItem('reddit_runtime_auth') !== null;
+  };
+
   return (
     <div className="mt-8">
       <Card>
@@ -91,7 +96,10 @@ export default function SearchResults({ results, type, totalResults, query }: Se
                     )}
                     {result.platform === 'Reddit' && !hasRealStats(result) && (
                       <span className="text-xs text-gray-400 italic">
-                        Enable Reddit authentication to see real statistics
+                        {hasRedditAuth() 
+                          ? 'Real Reddit statistics temporarily unavailable' 
+                          : 'Enable Reddit authentication to see real statistics'
+                        }
                       </span>
                     )}
                     
