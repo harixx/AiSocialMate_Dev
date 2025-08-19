@@ -16,7 +16,7 @@ interface ThreadResultsProps {
 export default function ThreadResults({ results, totalResults, query }: ThreadResultsProps) {
   const [, setLocation] = useLocation();
   const [expandedThreads, setExpandedThreads] = useState<Set<number>>(new Set());
-  
+
   if (!results || results.length === 0) {
     return null;
   }
@@ -66,26 +66,32 @@ export default function ThreadResults({ results, totalResults, query }: ThreadRe
                     {thread.platform}
                   </Badge>
                 </div>
-                
+
                 {thread.snippet && (
                   <p className="text-gray-600 text-sm mb-3 line-clamp-2">
                     {thread.snippet}
                   </p>
                 )}
-                
+
                 <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
                   <div className="flex items-center flex-wrap gap-4">
                     {thread.author && <span>by {thread.author}</span>}
-                    {thread.replies && (
+                    {thread.comments && (
                       <span className="flex items-center space-x-1">
                         <MessageCircle className="h-3 w-3" />
-                        <span>{thread.replies}</span>
+                        <span>{thread.comments}</span>
+                        {thread.real_stats && (
+                          <span className="text-xs text-green-600 ml-1" title="Real Reddit data">✓</span>
+                        )}
                       </span>
                     )}
                     {thread.upvotes && (
                       <span className="flex items-center space-x-1">
                         <ArrowUp className="h-3 w-3" />
                         <span>{thread.upvotes}</span>
+                        {thread.real_stats && (
+                          <span className="text-xs text-green-600 ml-1" title="Real Reddit data">✓</span>
+                        )}
                       </span>
                     )}
                     {thread.views && <span>👁 {thread.views}</span>}
@@ -96,7 +102,7 @@ export default function ThreadResults({ results, totalResults, query }: ThreadRe
                   </div>
                   {thread.timestamp && <span>{thread.timestamp}</span>}
                 </div>
-                
+
                 <div className="flex justify-between items-center">
                   <div className="flex items-center space-x-2">
                     <Button variant="outline" size="sm" asChild>
@@ -110,7 +116,7 @@ export default function ThreadResults({ results, totalResults, query }: ThreadRe
                         <ExternalLink className="h-3 w-3" />
                       </a>
                     </Button>
-                    
+
                     {isRedditPostWithComments(thread.url) && (
                       <Button 
                         variant="outline" 
@@ -132,7 +138,7 @@ export default function ThreadResults({ results, totalResults, query }: ThreadRe
                       </Button>
                     )}
                   </div>
-                  
+
                   <Button 
                     size="sm"
                     onClick={() => handleGenerateReply(thread.url, thread.title)}
@@ -142,7 +148,7 @@ export default function ThreadResults({ results, totalResults, query }: ThreadRe
                     <span>Generate Reply</span>
                   </Button>
                 </div>
-                
+
                 {expandedThreads.has(index) && isRedditPostWithComments(thread.url) && (
                   <div className="mt-4 border-t border-gray-200 pt-4">
                     <RedditComments url={thread.url} />

@@ -136,6 +136,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           // Only include results matching sentiment filter
           if (sentiment === 'all' || detectedSentiment === sentiment) {
+            let realStats = {};
+            
+            // Extract real Reddit statistics if this is a Reddit URL
+            if (pr.platform === 'Reddit' && result.link.includes('reddit.com')) {
+              realStats = await extractRealRedditStats(result.link);
+            }
+            
             formattedResults.push({
               title: result.title,
               snippet: result.snippet,
@@ -143,7 +150,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               platform: pr.platform,
               displayLink: result.displayLink,
               position: result.position,
-              sentiment: detectedSentiment
+              sentiment: detectedSentiment,
+              ...realStats // Include real Reddit statistics
             });
           }
         }
@@ -260,6 +268,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.log('Sentiment analysis failed, using neutral');
           }
 
+          // Extract real Reddit statistics if this is a Reddit URL
+          let realStats = {};
+          if (pr.platform === 'Reddit' && result.link.includes('reddit.com')) {
+            realStats = await extractRealRedditStats(result.link);
+          }
+
           formattedResults.push({
             title: result.title,
             snippet: result.snippet,
@@ -267,7 +281,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             platform: pr.platform,
             displayLink: result.displayLink,
             position: result.position,
-            sentiment: detectedSentiment
+            sentiment: detectedSentiment,
+            ...realStats // Include real Reddit statistics
           });
         }
       }
@@ -1069,4 +1084,130 @@ function getPlatformDomain(platform: string): string {
     'YouTube': 'youtube.com'
   };
   return domains[platform] || platform.toLowerCase() + '.com';
+}
+
+// Extract real Reddit statistics from Reddit URLs
+async function extractRealRedditStats(redditUrl: string): Promise<any> {
+  try {
+    console.log(`🔍 Extracting real Reddit stats from: ${redditUrl}`);
+    
+    // Parse Reddit URL to get subreddit and post ID
+    const patterns = [
+      /(?:https?:\/\/)?(?:www\.|old\.|m\.)?reddit\.com\/r\/([^\/]+)\/comments\/([a-zA-Z0-9]+)(?:\/[^\/]*)?(?:\/.*)?/,
+      /(?:https?:\/\/)?reddit\.com\/r\/([^\/]+)\/comments\/([a-zA-Z0-9]+)(?:\/[^\/]*)?(?:\/.*)?/,
+    ];
+    
+    let subreddit: string | undefined;
+    let articleId: string | undefined;
+    
+    for (const pattern of patterns) {
+      const match = redditUrl.match(pattern);
+      if (match) {
+        [, subreddit, articleId] = match;
+        break;
+      }
+    }
+    
+    if (!subreddit || !articleId) {
+      console.log(`❌ Could not parse Reddit URL: ${redditUrl}`);
+      return {};
+    }
+    
+    // Check for runtime authentication credentials
+    const runtimeAuth = process.env.REDDIT_RUNTIME_AUTH;
+    let accessToken = null;
+    
+    if (runtimeAuth) {
+      try {
+        const authData = JSON.parse(runtimeAuth);
+        
+        // Get access token using runtime credentials
+        const tokenResponse = await fetch('https://www.reddit.com/api/v1/access_token', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Basic ${Buffer.from(`${authData.clientId}:${authData.clientSecret}`).toString('base64')}`,
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'User-Agent': 'SocialMonitor:1.0 (by /u/runtime_user)'
+          },
+          body: authData.username && authData.password 
+            ? `grant_type=password&username=${authData.username}&password=${authData.password}`
+            : 'grant_type=client_credentials'
+        });
+
+        if (tokenResponse.ok) {
+          const tokenData = await tokenResponse.json();
+          accessToken = tokenData.access_token;
+        }
+      } catch (error) {
+        console.log('Failed to get Reddit token:', error);
+      }
+    }
+    
+    // Try to fetch using Reddit API if we have a token
+    if (accessToken) {
+      const apiUrl = `https://oauth.reddit.com/r/${subreddit}/comments/${articleId}?limit=1&raw_json=1`;
+      
+      const response = await fetch(apiUrl, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'User-Agent': 'SocialMonitor:1.0 (by /u/runtime_user)',
+          'Accept': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        const post = data[0]?.data?.children?.[0]?.data;
+        
+        if (post) {
+          console.log(`✅ Real Reddit stats extracted: ${post.score} upvotes, ${post.num_comments} comments`);
+          return {
+            upvotes: post.score,
+            comments: post.num_comments,
+            created_utc: post.created_utc,
+            author: post.author,
+            subreddit: post.subreddit,
+            real_stats: true
+          };
+        }
+      }
+    }
+    
+    // Fallback: Try Reddit JSON API (public, no auth required)
+    try {
+      const jsonUrl = `${redditUrl.replace(/\/$/, '')}.json?limit=1`;
+      const response = await fetch(jsonUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (compatible; SocialMonitor/1.0)',
+          'Accept': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        const post = data[0]?.data?.children?.[0]?.data;
+        
+        if (post) {
+          console.log(`✅ Real Reddit stats extracted via JSON API: ${post.score} upvotes, ${post.num_comments} comments`);
+          return {
+            upvotes: post.score,
+            comments: post.num_comments,
+            created_utc: post.created_utc,
+            author: post.author,
+            subreddit: post.subreddit,
+            real_stats: true
+          };
+        }
+      }
+    } catch (jsonError) {
+      console.log('JSON API fallback failed:', jsonError);
+    }
+    
+    console.log(`❌ Could not extract real Reddit stats for: ${redditUrl}`);
+    return {};
+    
+  } catch (error) {
+    console.error('Error extracting Reddit stats:', error);
+    return {};
+  }
 }

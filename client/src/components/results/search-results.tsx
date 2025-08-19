@@ -82,19 +82,33 @@ export default function SearchResults({ results, type, totalResults, query }: Se
                                 <TooltipTrigger>
                                   <span className="flex items-center space-x-1 bg-orange-100 px-2 py-1 rounded">
                                     <ArrowUp className="h-3 w-3 text-orange-600" />
-                                    <span className="font-medium text-orange-700">{stats.votes}</span>
+                                    <span className="font-medium text-orange-700">
+                                      {result.upvotes !== undefined ? result.upvotes : stats.votes}
+                                    </span>
+                                    {result.real_stats && (
+                                      <span className="text-xs text-green-600 ml-1">✓</span>
+                                    )}
                                   </span>
                                 </TooltipTrigger>
-                                <TooltipContent>Reddit Votes</TooltipContent>
+                                <TooltipContent>
+                                  {result.real_stats ? "Real Reddit Upvotes" : "Estimated Reddit Votes"}
+                                </TooltipContent>
                               </Tooltip>
                               <Tooltip>
                                 <TooltipTrigger>
                                   <span className="flex items-center space-x-1 bg-blue-100 px-2 py-1 rounded">
                                     <MessageSquare className="h-3 w-3 text-blue-600" />
-                                    <span className="font-medium text-blue-700">{stats.comments}</span>
+                                    <span className="font-medium text-blue-700">
+                                      {result.comments !== undefined ? result.comments : stats.comments}
+                                    </span>
+                                    {result.real_stats && (
+                                      <span className="text-xs text-green-600 ml-1">✓</span>
+                                    )}
                                   </span>
                                 </TooltipTrigger>
-                                <TooltipContent>Reddit Comments</TooltipContent>
+                                <TooltipContent>
+                                  {result.real_stats ? "Real Reddit Comments" : "Estimated Reddit Comments"}
+                                </TooltipContent>
                               </Tooltip>
                             </>
                           )}
