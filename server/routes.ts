@@ -462,6 +462,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // First, try runtime authentication if provided
       if (runtimeClientId && runtimeClientSecret) {
         console.log(`🔑 Using runtime Reddit API authentication`);
+        console.log(`🔑 Client ID: ${runtimeClientId.substring(0, 4)}...`);
         
         try {
           // Get access token using runtime credentials
@@ -477,26 +478,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
               : 'grant_type=client_credentials'
           });
 
+          console.log(`🔄 Token response status: ${tokenResponse.status}`);
+
           if (tokenResponse.ok) {
             const tokenData = await tokenResponse.json();
             const accessToken = tokenData.access_token;
+            console.log(`✅ Access token obtained`);
 
-            // Fetch comments using runtime token
-            const commentsResponse = await fetch(`https://oauth.reddit.com/r/${subreddit}/comments/${articleId}`, {
+            // Fetch comments using runtime token with proper parameters
+            const commentsUrl = `https://oauth.reddit.com/r/${subreddit}/comments/${articleId}?limit=100&depth=10&sort=top&raw_json=1`;
+            console.log(`📡 Fetching comments from: ${commentsUrl}`);
+            
+            const commentsResponse = await fetch(commentsUrl, {
               headers: {
                 'Authorization': `Bearer ${accessToken}`,
-                'User-Agent': 'SocialMonitor:1.0 (by /u/runtime_user)'
+                'User-Agent': 'SocialMonitor:1.0 (by /u/runtime_user)',
+                'Accept': 'application/json'
               }
             });
 
+            console.log(`📥 Comments response status: ${commentsResponse.status}`);
+
             if (commentsResponse.ok) {
               const data = await commentsResponse.json();
+              console.log(`📊 Reddit API response received`);
               
               // Parse Reddit response structure
               const post = data[0]?.data?.children?.[0]?.data;
               const comments = data[1]?.data?.children || [];
 
               if (post) {
+                console.log(`✅ Post found: ${post.title}`);
+                console.log(`📝 Comments count: ${comments.length}`);
+                
                 // Format comments recursively
                 const formatComments = (commentData: any): any => {
                   if (!commentData?.data) return null;
@@ -527,6 +541,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   .map(formatComments)
                   .filter(Boolean);
 
+                console.log(`🎯 Formatted ${formattedComments.length} comments successfully`);
+
                 return res.json({
                   success: true,
                   post: {
@@ -542,8 +558,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   source: 'runtime_api',
                   authenticated: true
                 });
+              } else {
+                console.log(`❌ No post data found in Reddit response`);
               }
+            } else {
+              const errorText = await commentsResponse.text();
+              console.log(`❌ Comments API failed: ${commentsResponse.status} - ${errorText}`);
             }
+          } else {
+            const errorText = await tokenResponse.text();
+            console.log(`❌ Token request failed: ${tokenResponse.status} - ${errorText}`);
           }
         } catch (runtimeError) {
           console.log(`❌ Runtime API failed:`, runtimeError);
