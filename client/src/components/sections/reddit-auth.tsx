@@ -1,12 +1,11 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, CheckCircle, AlertCircle, ExternalLink, Key, Settings } from "lucide-react";
+import { Shield, CheckCircle, Key, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 
@@ -23,61 +22,8 @@ export default function RedditAuth({ onAuthChange }: RedditAuthProps) {
   });
   const [isRuntimeAuth, setIsRuntimeAuth] = useState(false);
   const { toast } = useToast();
-  const queryClient = useQueryClient();
 
-  // Check authentication status
-  const { data: authStatus, isLoading } = useQuery({
-    queryKey: ['/api/reddit/auth-status'],
-    refetchInterval: 5000, // Check every 5 seconds when component is active
-    staleTime: 30 * 1000, // Consider data fresh for 30 seconds
-    queryFn: async () => {
-      const response = await fetch('/api/reddit/auth-status');
-      if (!response.ok) throw new Error('Failed to fetch auth status');
-      return response.json();
-    },
-  });
-
-  // Initiate Reddit OAuth authentication
-  const initiateAuth = useMutation({
-    mutationFn: async () => {
-      const response = await fetch('/auth/reddit');
-      if (!response.ok) throw new Error('Failed to initiate authentication');
-      return response.json();
-    },
-    onSuccess: (data) => {
-      if (data.authUrl) {
-        // Open Reddit OAuth in new window
-        const authWindow = window.open(data.authUrl, 'reddit-auth', 'width=500,height=600');
-
-        // Listen for when the auth window closes (user completes or cancels auth)
-        const checkClosed = setInterval(() => {
-          if (authWindow?.closed) {
-            clearInterval(checkClosed);
-            // Immediately check auth status when window closes
-            queryClient.invalidateQueries({ queryKey: ['/api/reddit/auth-status'] });
-          }
-        }, 1000); // Check if window closed every second
-
-        // Also check auth status periodically while window is open
-        const checkAuth = setInterval(() => {
-          queryClient.invalidateQueries({ queryKey: ['/api/reddit/auth-status'] });
-        }, 3000); // Check every 3 seconds
-
-        // Stop checking after 3 minutes to reduce load
-        setTimeout(() => {
-          clearInterval(checkAuth);
-          clearInterval(checkClosed);
-        }, 180000);
-      }
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Authentication Error",
-        description: error.message || "An unexpected error occurred.",
-        variant: "destructive"
-      });
-    }
-  });
+  
 
   const handleRuntimeAuth = () => {
     // Store runtime credentials in session for current browsing session
@@ -128,11 +74,9 @@ export default function RedditAuth({ onAuthChange }: RedditAuthProps) {
   // Check if runtime auth is already set
   const hasRuntimeAuth = sessionStorage.getItem('reddit_runtime_auth') !== null || isRuntimeAuth;
 
-  const isAuthenticated = (authStatus as any)?.authenticated as boolean;
-
   // Notify parent component of auth changes
-  if (onAuthChange && !isLoading) {
-    onAuthChange(isAuthenticated || hasRuntimeAuth || false);
+  if (onAuthChange) {
+    onAuthChange(hasRuntimeAuth);
   }
 
   return (
@@ -144,85 +88,7 @@ export default function RedditAuth({ onAuthChange }: RedditAuthProps) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="oauth" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="oauth" className="flex items-center space-x-2">
-              <ExternalLink className="h-4 w-4" />
-              <span>OAuth Login</span>
-            </TabsTrigger>
-            <TabsTrigger value="runtime" className="flex items-center space-x-2">
-              <Key className="h-4 w-4" />
-              <span>Runtime Auth</span>
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="oauth" className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                {isLoading ? (
-                  <Badge variant="outline">Checking...</Badge>
-                ) : isAuthenticated ? (
-                  <>
-                    <CheckCircle className="h-5 w-5 text-green-600" />
-                    <span className="font-medium">OAuth Authenticated</span>
-                    <Badge variant="secondary" className="bg-green-100 text-green-800">
-                      Active
-                    </Badge>
-                  </>
-                ) : (
-                  <>
-                    <AlertCircle className="h-5 w-5 text-orange-500" />
-                    <span className="font-medium">Not Authenticated</span>
-                    <Badge variant="secondary" className="bg-orange-100 text-orange-800">
-                      Limited Access
-                    </Badge>
-                  </>
-                )}
-              </div>
-
-              {!isAuthenticated && !initiateAuth.isPending && (
-                <Button onClick={() => initiateAuth.mutate()} className="flex items-center space-x-2">
-                  <ExternalLink className="h-4 w-4" />
-                  <span>Authenticate Reddit</span>
-                </Button>
-              )}
-              {initiateAuth.isPending && (
-                <Button disabled size="sm">
-                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-2"></div>
-                  Authenticating...
-                </Button>
-              )}
-            </div>
-
-            <div className="text-sm text-gray-600 space-y-2">
-              {isAuthenticated ? (
-                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
-                  <p className="text-green-800 dark:text-green-200 font-medium">✅ Reddit API Access Enabled via OAuth</p>
-                  <p className="text-green-700 dark:text-green-300 text-xs mt-1">
-                    You can now fetch full Reddit comments with real-time data, including comment scores,
-                    nested replies, and complete threading information.
-                  </p>
-                </div>
-              ) : (
-                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
-                  <p className="text-blue-800 dark:text-blue-200 font-medium">🔐 OAuth Authentication Required</p>
-                  <p className="text-blue-700 dark:text-blue-300 text-xs mt-1">
-                    Reddit requires OAuth authentication for full API access. Click "Authenticate Reddit"
-                    to login and enable complete comment fetching with threading and real-time scores.
-                  </p>
-                </div>
-              )}
-            </div>
-            {initiateAuth.isError && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                <p className="text-red-800 text-sm">
-                  Authentication failed. Please try again or contact support if the issue persists.
-                </p>
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="runtime" className="space-y-4">
+        <div className="space-y-4">
             {hasRuntimeAuth ? (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -310,8 +176,7 @@ export default function RedditAuth({ onAuthChange }: RedditAuthProps) {
                 </div>
               </div>
             )}
-          </TabsContent>
-        </Tabs>
+          </div>
 
         <div className="text-sm text-gray-500 mt-4">
           <p className="font-medium mb-1">What this enables:</p>
