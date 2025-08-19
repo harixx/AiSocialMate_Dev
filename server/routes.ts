@@ -74,7 +74,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           },
           {
             role: 'user',
-            content: `For the previous answer, provide exact and verifiable sources. If using online references, include direct URLs. If relying on books, papers, or other publications, cite them with full details (author, title, year). If no external sources were used and the answer is based solely on AI training data or general knowledge, explicitly state that.`
+            content: `For the previous answer, provide exact and verifiable sources. IMPORTANT: If there are relevant Reddit discussions about this topic, include the direct Reddit URLs (reddit.com/r/subreddit/comments/...). Also include any other online references with direct URLs. If relying on books, papers, or other publications, cite them with full details (author, title, year). If no external sources were used and the answer is based solely on AI training data or general knowledge, explicitly state that.`
           }
         ],
         temperature: 0.1,
@@ -87,7 +87,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let platformUrl = null;
 
       if (platform === 'Reddit') {
-        const redditUrlRegex = /https?:\/\/(?:www\.)?reddit\.com\/r\/[\w]+\/comments\/[\w]+\/[\w\-_]+\/?/gi;
+        // More comprehensive Reddit URL regex
+        const redditUrlRegex = /https?:\/\/(?:www\.|old\.|m\.)?reddit\.com\/r\/[a-zA-Z0-9_]+\/comments\/[a-zA-Z0-9]+(?:\/[^\s\)\]]*)?/gi;
         const redditMatches = sources.match(redditUrlRegex);
         platformUrl = redditMatches ? redditMatches[0] : null;
       } else if (platform === 'Quora') {
