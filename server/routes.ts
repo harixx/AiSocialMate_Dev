@@ -66,7 +66,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         messages: [
           {
             role: 'user',
-            content: `Please cite the exact sources of your previous answer with URLs or specific references, or indicate if it is based solely on AI training data. Previous answer: "${answer}"`
+            content: `For the previous answer, provide exact and verifiable sources. If using online references, include direct URLs. If relying on books, papers, or other publications, cite them with full details (author, title, year). If no external sources were used and the answer is based solely on AI training data or general knowledge, explicitly state that.`
           }
         ],
         temperature: 0.1,
@@ -77,7 +77,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Extract platform-specific URL based on the platform
       let platformUrl = null;
-      
+
       if (platform === 'Reddit') {
         const redditUrlRegex = /https?:\/\/(?:www\.)?reddit\.com\/r\/[\w]+\/comments\/[\w]+\/[\w\-_]+\/?/gi;
         const redditMatches = sources.match(redditUrlRegex);
