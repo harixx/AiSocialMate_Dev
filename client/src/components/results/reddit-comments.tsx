@@ -21,7 +21,7 @@ interface RedditCommentsProps {
 function formatTimeAgo(timestamp: number): string {
   const now = Date.now() / 1000;
   const diff = now - timestamp;
-  
+
   if (diff < 60) return `${Math.floor(diff)}s ago`;
   if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
   if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
@@ -30,18 +30,18 @@ function formatTimeAgo(timestamp: number): string {
 
 function CommentThread({ comment, maxDepth = 5 }: { comment: Comment; maxDepth?: number }) {
   const [showReplies, setShowReplies] = useState(true);
-  
+
   const getIndentColor = (depth: number) => {
     const colors = [
       'border-blue-300',
-      'border-green-300', 
+      'border-green-300',
       'border-yellow-300',
       'border-purple-300',
       'border-pink-300'
     ];
     return colors[depth % colors.length];
   };
-  
+
   return (
     <div className={`${comment.depth > 0 ? `ml-3 border-l-2 ${getIndentColor(comment.depth)} pl-3` : ''}`}>
       <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 mb-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
@@ -57,11 +57,11 @@ function CommentThread({ comment, maxDepth = 5 }: { comment: Comment; maxDepth?:
             </div>
           </div>
         </div>
-        
+
         <div className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap leading-relaxed">
           {comment.body}
         </div>
-        
+
         {comment.replies.length > 0 && (
           <button
             onClick={() => setShowReplies(!showReplies)}
@@ -74,7 +74,7 @@ function CommentThread({ comment, maxDepth = 5 }: { comment: Comment; maxDepth?:
           </button>
         )}
       </div>
-      
+
       {showReplies && comment.depth < maxDepth && comment.replies.length > 0 && (
         <div className="space-y-2">
           {comment.replies.map((reply) => (
@@ -82,7 +82,7 @@ function CommentThread({ comment, maxDepth = 5 }: { comment: Comment; maxDepth?:
           ))}
         </div>
       )}
-      
+
       {comment.depth >= maxDepth && comment.replies.length > 0 && (
         <div className="ml-4 text-xs text-gray-500 italic">
           + {comment.replies.length} more replies (view on Reddit)
@@ -96,11 +96,37 @@ export default function RedditComments({ url }: RedditCommentsProps) {
   const { data, isLoading, error } = useQuery({
     queryKey: ['/api/reddit/comments', url],
     queryFn: async () => {
-      const response = await fetch(`/api/reddit/comments?url=${encodeURIComponent(url)}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch comments');
-      }
-      return response.json();
+      const fetchComments = async () => {
+        if (!url) return;
+
+        // Check for runtime authentication credentials
+        const runtimeAuth = sessionStorage.getItem('reddit_runtime_auth');
+        let runtimeParams = '';
+
+        if (runtimeAuth) {
+          try {
+            const authData = JSON.parse(runtimeAuth);
+            const params = new URLSearchParams({
+              runtimeClientId: authData.clientId,
+              runtimeClientSecret: authData.clientSecret,
+            });
+
+            if (authData.username) params.append('runtimeUsername', authData.username);
+            if (authData.password) params.append('runtimePassword', authData.password);
+
+            runtimeParams = '&' + params.toString();
+          } catch (parseError) {
+            console.error('Failed to parse runtime auth:', parseError);
+          }
+        }
+
+        const response = await fetch(`/api/reddit/comments?url=${encodeURIComponent(url)}${runtimeParams}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch comments');
+        }
+        return response.json();
+      };
+      return fetchComments();
     },
     enabled: !!url
   });
@@ -181,7 +207,7 @@ export default function RedditComments({ url }: RedditCommentsProps) {
             <Badge variant="outline">Reddit</Badge>
           </div>
         </div>
-        
+
         {data.comments.length === 0 ? (
           <div className="text-center text-gray-500 dark:text-gray-400 py-8">
             <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />

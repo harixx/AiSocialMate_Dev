@@ -397,10 +397,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  // Reddit Comments Fetching (with OAuth support)
+  // Reddit Comments Fetching (with OAuth and Runtime Auth support)
   app.get("/api/reddit/comments", async (req, res) => {
     try {
-      const { url } = req.query;
+      const { url, runtimeClientId, runtimeClientSecret, runtimeUsername, runtimePassword } = req.query;
       
       if (!url) {
         return res.status(400).json({ message: "Reddit URL is required" });
@@ -459,9 +459,101 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // First, try authenticated Reddit API if user has logged in
+      // First, try runtime authentication if provided
+      if (runtimeClientId && runtimeClientSecret) {
+        console.log(`🔑 Using runtime Reddit API authentication`);
+        
+        try {
+          // Get access token using runtime credentials
+          const tokenResponse = await fetch('https://www.reddit.com/api/v1/access_token', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Basic ${Buffer.from(`${runtimeClientId}:${runtimeClientSecret}`).toString('base64')}`,
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'User-Agent': 'SocialMonitor:1.0 (by /u/runtime_user)'
+            },
+            body: runtimeUsername && runtimePassword 
+              ? `grant_type=password&username=${runtimeUsername}&password=${runtimePassword}`
+              : 'grant_type=client_credentials'
+          });
+
+          if (tokenResponse.ok) {
+            const tokenData = await tokenResponse.json();
+            const accessToken = tokenData.access_token;
+
+            // Fetch comments using runtime token
+            const commentsResponse = await fetch(`https://oauth.reddit.com/r/${subreddit}/comments/${articleId}`, {
+              headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'User-Agent': 'SocialMonitor:1.0 (by /u/runtime_user)'
+              }
+            });
+
+            if (commentsResponse.ok) {
+              const data = await commentsResponse.json();
+              
+              // Parse Reddit response structure
+              const post = data[0]?.data?.children?.[0]?.data;
+              const comments = data[1]?.data?.children || [];
+
+              if (post) {
+                // Format comments recursively
+                const formatComments = (commentData: any): any => {
+                  if (!commentData?.data) return null;
+                  
+                  const comment = commentData.data;
+                  
+                  // Skip deleted/removed comments
+                  if (comment.body === '[deleted]' || comment.body === '[removed]') {
+                    return null;
+                  }
+
+                  const replies = comment.replies?.data?.children
+                    ?.map(formatComments)
+                    .filter(Boolean) || [];
+
+                  return {
+                    id: comment.id,
+                    author: comment.author,
+                    body: comment.body,
+                    score: comment.score,
+                    created_utc: comment.created_utc,
+                    depth: comment.depth || 0,
+                    replies: replies
+                  };
+                };
+
+                const formattedComments = comments
+                  .map(formatComments)
+                  .filter(Boolean);
+
+                return res.json({
+                  success: true,
+                  post: {
+                    title: post.title,
+                    author: post.author,
+                    score: post.score,
+                    num_comments: post.num_comments,
+                    selftext: post.selftext,
+                    created_utc: post.created_utc
+                  },
+                  comments: formattedComments,
+                  total_comments: formattedComments.length,
+                  source: 'runtime_api',
+                  authenticated: true
+                });
+              }
+            }
+          }
+        } catch (runtimeError) {
+          console.log(`❌ Runtime API failed:`, runtimeError);
+          // Fall through to next approach
+        }
+      }
+
+      // Second, try OAuth authentication if available
       if (redditOAuth.isAuthenticated()) {
-        console.log(`🔑 Using authenticated Reddit API`);
+        console.log(`🔑 Using OAuth Reddit API`);
         
         try {
           const data = await redditOAuth.fetchComments(subreddit, articleId);
