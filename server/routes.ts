@@ -36,6 +36,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Checked Source API endpoint
+  app.post('/api/checked-source', async (req, res) => {
+    try {
+      const { title } = req.body;
+
+      if (!title) {
+        return res.status(400).json({ success: false, error: 'Title is required' });
+      }
+
+      // First ChatGPT query with exact title
+      const firstResponse = await openai.chat.completions.create({
+        model: 'gpt-4o',
+        messages: [
+          {
+            role: 'user',
+            content: title
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 500
+      });
+
+      const answer = firstResponse.choices[0].message.content || '';
+
+      // Second ChatGPT query for source citation
+      const sourceResponse = await openai.chat.completions.create({
+        model: 'gpt-4o',
+        messages: [
+          {
+            role: 'user',
+            content: `Please cite the exact sources of your previous answer with URLs or specific references, or indicate if it is based solely on AI training data. Previous answer: "${answer}"`
+          }
+        ],
+        temperature: 0.1,
+        max_tokens: 300
+      });
+
+      const sources = sourceResponse.choices[0].message.content || '';
+
+      // Parse for Reddit URL
+      const redditUrlRegex = /https?:\/\/(?:www\.)?reddit\.com\/r\/[\w]+\/comments\/[\w]+\/[\w\-_]+\/?/gi;
+      const redditMatches = sources.match(redditUrlRegex);
+      const redditSource = redditMatches ? redditMatches[0] : null;
+
+      res.json({
+        success: true,
+        answer,
+        sources,
+        redditSource
+      });
+
+    } catch (error) {
+      console.error('Error in checked source:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Failed to check source' 
+      });
+    }
+  });
+
   // Search endpoints
   app.post("/api/search/brand-opportunities", async (req, res) => {
     try {

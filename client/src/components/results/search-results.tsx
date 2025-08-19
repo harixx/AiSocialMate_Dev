@@ -3,8 +3,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { ExternalLink, Heart, Eye, Share2, ArrowUp, MessageSquare, ThumbsUp, Repeat2, Wand2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { ExternalLink, Heart, Eye, Share2, ArrowUp, MessageSquare, ThumbsUp, Repeat2, Wand2, Search } from "lucide-react";
 import { useLocation } from "wouter";
+import { useState } from "react";
 
 interface SearchResultsProps {
   results: any[];
@@ -15,6 +17,8 @@ interface SearchResultsProps {
 
 export default function SearchResults({ results, type, totalResults, query }: SearchResultsProps) {
   const [, setLocation] = useLocation();
+  const [checkedSources, setCheckedSources] = useState<{[key: number]: any}>({});
+  const [loadingSource, setLoadingSource] = useState<{[key: number]: boolean}>({});
   
   if (!results || results.length === 0) {
     return null;
@@ -23,6 +27,38 @@ export default function SearchResults({ results, type, totalResults, query }: Se
   // Issue #2 & #3 fix - Handle Generate Reply navigation with auto-fill
   const handleGenerateReply = (threadUrl: string, threadTitle: string) => {
     setLocation(`/ai-reply-generator?threadUrl=${encodeURIComponent(threadUrl)}&title=${encodeURIComponent(threadTitle)}`);
+  };
+
+  // Handle Checked Source functionality
+  const handleCheckedSource = async (index: number, title: string) => {
+    setLoadingSource(prev => ({ ...prev, [index]: true }));
+    
+    try {
+      const response = await fetch('/api/checked-source', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ title }),
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setCheckedSources(prev => ({
+          ...prev,
+          [index]: {
+            answer: data.answer,
+            sources: data.sources,
+            redditSource: data.redditSource
+          }
+        }));
+      }
+    } catch (error) {
+      console.error('Error checking source:', error);
+    } finally {
+      setLoadingSource(prev => ({ ...prev, [index]: false }));
+    }
   };
 
   // Only show real statistics when available
@@ -126,6 +162,65 @@ export default function SearchResults({ results, type, totalResults, query }: Se
                         Generate Reply
                       </Button>
                     )}
+                    
+                    {/* Checked Source button for Brand Opportunities */}
+                    {type === 'brand-opportunities' && (
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => !checkedSources[index] && handleCheckedSource(index, result.title)}
+                            disabled={loadingSource[index]}
+                            className="bg-green-50 hover:bg-green-100 border-green-200"
+                          >
+                            <Search className="h-3 w-3 mr-1" />
+                            {loadingSource[index] ? 'Checking...' : 'Checked Source'}
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                          <DialogHeader>
+                            <DialogTitle>Source Check: {result.title}</DialogTitle>
+                          </DialogHeader>
+                          {checkedSources[index] ? (
+                            <div className="space-y-4">
+                              <div>
+                                <h4 className="font-semibold mb-2">ChatGPT Response:</h4>
+                                <p className="text-gray-700 bg-gray-50 p-3 rounded">{checkedSources[index].answer}</p>
+                              </div>
+                              <div>
+                                <h4 className="font-semibold mb-2">Sources:</h4>
+                                <p className="text-gray-700 bg-gray-50 p-3 rounded">{checkedSources[index].sources}</p>
+                              </div>
+                              {checkedSources[index].redditSource && (
+                                <div>
+                                  <h4 className="font-semibold mb-2">Reddit Source Thread:</h4>
+                                  <a 
+                                    href={checkedSources[index].redditSource} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="text-blue-600 hover:text-blue-800 underline"
+                                  >
+                                    {checkedSources[index].redditSource}
+                                  </a>
+                                </div>
+                              )}
+                              {!checkedSources[index].redditSource && (
+                                <div>
+                                  <h4 className="font-semibold mb-2">Reddit Source:</h4>
+                                  <p className="text-gray-500 italic">No Reddit Source Available</p>
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="text-center py-8">
+                              <p className="text-gray-500">Click "Checked Source" to analyze this post</p>
+                            </div>
+                          )}
+                        </DialogContent>
+                      </Dialog>
+                    )}
+                    
                     <Button variant="outline" size="sm" asChild>
                       <a 
                         href={result.url} 
