@@ -30,7 +30,7 @@ export default function SearchResults({ results, type, totalResults, query }: Se
   };
 
   // Handle Checked Source functionality
-  const handleCheckedSource = async (index: number, title: string) => {
+  const handleCheckedSource = async (index: number, title: string, platform: string) => {
     setLoadingSource(prev => ({ ...prev, [index]: true }));
     
     try {
@@ -39,7 +39,7 @@ export default function SearchResults({ results, type, totalResults, query }: Se
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ title }),
+        body: JSON.stringify({ title, platform }),
       });
       
       const data = await response.json();
@@ -48,9 +48,8 @@ export default function SearchResults({ results, type, totalResults, query }: Se
         setCheckedSources(prev => ({
           ...prev,
           [index]: {
-            answer: data.answer,
-            sources: data.sources,
-            redditSource: data.redditSource
+            platformUrl: data.platformUrl,
+            platform: data.platform
           }
         }));
       }
@@ -170,7 +169,7 @@ export default function SearchResults({ results, type, totalResults, query }: Se
                           <Button 
                             variant="outline" 
                             size="sm"
-                            onClick={() => !checkedSources[index] && handleCheckedSource(index, result.title)}
+                            onClick={() => !checkedSources[index] && handleCheckedSource(index, result.title, result.platform)}
                             disabled={loadingSource[index]}
                             className="bg-green-50 hover:bg-green-100 border-green-200"
                           >
@@ -184,31 +183,22 @@ export default function SearchResults({ results, type, totalResults, query }: Se
                           </DialogHeader>
                           {checkedSources[index] ? (
                             <div className="space-y-4">
-                              <div>
-                                <h4 className="font-semibold mb-2">ChatGPT Response:</h4>
-                                <p className="text-gray-700 bg-gray-50 p-3 rounded">{checkedSources[index].answer}</p>
-                              </div>
-                              <div>
-                                <h4 className="font-semibold mb-2">Sources:</h4>
-                                <p className="text-gray-700 bg-gray-50 p-3 rounded">{checkedSources[index].sources}</p>
-                              </div>
-                              {checkedSources[index].redditSource && (
+                              {checkedSources[index].platformUrl ? (
                                 <div>
-                                  <h4 className="font-semibold mb-2">Reddit Source Thread:</h4>
+                                  <h4 className="font-semibold mb-2">{checkedSources[index].platform} Source Thread:</h4>
                                   <a 
-                                    href={checkedSources[index].redditSource} 
+                                    href={checkedSources[index].platformUrl} 
                                     target="_blank" 
                                     rel="noopener noreferrer"
-                                    className="text-blue-600 hover:text-blue-800 underline"
+                                    className="text-blue-600 hover:text-blue-800 underline break-all"
                                   >
-                                    {checkedSources[index].redditSource}
+                                    {checkedSources[index].platformUrl}
                                   </a>
                                 </div>
-                              )}
-                              {!checkedSources[index].redditSource && (
+                              ) : (
                                 <div>
-                                  <h4 className="font-semibold mb-2">Reddit Source:</h4>
-                                  <p className="text-gray-500 italic">No Reddit Source Available</p>
+                                  <h4 className="font-semibold mb-2">{checkedSources[index].platform} Source:</h4>
+                                  <p className="text-gray-500 italic">No {checkedSources[index].platform} Source Available</p>
                                 </div>
                               )}
                             </div>

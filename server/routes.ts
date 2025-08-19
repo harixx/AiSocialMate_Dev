@@ -39,7 +39,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Checked Source API endpoint
   app.post('/api/checked-source', async (req, res) => {
     try {
-      const { title } = req.body;
+      const { title, platform } = req.body;
 
       if (!title) {
         return res.status(400).json({ success: false, error: 'Title is required' });
@@ -75,16 +75,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const sources = sourceResponse.choices[0].message.content || '';
 
-      // Parse for Reddit URL
-      const redditUrlRegex = /https?:\/\/(?:www\.)?reddit\.com\/r\/[\w]+\/comments\/[\w]+\/[\w\-_]+\/?/gi;
-      const redditMatches = sources.match(redditUrlRegex);
-      const redditSource = redditMatches ? redditMatches[0] : null;
+      // Extract platform-specific URL based on the platform
+      let platformUrl = null;
+      
+      if (platform === 'Reddit') {
+        const redditUrlRegex = /https?:\/\/(?:www\.)?reddit\.com\/r\/[\w]+\/comments\/[\w]+\/[\w\-_]+\/?/gi;
+        const redditMatches = sources.match(redditUrlRegex);
+        platformUrl = redditMatches ? redditMatches[0] : null;
+      } else if (platform === 'Quora') {
+        const quoraUrlRegex = /https?:\/\/(?:www\.)?quora\.com\/[\w\-\/]+/gi;
+        const quoraMatches = sources.match(quoraUrlRegex);
+        platformUrl = quoraMatches ? quoraMatches[0] : null;
+      } else if (platform === 'Facebook') {
+        const facebookUrlRegex = /https?:\/\/(?:www\.)?facebook\.com\/[\w\-\/\.]+/gi;
+        const facebookMatches = sources.match(facebookUrlRegex);
+        platformUrl = facebookMatches ? facebookMatches[0] : null;
+      } else if (platform === 'Twitter' || platform === 'Twitter/X') {
+        const twitterUrlRegex = /https?:\/\/(?:www\.)?(?:twitter\.com|x\.com)\/[\w\-\/]+/gi;
+        const twitterMatches = sources.match(twitterUrlRegex);
+        platformUrl = twitterMatches ? twitterMatches[0] : null;
+      } else if (platform === 'LinkedIn') {
+        const linkedinUrlRegex = /https?:\/\/(?:www\.)?linkedin\.com\/[\w\-\/]+/gi;
+        const linkedinMatches = sources.match(linkedinUrlRegex);
+        platformUrl = linkedinMatches ? linkedinMatches[0] : null;
+      } else if (platform === 'YouTube') {
+        const youtubeUrlRegex = /https?:\/\/(?:www\.)?(?:youtube\.com|youtu\.be)\/[\w\-\/\?=]+/gi;
+        const youtubeMatches = sources.match(youtubeUrlRegex);
+        platformUrl = youtubeMatches ? youtubeMatches[0] : null;
+      }
 
       res.json({
         success: true,
-        answer,
-        sources,
-        redditSource
+        platformUrl,
+        platform: platform || 'Unknown'
       });
 
     } catch (error) {
