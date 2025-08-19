@@ -137,25 +137,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Only include results matching sentiment filter
           if (sentiment === 'all' || detectedSentiment === sentiment) {
             let realStats = {};
+            let processedResult = result;
 
             // Extract real Reddit statistics if this is a Reddit URL
             if (pr.platform === 'Reddit' && result.link.includes('reddit.com')) {
-              const realStats = await extractRealRedditStats(result.link, req.body);
-              if (realStats.real_stats) {
-                result = { ...result, ...realStats };
+              const redditStats = await extractRealRedditStats(result.link, req.body);
+              if (redditStats.real_stats) {
+                realStats = redditStats;
+                processedResult = { ...result, ...redditStats };
               } else {
                 // Mark that Reddit auth is available but stats couldn't be fetched
-                result.reddit_auth_available = hasRedditAuth(req.body);
+                processedResult = { ...result, reddit_auth_available: hasRedditAuth(req.body) };
               }
             }
 
             formattedResults.push({
-              title: result.title,
-              snippet: result.snippet,
-              url: result.link,
+              title: processedResult.title,
+              snippet: processedResult.snippet,
+              url: processedResult.link,
               platform: pr.platform,
-              displayLink: result.displayLink,
-              position: result.position,
+              displayLink: processedResult.displayLink,
+              position: processedResult.position,
               sentiment: detectedSentiment,
               ...realStats // Include real Reddit statistics
             });
@@ -276,23 +278,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           // Extract real Reddit statistics if this is a Reddit URL
           let realStats = {};
+          let processedResult = result;
+
           if (pr.platform === 'Reddit' && result.link.includes('reddit.com')) {
-            const realStats = await extractRealRedditStats(result.link, req.body);
-            if (realStats.real_stats) {
-              result = { ...result, ...realStats };
+            const redditStats = await extractRealRedditStats(result.link, req.body);
+            if (redditStats.real_stats) {
+              realStats = redditStats;
+              processedResult = { ...result, ...redditStats };
             } else {
               // Mark that Reddit auth is available but stats couldn't be fetched
-              result.reddit_auth_available = hasRedditAuth(req.body);
+              processedResult = { ...result, reddit_auth_available: hasRedditAuth(req.body) };
             }
           }
 
           formattedResults.push({
-            title: result.title,
-            snippet: result.snippet,
-            url: result.link,
+            title: processedResult.title,
+            snippet: processedResult.snippet,
+            url: processedResult.link,
             platform: pr.platform,
-            displayLink: result.displayLink,
-            position: result.position,
+            displayLink: processedResult.displayLink,
+            position: processedResult.position,
             sentiment: detectedSentiment,
             ...realStats // Include real Reddit statistics
           });
