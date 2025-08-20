@@ -45,6 +45,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ success: false, error: 'Title is required' });
       }
 
+      console.log(`🔍 Checking source for: "${title}" on platform: ${platform}`);
+
       // First ChatGPT query with exact title
       const firstResponse = await openai.chat.completions.create({
         model: 'gpt-4o',
@@ -60,7 +62,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const answer = firstResponse.choices[0].message.content || '';
 
-      // Second ChatGPT query for source citation with proper conversation context
+      // Second ChatGPT query for source citation with improved prompt
       const sourceResponse = await openai.chat.completions.create({
         model: 'gpt-4o',
         messages: [
@@ -74,23 +76,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
           },
           {
             role: 'user',
-            content: `For every response, search for and include direct links to relevant Reddit discussions on the topic. Only provide Reddit URLs that are accessible and directly related to the subject. If no relevant Reddit threads exist, explicitly state that none were found.`
+            content: platform === 'Reddit' 
+              ? `Find and provide specific Reddit discussion URLs about "${title}". Look for threads in relevant subreddits. Include the full reddit.com URLs in your response. Format: https://www.reddit.com/r/subreddit/comments/post_id/title/`
+              : `Find specific ${platform} links or discussions about "${title}". Provide the actual URLs where this topic is discussed on ${platform}.`
           }
         ],
         temperature: 0.1,
-        max_tokens: 300
+        max_tokens: 400
       });
 
       const sources = sourceResponse.choices[0].message.content || '';
+      console.log(`📝 GPT Source Response: ${sources.substring(0, 200)}...`);
 
       // Extract platform-specific URL based on the platform
       let platformUrl = null;
 
       if (platform === 'Reddit') {
-        // More comprehensive Reddit URL regex
-        const redditUrlRegex = /https?:\/\/(?:www\.|old\.|m\.)?reddit\.com\/r\/[a-zA-Z0-9_]+\/comments\/[a-zA-Z0-9]+(?:\/[^\s\)\]]*)?/gi;
-        const redditMatches = sources.match(redditUrlRegex);
-        platformUrl = redditMatches ? redditMatches[0] : null;
+        // Enhanced Reddit URL regex patterns
+        const redditPatterns = [
+          /https?:\/\/(?:www\.|old\.|m\.|new\.)?reddit\.com\/r\/[a-zA-Z0-9_]+\/comments\/[a-zA-Z0-9]+(?:\/[^\s\)\]\,\.\!\?]*)?/gi,
+          /reddit\.com\/r\/[a-zA-Z0-9_]+\/comments\/[a-zA-Z0-9]+/gi
+        ];
+        
+        for (const pattern of redditPatterns) {
+          const matches = sources.match(pattern);
+          if (matches && matches.length > 0) {
+            // Ensure URL has proper protocol
+            platformUrl = matches[0].startsWith('http') ? matches[0] : `https://${matches[0]}`;
+            console.log(`✅ Found Reddit URL: ${platformUrl}`);
+            break;
+          }
+        }
+        
+        // If no URL found in GPT response, try a direct Reddit search
+        if (!platformUrl) {
+          console.log(`🔄 No Reddit URL in GPT response, trying direct search...`);
+          try {
+            const searchQuery = `${title} site:reddit.com/r/`;
+            const searchResponse = await fetch('https://google.serper.dev/search', {
+              method: 'POST',
+              headers: {
+                'X-API-KEY': config.serper.apiKey,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                q: searchQuery,
+                num: 3,
+                hl: 'en',
+                gl: 'us'
+              }),
+            });
+            
+            if (searchResponse.ok) {
+              const searchData = await searchResponse.json();
+              const firstResult = searchData.organic?.[0];
+              if (firstResult && firstResult.link && firstResult.link.includes('reddit.com/r/') && firstResult.link.includes('/comments/')) {
+                platformUrl = firstResult.link;
+                console.log(`✅ Found Reddit URL via search: ${platformUrl}`);
+              }
+            }
+          } catch (searchError) {
+            console.log(`❌ Reddit search fallback failed:`, searchError);
+          }
+        }
       } else if (platform === 'Quora') {
         const quoraUrlRegex = /https?:\/\/(?:www\.)?quora\.com\/[\w\-\/]+/gi;
         const quoraMatches = sources.match(quoraUrlRegex);
@@ -113,17 +161,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         platformUrl = youtubeMatches ? youtubeMatches[0] : null;
       }
 
+      console.log(`📊 Final result - Platform: ${platform}, URL: ${platformUrl || 'None found'}`);
+
       res.json({
         success: true,
         platformUrl,
-        platform: platform || 'Unknown'
+        platform: platform || 'Unknown',
+        debug: {
+          hasUrl: !!platformUrl,
+          searchedFor: title,
+          sourcesLength: sources.length
+        }
       });
 
     } catch (error) {
       console.error('Error in checked source:', error);
       res.status(500).json({ 
         success: false, 
-        error: 'Failed to check source' 
+        error: 'Failed to check source',
+        details: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   });
