@@ -1,0 +1,285 @@
+Competitor-presence Rescan Alerts (no YouTube)
+1) Inputs & outputs
+
+Inputs (per alert)
+
+Alert name
+
+Owner (user/org)
+
+Competitor list: each competitor has
+
+canonical name (e.g., “Resimpli”)
+
+optional aliases (e.g., “Resimpli CRM”)
+
+optional canonical domains (e.g., resimpli.com)
+
+Platforms to monitor: only sites you choose (e.g., reddit.com, quora.com — YouTube is not included)
+
+Frequency (hourly/daily/weekly)
+
+Max results per platform per run (default 10)
+
+Notification settings (email, webhook, report URL)
+
+Active / Inactive flag
+
+Dedupe/retention window: 30 days (fixed)
+
+Outputs
+
+Run record (time, status, api calls used)
+
+New presence records (competitor, platform, sample items — title, URL, snippet, published_at if present) — only for new detections not seen in last 30 days
+
+Notifications per alert settings (digest or webhook)
+
+Dashboard/report of presence history
+
+2) High-level flow (one run)
+
+Scheduler finds active alerts due to run.
+
+For each alert, build competitor-centric queries (competitor name + aliases + site: filters for chosen platforms; no YouTube).
+
+Call the SERP API for each query (or batched), respecting rate limits and quota.
+
+Normalize results (title, URL, snippet, published time).
+
+Match each result to competitors via exact/alias/domain/fuzzy rules (fuzzy only if enabled).
+
+For each match compute dedupe key; if same dedupe key for same competitor exists within 30 days → skip; otherwise record presence.
+
+Aggregate new presences by competitor + platform; send notifications if any new presences exist (or remain silent if none — default).
+
+Save run summary, update dedupe store and quota counters.
+
+3) Detailed steps (plain language, decision points)
+A — Scheduling
+
+Keep next_run_time per alert. Scheduler enqueues jobs for due alerts.
+
+Enforce global monthly quota; when quota low, throttle non-priority alerts.
+
+B — Query construction
+
+For each competitor: build a query that uses the canonical name and aliases joined with OR, wrapped in quotes for exact phrases when appropriate.
+
+Restrict the query to the selected platforms using site: clauses (e.g., site:reddit.com OR site:quora.com). Do not include YouTube.
+
+Optionally allow intitle: or inurl: variants if user requests stricter matching.
+
+Sanitize and escape competitor names before building queries.
+
+C — SERP API call
+
+Execute query with num = max_results_per_scan. Page only if necessary and budget allows.
+
+On transient errors (429/5xx) retry a small number of times with exponential backoff. If still failing, mark run partial/failed and process any received results.
+
+D — Normalize results
+
+Extract title, url, snippet, result_type, published_at (if present), and raw JSON.
+
+Normalize strings (trim, normalize whitespace, lowercasing for matching).
+
+E — Entity matching (presence detection)
+
+A result counts as a detection for competitor C if ANY of:
+
+Exact phrase match of competitor canonical name or alias in title or snippet (word boundaries required).
+
+URL domain equals competitor canonical domain.
+
+Optional fuzzy match (only if enabled).
+
+Optional intitle:/inurl: match if user enabled stricter mode.
+
+If a single result mentions multiple competitors, record detection for each.
+
+F — Dedupe (30 days)
+
+Compute dedupe_key (e.g., normalized title + normalized snippet hashed).
+
+If same dedupe_key for same competitor exists in dedupe store within last 30 days, skip storing/re-notifying. Otherwise store new presence and add key to dedupe store with timestamp.
+
+G — Aggregate & limit
+
+For each competitor, collect up to the configured sample size (e.g., show up to 3 representative items).
+
+If thousands of new matches exist, include a count and a capped sample to avoid spam.
+
+H — Notifications & reporting
+
+If new presences exist:
+
+Compose email digest listing each competitor → platforms → sample items (title + link + snippet + status like unavailable if link dead).
+
+Prepare webhook payload (JSON) containing same fields. Sign webhook with HMAC.
+
+Send notifications; retry transient failures with backoff and mark permanent failures.
+
+If no new presences: do nothing by default (optionally send a “no detections” summary if user opted in).
+
+I — Post-run bookkeeping
+
+Save run summary: start/end times, api calls used, results returned, new presences saved, deduped count, status.
+
+Update last_run_time and schedule next_run_time.
+
+Update monthly usage/quota counters and send budget warnings if thresholds are crossed.
+
+4) Concrete example (end-to-end, with edge cases)
+
+Alert: “Competitor Watch (no YouTube)”
+
+Competitors: Resimpli (aliases: Resimpli CRM), Podio (aliases: Podio CRM)
+
+Platforms: reddit.com, quora.com (explicitly excludes YouTube)
+
+Frequency: daily at 02:00 UTC
+
+Max results per platform per run: 10
+
+Dedupe window: 30 days
+
+Notifications: email digest + webhook
+
+Fuzzy matching: OFF (default)
+
+Run starts at 02:00 UTC
+
+Scheduler enqueues the job.
+
+Query building
+
+Resimpli query: ("Resimpli" OR "Resimpli CRM") (site:reddit.com OR site:quora.com)
+
+Podio query: ("Podio" OR "Podio CRM") (site:reddit.com OR site:quora.com)
+
+SERP API calls
+
+Call for Resimpli → returns 8 items.
+
+Call for Podio → returns 7 items.
+
+(2 API calls counted toward quota)
+
+Example returned items (simulated)
+
+Resimpli items:
+
+R1: Reddit post — title: “Resimpli saved my business” — snippet includes Resimpli — published 2 days ago.
+
+R2: Quora answer — snippet mentions Resimpli — published 40 days ago.
+
+R3: Reddit crosspost — same text as R1 on different subreddit (different URL).
+
+R4: Reddit deleted — SERP shows cached snippet: “Resimpli is a scam!” but visiting URL returns 404.
+
+R5: Small blog (not in monitored platforms) — not returned (since only reddit/quora queried).
+
+Podio items:
+
+P1: Quora answer — mentions Podio.
+
+P2: Reddit post — mentions Podio and another competitor.
+
+P3: Reddit duplicate of P1 (mirror) — similar snippet, different URL.
+
+Normalize titles/snippets/URLs.
+
+Entity matching
+
+R1 → exact match for Resimpli → detection.
+
+R3 → content identical to R1 → detection (but content duplicate).
+
+R2 → exact match → detection.
+
+R4 → snippet contains Resimpli → detection (but URL unavailable).
+
+P1 & P2 → match Podio.
+
+P3 → duplicate of P1 → match Podio but possible dedupe.
+
+Dedupe check (30 days)
+
+Suppose R1’s dedupe key was first seen 10 days ago (already notified). So:
+
+R1 → deduped (skip new notify).
+
+R3 → deduped (same content) → skip.
+
+R4 (deleted) → not in dedupe store → treated as new; mark status = unavailable.
+
+R2 (40 days old) → outside 30-day window → considered new presence (unless you choose to ignore old items via optional filter).
+
+Podio: P1 is new → store; P3 dedupes to P1 → skip.
+
+Aggregate final new presences
+
+Resimpli: new presences today = R2 (Quora), R4 (Reddit deleted). (R1/R3 deduped.)
+
+Podio: new presence today = P1 (Quora) and P2 (Reddit). P3 deduped.
+
+Notifications
+
+Email digest lists:
+
+Resimpli — Quora (R2), Reddit (R4; unavailable flag).
+
+Podio — Quora (P1), Reddit (P2).
+
+Webhook JSON includes same data + dedupe keys and status flags.
+
+Bookkeeping
+
+Save run summary: api_calls=2, items_returned=15, new_presences=4, deduped=3, status=completed.
+
+Insert dedupe keys for R2, R4, P1, P2 into dedupe store with timestamps.
+
+Update last_run_time and next_run_time.
+
+Edge cases demonstrated in example
+
+Cross-posts (R3) are deduped using content-level dedupe keys.
+
+Deleted content (R4) is recorded but flagged unavailable. Notification includes that flag.
+
+Old content (R2, published 40 days ago) is outside 30-day dedupe and thus treated as new; product option exists to ignore older items if you want.
+
+Duplicate results across platforms (P3 deduped to P1) are handled by dedupe.
+
+No YouTube: no YouTube content is queried or reported.
+
+5) Full edge-case list & handling (concise)
+
+Cross-posts/mirrors → dedupe by normalized title+snippet hash.
+
+Deleted/private content → record with unavailable status; include snippet if present.
+
+Missing published date → mark published_at = unknown; still treat as detection.
+
+Fuzzy matches/typos → OFF by default; optional conservative fuzzy toggle.
+
+Ambiguous names/homonyms → prefer domain matches; allow manual canonical domain mapping.
+
+Multiple competitors in one item → record presence for each competitor.
+
+High volume matches → cap sample items, include total count.
+
+Quota exhaustion mid-run → process received items; stop further calls; mark run partial; notify owner.
+
+False positives (substring collisions) → require word boundaries in exact matching.
+
+Language mismatch → detect language; skip if alert restricted by language.
+
+Ads/sponsored results → excluded by default.
+
+Duplicated alerts → detect identical queries and run once, attributing results to all relevant alerts.
+
+PII in snippets → redact phone numbers/emails by default.
+
+Storage failure → retry; if persistent, mark run failed and avoid sending inconsistent notifications.
