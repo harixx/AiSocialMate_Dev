@@ -9,24 +9,58 @@ import AlertForm from "@/components/forms/alert-form";
 import { useAlerts } from "../../hooks/use-alerts";
 import AlertRunsDashboard from "./alert-runs-dashboard";
 import QuotaMonitoringDashboard from "./quota-monitoring-dashboard";
+import { useToast } from "@/hooks/use-toast";
 
 export default function RescanAlerts() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [selectedAlert, setSelectedAlert] = useState<number | null>(null);
+  const [runningAlerts, setRunningAlerts] = useState<Set<number>>(new Set());
   const { alerts, deleteAlert } = useAlerts();
+  const { toast } = useToast();
 
   const triggerAlert = async (alertId: number) => {
     try {
+      // Add to running alerts set
+      setRunningAlerts(prev => new Set([...prev, alertId]));
+      
       const response = await fetch(`/api/alerts/${alertId}/trigger`, {
         method: 'POST'
       });
       
       if (response.ok) {
-        // You might want to show a success message here
-        console.log('Alert triggered successfully');
+        const result = await response.json();
+        console.log('Alert triggered successfully:', result);
+        
+        // Show success feedback
+        toast({
+          title: "Alert Triggered Successfully!",
+          description: "The alert is now running. Check the Presence Dashboard for results.",
+        });
+      } else {
+        const error = await response.json();
+        console.error('Alert trigger failed:', error);
+        toast({
+          title: "Failed to Trigger Alert",
+          description: error.message || 'Unknown error occurred',
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Failed to trigger alert:', error);
+      toast({
+        title: "Failed to Trigger Alert",
+        description: error instanceof Error ? error.message : 'Network error occurred',
+        variant: "destructive"
+      });
+    } finally {
+      // Remove from running alerts set after a delay
+      setTimeout(() => {
+        setRunningAlerts(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(alertId);
+          return newSet;
+        });
+      }, 3000); // 3 second delay to show the running state
     }
   };
 
@@ -141,6 +175,11 @@ export default function RescanAlerts() {
                             <span>
                               {alert.frequency} • {formatNextRun(alert.nextRunTime)}
                             </span>
+                            {runningAlerts.has(alert.id) && (
+                              <Badge variant="secondary" className="ml-2 animate-pulse">
+                                Processing...
+                              </Badge>
+                            )}
                           </div>
                           
                           <div className="flex items-center gap-2">
@@ -188,10 +227,19 @@ export default function RescanAlerts() {
                           variant="outline" 
                           size="sm"
                           onClick={() => triggerAlert(alert.id)}
-                          disabled={!alert.isActive}
+                          disabled={!alert.isActive || runningAlerts.has(alert.id)}
                         >
-                          <Play className="h-4 w-4 mr-1" />
-                          Run Now
+                          {runningAlerts.has(alert.id) ? (
+                            <>
+                              <Clock className="h-4 w-4 mr-1 animate-spin" />
+                              Running...
+                            </>
+                          ) : (
+                            <>
+                              <Play className="h-4 w-4 mr-1" />
+                              Run Now
+                            </>
+                          )}
                         </Button>
                         
                         <Button 
