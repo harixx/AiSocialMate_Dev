@@ -216,7 +216,7 @@ export default function RescanAlerts() {
               <Card>
                 <CardHeader>
                   <div className="flex items-center justify-between">
-                    <CardTitle>Presence Dashboard - {alerts.find(a => a.id === selectedAlert)?.name}</CardTitle>
+                    <CardTitle>Presence Dashboard - {Array.isArray(alerts) ? alerts.find((a: any) => a.id === selectedAlert)?.name : ''}</CardTitle>
                     <Button variant="outline" onClick={() => setSelectedAlert(null)}>
                       Back to Alerts
                     </Button>
