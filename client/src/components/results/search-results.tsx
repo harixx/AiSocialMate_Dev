@@ -19,7 +19,7 @@ export default function SearchResults({ results, type, totalResults, query }: Se
   const [, setLocation] = useLocation();
   const [checkedSources, setCheckedSources] = useState<{[key: number]: any}>({});
   const [loadingSource, setLoadingSource] = useState<{[key: number]: boolean}>({});
-  
+
   if (!results || results.length === 0) {
     return null;
   }
@@ -32,7 +32,7 @@ export default function SearchResults({ results, type, totalResults, query }: Se
   // Handle Checked Source functionality
   const handleCheckedSource = async (index: number, title: string, platform: string) => {
     setLoadingSource(prev => ({ ...prev, [index]: true }));
-    
+
     try {
       const response = await fetch('/api/checked-source', {
         method: 'POST',
@@ -41,14 +41,15 @@ export default function SearchResults({ results, type, totalResults, query }: Se
         },
         body: JSON.stringify({ title, platform }),
       });
-      
+
       const data = await response.json();
-      
+
       if (data.success) {
         setCheckedSources(prev => ({
           ...prev,
           [index]: {
             platformUrl: data.platformUrl,
+            platformUrls: data.platformUrls, // Assuming API now returns an array of URLs
             platform: data.platform
           }
         }));
@@ -91,13 +92,13 @@ export default function SearchResults({ results, type, totalResults, query }: Se
                     {result.platform}
                   </Badge>
                 </div>
-                
+
                 {result.snippet && (
                   <p className="text-gray-600 text-sm mb-3 line-clamp-2">
                     {result.snippet}
                   </p>
                 )}
-                
+
                 {/* Only show real platform statistics */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4 text-sm text-gray-500">
@@ -137,7 +138,7 @@ export default function SearchResults({ results, type, totalResults, query }: Se
                         }
                       </span>
                     )}
-                    
+
                     {result.sentiment && (
                       <Badge variant="outline" className="text-xs">
                         {result.sentiment}
@@ -147,7 +148,7 @@ export default function SearchResults({ results, type, totalResults, query }: Se
                       <span className="text-xs">Position #{result.position}</span>
                     )}
                   </div>
-                  
+
                   <div className="flex items-center space-x-2">
                     {/* Issue #3 fix - Add Generate Reply button for Brand Opportunities */}
                     {type === 'brand-opportunities' && (
@@ -161,7 +162,7 @@ export default function SearchResults({ results, type, totalResults, query }: Se
                         Generate Reply
                       </Button>
                     )}
-                    
+
                     {/* Professional Checked Source for Brand Opportunities */}
                     {type === 'brand-opportunities' && (
                       <Dialog>
@@ -198,7 +199,7 @@ export default function SearchResults({ results, type, totalResults, query }: Se
                               AI-powered verification of discussion authenticity and context
                             </p>
                           </DialogHeader>
-                          
+
                           <div className="pt-6">
                             <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
                               <h3 className="font-medium text-gray-900 mb-2">Target Discussion</h3>
@@ -208,91 +209,64 @@ export default function SearchResults({ results, type, totalResults, query }: Se
                             </div>
 
                             {checkedSources[index] ? (
-                              <div className="space-y-4">
-                                {checkedSources[index].platformUrl ? (
-                                  <div className="bg-white rounded-lg border border-gray-200 p-6">
-                                    <div className="flex items-center mb-4">
-                                      <div className="flex items-center justify-center w-8 h-8 bg-green-100 rounded-full mr-3">
-                                        <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                        </svg>
-                                      </div>
-                                      <div>
-                                        <h4 className="font-semibold text-green-800">Verification Successful</h4>
-                                        <p className="text-sm text-green-600">Found authentic {checkedSources[index].platform} discussion</p>
-                                      </div>
-                                    </div>
-                                    
-                                    <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                                <div className="flex items-center mb-4">
+                                  <div className="flex items-center justify-center w-8 h-8 bg-green-100 rounded-full mr-3">
+                                    <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                    </svg>
+                                  </div>
+                                  <div>
+                                    <h4 className="font-semibold text-green-800">Verification Successful</h4>
+                                    <p className="text-sm text-green-600">
+                                      Found {checkedSources[index].platformUrls ? checkedSources[index].platformUrls.length : 1} authentic {checkedSources[index].platform} discussion{checkedSources[index].platformUrls && checkedSources[index].platformUrls.length > 1 ? 's' : ''}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <div className="space-y-3">
+                                  {(checkedSources[index].platformUrls || [checkedSources[index].platformUrl]).filter(Boolean).map((url: string, urlIndex: number) => (
+                                    <div key={urlIndex} className="bg-green-50 rounded-lg p-4 border border-green-200">
                                       <div className="flex items-center justify-between mb-2">
-                                        <span className="text-sm font-medium text-green-800">Verified Source Thread</span>
+                                        <span className="text-sm font-medium text-green-800">
+                                          {urlIndex === 0 ? 'Primary Source Thread' : `Additional Source ${urlIndex}`}
+                                        </span>
                                         <Badge variant="secondary" className="bg-green-100 text-green-700 border-green-200">
                                           {checkedSources[index].platform}
                                         </Badge>
                                       </div>
                                       <a 
-                                        href={checkedSources[index].platformUrl} 
+                                        href={url} 
                                         target="_blank" 
                                         rel="noopener noreferrer"
-                                        className="inline-flex items-center text-sm text-green-700 hover:text-green-900 bg-white px-3 py-2 rounded border border-green-200 hover:border-green-300 transition-colors duration-200 break-all"
+                                        className="inline-flex items-center text-sm text-green-700 hover:text-green-900 bg-white px-3 py-2 rounded border border-green-200 hover:border-green-300 transition-colors duration-200 break-all w-full"
                                       >
                                         <ExternalLink className="h-4 w-4 mr-2 flex-shrink-0" />
-                                        <span className="truncate">{checkedSources[index].platformUrl}</span>
+                                        <span className="truncate">{url}</span>
                                       </a>
                                     </div>
+                                  ))}
+                                </div>
 
-                                    <div className="mt-4 pt-4 border-t border-gray-200">
-                                      <div className="flex items-center text-xs text-gray-500">
-                                        <div className="flex items-center mr-4">
-                                          <div className="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
-                                          Authenticity Verified
-                                        </div>
-                                        <div className="flex items-center">
-                                          <div className="w-2 h-2 bg-blue-400 rounded-full mr-2"></div>
-                                          Context Validated
-                                        </div>
+                                <div className="mt-4 pt-4 border-t border-gray-200">
+                                  <div className="flex items-center justify-between text-xs text-gray-500">
+                                    <div className="flex items-center space-x-4">
+                                      <div className="flex items-center">
+                                        <div className="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
+                                        Authenticity Verified
+                                      </div>
+                                      <div className="flex items-center">
+                                        <div className="w-2 h-2 bg-blue-400 rounded-full mr-2"></div>
+                                        Context Validated
                                       </div>
                                     </div>
+                                    {checkedSources[index].platformUrls && checkedSources[index].platformUrls.length > 1 && (
+                                      <span className="text-green-600 font-medium">
+                                        {checkedSources[index].platformUrls.length} sources found
+                                      </span>
+                                    )}
                                   </div>
-                                ) : (
-                                  <div className="bg-white rounded-lg border border-gray-200 p-6">
-                                    <div className="flex items-center mb-4">
-                                      <div className="flex items-center justify-center w-8 h-8 bg-amber-100 rounded-full mr-3">
-                                        <svg className="w-4 h-4 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
-                                          <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                                        </svg>
-                                      </div>
-                                      <div>
-                                        <h4 className="font-semibold text-amber-800">Source Not Found</h4>
-                                        <p className="text-sm text-amber-600">No corresponding {checkedSources[index].platform} discussion located</p>
-                                      </div>
-                                    </div>
-                                    
-                                    <div className="bg-amber-50 rounded-lg p-4 border border-amber-200">
-                                      <p className="text-sm text-amber-800 mb-2">
-                                        <strong>Analysis Result:</strong> Our AI verification system could not locate an authentic {checkedSources[index].platform} discussion matching this topic.
-                                      </p>
-                                      <div className="text-xs text-amber-700 space-y-1">
-                                        <p>• This may indicate the discussion is from a different platform</p>
-                                        <p>• The original thread may have been removed or made private</p>
-                                        <p>• The content might be from a closed community or group</p>
-                                      </div>
-                                    </div>
-
-                                    <div className="mt-4 pt-4 border-t border-gray-200">
-                                      <div className="flex items-center text-xs text-gray-500">
-                                        <div className="flex items-center mr-4">
-                                          <div className="w-2 h-2 bg-amber-400 rounded-full mr-2"></div>
-                                          Verification Attempted
-                                        </div>
-                                        <div className="flex items-center">
-                                          <div className="w-2 h-2 bg-gray-400 rounded-full mr-2"></div>
-                                          Source Unavailable
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                )}
+                                </div>
                               </div>
                             ) : (
                               <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
@@ -312,7 +286,7 @@ export default function SearchResults({ results, type, totalResults, query }: Se
                         </DialogContent>
                       </Dialog>
                     )}
-                    
+
                     <Button variant="outline" size="sm" asChild>
                       <a 
                         href={result.url} 

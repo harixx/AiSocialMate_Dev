@@ -88,8 +88,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const sources = sourceResponse.choices[0].message.content || '';
       console.log(`📝 GPT Source Response: ${sources.substring(0, 200)}...`);
 
-      // Extract platform-specific URL based on the platform
-      let platformUrl = null;
+      // Extract platform-specific URLs based on the platform
+      let platformUrls = [];
+      let primaryUrl = null;
 
       if (platform === 'Reddit') {
         // Enhanced Reddit URL regex patterns
@@ -98,77 +99,109 @@ export async function registerRoutes(app: Express): Promise<Server> {
           /reddit\.com\/r\/[a-zA-Z0-9_]+\/comments\/[a-zA-Z0-9]+/gi
         ];
         
+        // Extract all Reddit URLs from GPT response
         for (const pattern of redditPatterns) {
           const matches = sources.match(pattern);
           if (matches && matches.length > 0) {
-            // Ensure URL has proper protocol
-            platformUrl = matches[0].startsWith('http') ? matches[0] : `https://${matches[0]}`;
-            console.log(`✅ Found Reddit URL: ${platformUrl}`);
+            matches.forEach(match => {
+              const url = match.startsWith('http') ? match : `https://${match}`;
+              if (!platformUrls.includes(url)) {
+                platformUrls.push(url);
+                console.log(`✅ Found Reddit URL: ${url}`);
+              }
+            });
             break;
           }
         }
         
-        // If no URL found in GPT response, try a direct Reddit search
-        if (!platformUrl) {
-          console.log(`🔄 No Reddit URL in GPT response, trying direct search...`);
-          try {
-            const searchQuery = `${title} site:reddit.com/r/`;
-            const searchResponse = await fetch('https://google.serper.dev/search', {
-              method: 'POST',
-              headers: {
-                'X-API-KEY': config.serper.apiKey,
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                q: searchQuery,
-                num: 3,
-                hl: 'en',
-                gl: 'us'
-              }),
-            });
-            
-            if (searchResponse.ok) {
-              const searchData = await searchResponse.json();
-              const firstResult = searchData.organic?.[0];
-              if (firstResult && firstResult.link && firstResult.link.includes('reddit.com/r/') && firstResult.link.includes('/comments/')) {
-                platformUrl = firstResult.link;
-                console.log(`✅ Found Reddit URL via search: ${platformUrl}`);
+        // Enhanced search with multiple strategies if no URLs found in GPT response
+        if (platformUrls.length === 0) {
+          console.log(`🔄 No Reddit URLs in GPT response, trying comprehensive search...`);
+          
+          const searchStrategies = [
+            `"${title}" site:reddit.com/r/`,
+            `${title.replace(/[^\w\s]/g, '')} site:reddit.com/r/`,
+            `${title.split(' ').slice(0, 3).join(' ')} site:reddit.com/r/`,
+            `${title.split(' ').slice(-3).join(' ')} site:reddit.com/r/`
+          ];
+          
+          for (const searchQuery of searchStrategies) {
+            try {
+              const searchResponse = await fetch('https://google.serper.dev/search', {
+                method: 'POST',
+                headers: {
+                  'X-API-KEY': config.serper.apiKey,
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  q: searchQuery,
+                  num: 10,
+                  hl: 'en',
+                  gl: 'us'
+                }),
+              });
+              
+              if (searchResponse.ok) {
+                const searchData = await searchResponse.json();
+                const redditResults = searchData.organic?.filter(result => 
+                  result.link && 
+                  result.link.includes('reddit.com/r/') && 
+                  result.link.includes('/comments/')
+                ) || [];
+                
+                redditResults.forEach(result => {
+                  if (!platformUrls.includes(result.link)) {
+                    platformUrls.push(result.link);
+                    console.log(`✅ Found Reddit URL via search: ${result.link}`);
+                  }
+                });
+                
+                if (platformUrls.length >= 5) break; // Limit to 5 URLs max
               }
+            } catch (searchError) {
+              console.log(`❌ Search strategy "${searchQuery}" failed:`, searchError);
             }
-          } catch (searchError) {
-            console.log(`❌ Reddit search fallback failed:`, searchError);
           }
         }
+        
+        primaryUrl = platformUrls[0] || null;
       } else if (platform === 'Quora') {
         const quoraUrlRegex = /https?:\/\/(?:www\.)?quora\.com\/[\w\-\/]+/gi;
         const quoraMatches = sources.match(quoraUrlRegex);
-        platformUrl = quoraMatches ? quoraMatches[0] : null;
+        platformUrls = quoraMatches ? [...new Set(quoraMatches)] : [];
+        primaryUrl = platformUrls[0] || null;
       } else if (platform === 'Facebook') {
         const facebookUrlRegex = /https?:\/\/(?:www\.)?facebook\.com\/[\w\-\/\.]+/gi;
         const facebookMatches = sources.match(facebookUrlRegex);
-        platformUrl = facebookMatches ? facebookMatches[0] : null;
+        platformUrls = facebookMatches ? [...new Set(facebookMatches)] : [];
+        primaryUrl = platformUrls[0] || null;
       } else if (platform === 'Twitter' || platform === 'Twitter/X') {
         const twitterUrlRegex = /https?:\/\/(?:www\.)?(?:twitter\.com|x\.com)\/[\w\-\/]+/gi;
         const twitterMatches = sources.match(twitterUrlRegex);
-        platformUrl = twitterMatches ? twitterMatches[0] : null;
+        platformUrls = twitterMatches ? [...new Set(twitterMatches)] : [];
+        primaryUrl = platformUrls[0] || null;
       } else if (platform === 'LinkedIn') {
         const linkedinUrlRegex = /https?:\/\/(?:www\.)?linkedin\.com\/[\w\-\/]+/gi;
         const linkedinMatches = sources.match(linkedinUrlRegex);
-        platformUrl = linkedinMatches ? linkedinMatches[0] : null;
+        platformUrls = linkedinMatches ? [...new Set(linkedinMatches)] : [];
+        primaryUrl = platformUrls[0] || null;
       } else if (platform === 'YouTube') {
         const youtubeUrlRegex = /https?:\/\/(?:www\.)?(?:youtube\.com|youtu\.be)\/[\w\-\/\?=]+/gi;
         const youtubeMatches = sources.match(youtubeUrlRegex);
-        platformUrl = youtubeMatches ? youtubeMatches[0] : null;
+        platformUrls = youtubeMatches ? [...new Set(youtubeMatches)] : [];
+        primaryUrl = platformUrls[0] || null;
       }
 
-      console.log(`📊 Final result - Platform: ${platform}, URL: ${platformUrl || 'None found'}`);
+      console.log(`📊 Final result - Platform: ${platform}, URLs found: ${platformUrls.length}, Primary: ${primaryUrl || 'None found'}`);
 
       res.json({
         success: true,
-        platformUrl,
+        platformUrl: primaryUrl, // For backward compatibility
+        platformUrls: platformUrls, // All found URLs
         platform: platform || 'Unknown',
         debug: {
-          hasUrl: !!platformUrl,
+          hasUrl: !!primaryUrl,
+          totalUrls: platformUrls.length,
           searchedFor: title,
           sourcesLength: sources.length
         }
