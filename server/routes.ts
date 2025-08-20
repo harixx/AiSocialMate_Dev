@@ -7,6 +7,19 @@ import { GoogleGenAI } from "@google/genai";
 import { config } from "./config";
 import { redditOAuth } from "./reddit-oauth";
 
+// Initialize competitor alert processor
+let competitorAlertProcessor: any = null;
+const initializeProcessor = async () => {
+  if (!competitorAlertProcessor) {
+    const module = await import('./competitor-alert-processor');
+    competitorAlertProcessor = module.competitorAlertProcessor;
+    console.log('🤖 Competitor Alert Processor initialized');
+  }
+};
+
+// Initialize processor when routes are registered
+initializeProcessor();
+
 // Initialize OpenAI client with validated configuration
 const openai = new OpenAI({ 
   apiKey: config.openai.apiKey 
@@ -1002,6 +1015,58 @@ Generate only the final reply text that would be posted.`;
       }
     } catch (error) {
       res.status(500).json({ message: "Failed to delete alert" });
+    }
+  });
+
+  // Alert Run History
+  app.get("/api/alerts/:id/runs", async (req, res) => {
+    try {
+      const alertId = parseInt(req.params.id);
+      const runs = await storage.getAlertRuns(alertId);
+      res.json(runs);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch alert runs" });
+    }
+  });
+
+  // Presence Records
+  app.get("/api/alerts/:id/presences", async (req, res) => {
+    try {
+      const alertId = parseInt(req.params.id);
+      const competitor = req.query.competitor as string;
+      const records = await storage.getPresenceRecords(alertId, competitor);
+      res.json(records);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch presence records" });
+    }
+  });
+
+  // Manual Alert Trigger
+  app.post("/api/alerts/:id/trigger", async (req, res) => {
+    try {
+      const alertId = parseInt(req.params.id);
+      
+      // Import the processor dynamically to avoid circular imports
+      const { competitorAlertProcessor } = await import('./competitor-alert-processor');
+      await competitorAlertProcessor.triggerAlert(alertId);
+      
+      res.json({ success: true, message: "Alert triggered successfully" });
+    } catch (error) {
+      res.status(500).json({ 
+        message: "Failed to trigger alert",
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Quota Usage
+  app.get("/api/quota-usage", async (req, res) => {
+    try {
+      const month = req.query.month as string || new Date().toISOString().slice(0, 7);
+      const quotaUsage = await storage.getQuotaUsage(month);
+      res.json(quotaUsage || { month, totalApiCalls: 0, remainingCalls: 1000 });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch quota usage" });
     }
   });
 
