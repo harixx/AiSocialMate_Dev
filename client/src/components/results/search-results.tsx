@@ -176,8 +176,11 @@ export default function SearchResults({ results, type, totalResults, query }: Se
                           >
                             {loadingSource[index] ? (
                               <>
-                                <div className="animate-spin h-3 w-3 mr-2 border border-emerald-600 border-t-transparent rounded-full" />
-                                Analyzing...
+                                <div className="relative h-3 w-3 mr-2">
+                                  <div className="absolute inset-0 border-2 border-emerald-200 rounded-full"></div>
+                                  <div className="absolute inset-0 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+                                </div>
+                                <span className="animate-pulse">Analyzing Sources...</span>
                               </>
                             ) : (
                               <>
