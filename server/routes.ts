@@ -6,6 +6,7 @@ import OpenAI from "openai";
 import { GoogleGenAI } from "@google/genai";
 import { config } from "./config";
 import { redditOAuth } from "./reddit-oauth";
+import { healthChecker } from "./health-check";
 
 // Initialize competitor alert processor
 let competitorAlertProcessor: any = null;
@@ -33,12 +34,32 @@ const gemini = new GoogleGenAI({
 export async function registerRoutes(app: Express): Promise<Server> {
 
   // Health check and root endpoints
-  app.get("/health", (req, res) => {
-    res.json({ 
-      status: "ok", 
-      timestamp: new Date().toISOString(),
-      service: "SocialMonitor AI"
-    });
+  app.get("/health", async (req, res) => {
+    try {
+      const healthStatus = await healthChecker.getHealthStatus();
+      const httpStatus = healthStatus.status === 'healthy' ? 200 : 
+                        healthStatus.status === 'degraded' ? 200 : 503;
+      res.status(httpStatus).json(healthStatus);
+    } catch (error) {
+      res.status(503).json({
+        status: "unhealthy",
+        timestamp: new Date().toISOString(),
+        error: "Health check failed"
+      });
+    }
+  });
+
+  app.get("/health/detailed", async (req, res) => {
+    try {
+      const healthStatus = await healthChecker.getHealthStatus();
+      res.json(healthStatus);
+    } catch (error) {
+      res.status(500).json({
+        status: "error",
+        message: "Detailed health check failed",
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
   });
 
   app.get("/api/health", (req, res) => {

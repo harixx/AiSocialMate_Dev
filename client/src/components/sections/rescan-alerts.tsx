@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AlertForm from "@/components/forms/alert-form";
 import { useAlerts } from "../../hooks/use-alerts";
+import AlertRunsDashboard from "./alert-runs-dashboard";
+import QuotaMonitoringDashboard from "./quota-monitoring-dashboard";
 
 export default function RescanAlerts() {
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -209,37 +211,42 @@ export default function RescanAlerts() {
         </TabsContent>
 
         <TabsContent value="dashboard" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Presence Dashboard</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <TrendingUp className="mx-auto h-16 w-16 text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Presence Analytics Coming Soon</h3>
-                <p className="text-gray-600">
-                  View competitor presence history, trend analysis, and detailed reports here.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          {selectedAlert ? (
+            <>
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle>Presence Dashboard - {alerts.find(a => a.id === selectedAlert)?.name}</CardTitle>
+                    <Button variant="outline" onClick={() => setSelectedAlert(null)}>
+                      Back to Alerts
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <AlertRunsDashboard alertId={selectedAlert} />
+                </CardContent>
+              </Card>
+            </>
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle>Presence Dashboard</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8">
+                  <TrendingUp className="mx-auto h-16 w-16 text-gray-400 mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Select an Alert to View Dashboard</h3>
+                  <p className="text-gray-600">
+                    Click "View" on any alert to see its presence history, run details, and analytics.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="quota" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>API Quota & Usage</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <Clock className="mx-auto h-16 w-16 text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Quota Monitoring Coming Soon</h3>
-                <p className="text-gray-600">
-                  Track your monthly API usage, remaining calls, and quota management here.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          <QuotaMonitoringDashboard />
         </TabsContent>
       </Tabs>
     </div>

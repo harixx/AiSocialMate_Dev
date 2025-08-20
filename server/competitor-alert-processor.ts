@@ -61,7 +61,8 @@ export class CompetitorAlertProcessor {
   }
 
   private async processAlert(alert: any) {
-    console.log(`🎯 Processing alert: ${alert.name} (ID: ${alert.id})`);
+    const startTime = Date.now();
+    console.log(`🎯 [${new Date().toISOString()}] Processing alert: ${alert.name} (ID: ${alert.id})`);
 
     const alertRun = await storage.createAlertRun({
       alertId: alert.id,
@@ -162,7 +163,17 @@ export class CompetitorAlertProcessor {
         nextRunTime
       });
 
-      console.log(`✅ Alert ${alert.name} completed: ${newPresencesFound} new presences, ${apiCallsUsed} API calls`);
+      const processingTime = Date.now() - startTime;
+      console.log(`✅ [${new Date().toISOString()}] Alert ${alert.name} completed: ${newPresencesFound} new presences, ${apiCallsUsed} API calls, ${processingTime}ms processing time`);
+      
+      // Log performance metrics for monitoring
+      if (processingTime > 60000) { // Alert if processing takes more than 1 minute
+        console.warn(`⚠️ [PERFORMANCE] Alert ${alert.name} took ${processingTime}ms to process`);
+      }
+      
+      if (apiCallsUsed > alert.maxResults * alert.platforms.length * competitors.length) {
+        console.warn(`⚠️ [QUOTA] Alert ${alert.name} used more API calls than expected: ${apiCallsUsed}`);
+      }
 
     } catch (error) {
       console.error(`❌ Alert ${alert.name} failed:`, error);
@@ -197,32 +208,50 @@ export class CompetitorAlertProcessor {
     return `(${quotedTerms}) site:${platformDomain}`;
   }
 
-  private async performSearch(query: string, maxResults: number): Promise<SearchResult[]> {
-    try {
-      const response = await fetch('https://google.serper.dev/search', {
-        method: 'POST',
-        headers: {
-          'X-API-KEY': config.serper.apiKey,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          q: query,
-          num: Math.min(maxResults, 10),
-          hl: 'en',
-          gl: 'us'
-        }),
-      });
+  private async performSearch(query: string, maxResults: number, retries = 3): Promise<SearchResult[]> {
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        console.log(`🔍 [Attempt ${attempt}] Searching: ${query.substring(0, 50)}...`);
+        
+        const response = await fetch('https://google.serper.dev/search', {
+          method: 'POST',
+          headers: {
+            'X-API-KEY': config.serper.apiKey,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            q: query,
+            num: Math.min(maxResults, 10),
+            hl: 'en',
+            gl: 'us'
+          }),
+        });
 
-      if (!response.ok) {
-        throw new Error(`Serper API error: ${response.statusText}`);
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Serper API error: ${response.status} ${response.statusText} - ${errorText}`);
+        }
+
+        const data = await response.json();
+        console.log(`✅ Search successful: ${(data.organic || []).length} results`);
+        return data.organic || [];
+        
+      } catch (error) {
+        console.error(`❌ Search attempt ${attempt} failed:`, error);
+        
+        if (attempt === retries) {
+          console.error(`💥 Search failed after ${retries} attempts for query: ${query}`);
+          return [];
+        }
+        
+        // Exponential backoff: wait 2^attempt seconds
+        const waitTime = Math.pow(2, attempt) * 1000;
+        console.log(`⏳ Waiting ${waitTime}ms before retry...`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
       }
-
-      const data = await response.json();
-      return data.organic || [];
-    } catch (error) {
-      console.error('Search API error:', error);
-      return [];
     }
+    
+    return [];
   }
 
   private async matchResultsToCompetitor(
