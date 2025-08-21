@@ -56,6 +56,21 @@ export function useAlerts() {
     }
   };
 
+  const updateAlertMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number, data: any }) => {
+      const response = await fetch(`/api/alerts/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error('Failed to update alert');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['alerts'] });
+    },
+  });
+
   const deleteAlert = async (alertId: number) => {
     try {
       await deleteAlertMutation.mutateAsync(alertId);
@@ -65,10 +80,20 @@ export function useAlerts() {
     }
   };
 
+  const updateAlert = async (alertId: number, data: any) => {
+    try {
+      await updateAlertMutation.mutateAsync({ id: alertId, data });
+      return true;
+    } catch (error) {
+      return false;
+    }
+  };
+
   return {
     alerts,
-    isLoading: isLoading || createAlertMutation.isPending || deleteAlertMutation.isPending,
+    isLoading: isLoading || createAlertMutation.isPending || deleteAlertMutation.isPending || updateAlertMutation.isPending,
     createAlert,
+    updateAlert,
     deleteAlert
   };
 }

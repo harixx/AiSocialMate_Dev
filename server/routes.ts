@@ -1025,6 +1025,21 @@ Generate only the final reply text that would be posted.`;
     }
   });
 
+  app.put("/api/alerts/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertAlertSchema.parse(req.body);
+      const alert = await storage.updateAlert(id, validatedData);
+      if (alert) {
+        res.json(alert);
+      } else {
+        res.status(404).json({ message: "Alert not found" });
+      }
+    } catch (error) {
+      res.status(400).json({ message: "Invalid alert data", error });
+    }
+  });
+
   app.delete("/api/alerts/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);

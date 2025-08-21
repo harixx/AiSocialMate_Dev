@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -29,49 +28,45 @@ interface PresenceRecord {
 }
 
 export default function AlertRunsDashboard({ alertId }: { alertId: number }) {
-  const [runs, setRuns] = useState<AlertRun[]>([]);
-  const [presences, setPresences] = useState<PresenceRecord[]>([]);
+  const [alertRuns, setAlertRuns] = useState<AlertRun[]>([]);
+  const [presenceRecords, setPresenceRecords] = useState<PresenceRecord[]>([]);
   const [selectedRunId, setSelectedRunId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchAlertRuns();
-  }, [alertId]);
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-  useEffect(() => {
-    if (selectedRunId) {
-      fetchPresenceRecords();
-    }
-  }, [selectedRunId]);
-
-  const fetchAlertRuns = async () => {
-    try {
-      const response = await fetch(`/api/alerts/${alertId}/runs`);
-      if (response.ok) {
-        const data = await response.json();
-        setRuns(data);
-        if (data.length > 0) {
-          setSelectedRunId(data[0].id);
+        // Fetch alert runs
+        const runsResponse = await fetch(`/api/alerts/${alertId}/runs`);
+        if (!runsResponse.ok) {
+          throw new Error(`Failed to fetch runs: ${runsResponse.status}`);
         }
-      }
-    } catch (error) {
-      console.error('Failed to fetch alert runs:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+        const runs = await runsResponse.json();
+        console.log('📊 Alert runs fetched:', runs.length);
+        setAlertRuns(runs);
 
-  const fetchPresenceRecords = async () => {
-    try {
-      const response = await fetch(`/api/alerts/${alertId}/presences`);
-      if (response.ok) {
-        const data = await response.json();
-        setPresences(data);
+        // Fetch presence records
+        const presenceResponse = await fetch(`/api/alerts/${alertId}/presences${selectedRunId !== null ? `?runId=${selectedRunId}` : ''}`);
+        if (!presenceResponse.ok) {
+          throw new Error(`Failed to fetch presences: ${presenceResponse.status}`);
+        }
+        const presences = await presenceResponse.json();
+        console.log('📝 Presence records fetched:', presences.length);
+        setPresenceRecords(presences);
+      } catch (error) {
+        console.error('Failed to fetch alert dashboard data:', error);
+        setError(error instanceof Error ? error.message : 'Failed to fetch data');
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Failed to fetch presence records:', error);
-    }
-  };
+    };
+
+    fetchData();
+  }, [alertId, selectedRunId]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -92,7 +87,7 @@ export default function AlertRunsDashboard({ alertId }: { alertId: number }) {
     const end = new Date(endTime);
     const diffMs = end.getTime() - start.getTime();
     const diffSeconds = Math.floor(diffMs / 1000);
-    
+
     if (diffSeconds < 60) return `${diffSeconds}s`;
     const diffMinutes = Math.floor(diffSeconds / 60);
     return `${diffMinutes}m ${diffSeconds % 60}s`;
@@ -109,15 +104,17 @@ export default function AlertRunsDashboard({ alertId }: { alertId: number }) {
   };
 
   if (loading) {
+    return <div className="text-center py-8">Loading dashboard data...</div>;
+  }
+
+  if (error) {
     return (
-      <Card>
-        <CardContent className="py-8">
-          <div className="flex items-center justify-center">
-            <Clock className="h-6 w-6 animate-spin text-gray-400 mr-2" />
-            <span>Loading alert history...</span>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="text-center py-8">
+        <AlertCircle className="mx-auto h-16 w-16 text-red-400 mb-4" />
+        <h3 className="text-lg font-medium text-gray-900 mb-2">Error Loading Dashboard</h3>
+        <p className="text-red-600 mb-4">{error}</p>
+        <Button onClick={() => window.location.reload()}>Retry</Button>
+      </div>
     );
   }
 
@@ -128,7 +125,7 @@ export default function AlertRunsDashboard({ alertId }: { alertId: number }) {
           <CardTitle>Alert Run History</CardTitle>
         </CardHeader>
         <CardContent>
-          {runs.length === 0 ? (
+          {alertRuns.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               No alert runs yet. The alert will run based on its configured frequency.
             </div>
@@ -145,7 +142,7 @@ export default function AlertRunsDashboard({ alertId }: { alertId: number }) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {runs.map((run) => (
+                {alertRuns.map((run) => (
                   <TableRow key={run.id} className={selectedRunId === run.id ? 'bg-muted' : ''}>
                     <TableCell>
                       <div className="flex items-center gap-2">
@@ -182,10 +179,10 @@ export default function AlertRunsDashboard({ alertId }: { alertId: number }) {
         </CardContent>
       </Card>
 
-      {selectedRunId && presences.length > 0 && (
+      {selectedRunId !== null && presenceRecords.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Detected Presences</CardTitle>
+            <CardTitle>Detected Presences for Run {selectedRunId}</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
@@ -199,7 +196,7 @@ export default function AlertRunsDashboard({ alertId }: { alertId: number }) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {presences.map((presence) => (
+                {presenceRecords.map((presence) => (
                   <TableRow key={presence.id}>
                     <TableCell className="font-medium">
                       {presence.competitorName}
@@ -233,6 +230,12 @@ export default function AlertRunsDashboard({ alertId }: { alertId: number }) {
             </Table>
           </CardContent>
         </Card>
+      )}
+
+      {selectedRunId !== null && presenceRecords.length === 0 && !loading && (
+        <div className="text-center py-8 text-gray-500">
+          No presence records found for run ID: {selectedRunId}.
+        </div>
       )}
     </div>
   );

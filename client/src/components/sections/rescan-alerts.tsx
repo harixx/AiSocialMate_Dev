@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 export default function RescanAlerts() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [selectedAlert, setSelectedAlert] = useState<number | null>(null);
+  const [editingAlert, setEditingAlert] = useState<any | null>(null);
   const [runningAlerts, setRunningAlerts] = useState<Set<number>>(new Set());
   const { alerts, deleteAlert } = useAlerts();
   const { toast } = useToast();
@@ -127,6 +128,13 @@ export default function RescanAlerts() {
             <AlertForm onClose={() => setShowCreateForm(false)} />
           )}
 
+          {editingAlert && (
+            <AlertForm 
+              alert={editingAlert}
+              onClose={() => setEditingAlert(null)} 
+            />
+          )}
+
           {!alerts || !Array.isArray(alerts) || alerts.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center">
@@ -221,6 +229,15 @@ export default function RescanAlerts() {
                         >
                           <Eye className="h-4 w-4 mr-1" />
                           View
+                        </Button>
+                        
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => setEditingAlert(alert)}
+                        >
+                          <Clock className="h-4 w-4 mr-1" />
+                          Edit
                         </Button>
                         
                         <Button 

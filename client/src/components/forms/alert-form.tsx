@@ -34,14 +34,29 @@ const formSchema = z.object({
 
 interface AlertFormProps {
   onClose: () => void;
+  alert?: any; // For editing existing alerts
 }
 
-export default function AlertForm({ onClose }: AlertFormProps) {
-  const { createAlert, isLoading } = useAlerts();
+export default function AlertForm({ onClose, alert }: AlertFormProps) {
+  const { createAlert, updateAlert, isLoading } = useAlerts();
+  const isEditing = !!alert;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
+    defaultValues: isEditing ? {
+      name: alert.name || "",
+      competitors: alert.competitors || [{ canonicalName: "", aliases: [], domains: [] }],
+      platforms: alert.platforms || [],
+      frequency: alert.frequency || "daily",
+      maxResults: alert.maxResults || 10,
+      includeNegativeSentiment: alert.includeNegativeSentiment || false,
+      emailNotifications: alert.emailNotifications || true,
+      email: alert.email || "",
+      webhookUrl: alert.webhookUrl || "",
+      reportUrl: alert.reportUrl || "",
+      enableFuzzyMatching: alert.enableFuzzyMatching || false,
+      dedupeWindow: alert.dedupeWindow || 30,
+    } : {
       name: "",
       competitors: [{ canonicalName: "", aliases: [], domains: [] }],
       platforms: [],
@@ -71,7 +86,9 @@ export default function AlertForm({ onClose }: AlertFormProps) {
   ];
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    const success = await createAlert(values);
+    const success = isEditing 
+      ? await updateAlert(alert.id, values)
+      : await createAlert(values);
     if (success) {
       onClose();
     }
@@ -104,7 +121,7 @@ export default function AlertForm({ onClose }: AlertFormProps) {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>Create Competitor Presence Alert</CardTitle>
+            <CardTitle>{isEditing ? 'Edit' : 'Create'} Competitor Presence Alert</CardTitle>
             <p className="text-sm text-gray-600 mt-1">Monitor competitors across social platforms with advanced deduplication</p>
           </div>
           <Button variant="ghost" size="sm" onClick={onClose}>
@@ -530,7 +547,10 @@ export default function AlertForm({ onClose }: AlertFormProps) {
                 Cancel
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? 'Creating Alert...' : 'Create Competitor Alert'}
+                {isLoading 
+                  ? (isEditing ? 'Updating Alert...' : 'Creating Alert...') 
+                  : (isEditing ? 'Update Alert' : 'Create Competitor Alert')
+                }
               </Button>
             </div>
           </form>

@@ -320,8 +320,7 @@ export class CompetitorAlertProcessor {
       
       // Email notifications
       if (alert.emailNotifications && alert.email) {
-        // In a real implementation, you would integrate with an email service
-        console.log(`📧 Would send email to ${alert.email}: ${newPresencesCount} new competitor mentions found`);
+        await this.sendEmailNotification(alert, newPresencesCount);
       }
 
       // Webhook notifications
@@ -363,6 +362,74 @@ export class CompetitorAlertProcessor {
       case 'daily':
       default:
         return new Date(now.getTime() + 24 * 60 * 60 * 1000); // +1 day
+    }
+  }
+
+  private async sendEmailNotification(alert: any, newPresencesCount: number): Promise<void> {
+    try {
+      // For production use, you'll need to set up these environment variables:
+      // SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS
+      const smtpConfig = {
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: parseInt(process.env.SMTP_PORT || '587'),
+        secure: false,
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS
+        }
+      };
+
+      // Check if SMTP is configured
+      if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+        console.log(`📧 SMTP not configured. Would send email to ${alert.email}: ${newPresencesCount} new competitor mentions found`);
+        console.log(`📧 To enable email sending, configure SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS in your environment variables`);
+        return;
+      }
+
+      // Import nodemailer dynamically to avoid requiring it if not used
+      const nodemailer = await import('nodemailer');
+      const transporter = nodemailer.createTransporter(smtpConfig);
+
+      const emailHtml = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #1f2937;">🎯 Competitor Alert: ${alert.name}</h2>
+          <p>We've detected <strong>${newPresencesCount} new competitor mentions</strong> across your monitored platforms.</p>
+          
+          <div style="background: #f9fafb; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="margin-top: 0;">Alert Details:</h3>
+            <ul>
+              <li><strong>Alert Name:</strong> ${alert.name}</li>
+              <li><strong>Platforms:</strong> ${alert.platforms.join(', ')}</li>
+              <li><strong>New Mentions:</strong> ${newPresencesCount}</li>
+              <li><strong>Time:</strong> ${new Date().toLocaleString()}</li>
+            </ul>
+          </div>
+
+          <p>
+            <a href="${process.env.APP_URL || 'http://localhost:5000'}" 
+               style="background: #2563eb; color: white; padding: 12px 24px; 
+                      text-decoration: none; border-radius: 6px; display: inline-block;">
+              View Full Dashboard
+            </a>
+          </p>
+
+          <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
+            This email was sent by SocialMonitor AI. To stop receiving these notifications, 
+            edit your alert settings in the dashboard.
+          </p>
+        </div>
+      `;
+
+      await transporter.sendMail({
+        from: process.env.FROM_EMAIL || process.env.SMTP_USER,
+        to: alert.email,
+        subject: `🎯 ${newPresencesCount} New Competitor Mentions - ${alert.name}`,
+        html: emailHtml
+      });
+
+      console.log(`✅ Email sent successfully to ${alert.email}`);
+    } catch (error) {
+      console.error(`❌ Failed to send email notification:`, error);
     }
   }
 
