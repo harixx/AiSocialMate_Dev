@@ -279,7 +279,7 @@ export default function RescanAlerts() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold">
-                  Alert Dashboard: {alerts?.find(a => a.id === selectedAlert)?.name || `Alert #${selectedAlert}`}
+                  Alert Dashboard - {alerts?.find(a => a.id === selectedAlert)?.name || `Alert #${selectedAlert}`}
                 </h2>
                 <Button variant="outline" onClick={() => setSelectedAlert(null)}>
                   <ArrowLeft className="h-4 w-4 mr-2" />
