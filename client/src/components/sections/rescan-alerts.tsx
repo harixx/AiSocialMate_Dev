@@ -1,6 +1,5 @@
-
 import { useState } from "react";
-import { Plus, Bell, Play, Eye, Clock, Users, TrendingUp, Calendar } from "lucide-react";
+import { Plus, Bell, Play, Eye, Clock, Users, TrendingUp, Calendar, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -23,15 +22,15 @@ export default function RescanAlerts() {
     try {
       // Add to running alerts set
       setRunningAlerts(prev => new Set([...prev, alertId]));
-      
+
       const response = await fetch(`/api/alerts/${alertId}/trigger`, {
         method: 'POST'
       });
-      
+
       if (response.ok) {
         const result = await response.json();
         console.log('Alert triggered successfully:', result);
-        
+
         // Show success feedback
         toast({
           title: "Alert Triggered Successfully!",
@@ -67,16 +66,16 @@ export default function RescanAlerts() {
 
   const formatNextRun = (nextRunTime: string | Date | null) => {
     if (!nextRunTime) return 'Not scheduled';
-    
+
     const nextRun = new Date(nextRunTime);
     const now = new Date();
     const diffMs = nextRun.getTime() - now.getTime();
-    
+
     if (diffMs < 0) return 'Due now';
-    
+
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
     const diffDays = Math.floor(diffHours / 24);
-    
+
     if (diffDays > 0) return `In ${diffDays} day${diffDays > 1 ? 's' : ''}`;
     if (diffHours > 0) return `In ${diffHours} hour${diffHours > 1 ? 's' : ''}`;
     return 'Within 1 hour';
@@ -162,7 +161,7 @@ export default function RescanAlerts() {
                             {alert.isActive ? 'Active' : 'Inactive'}
                           </Badge>
                         </div>
-                        
+
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-gray-600">
                           <div className="flex items-center gap-2">
                             <Users className="h-4 w-4" />
@@ -170,14 +169,14 @@ export default function RescanAlerts() {
                               {getCompetitorCount(alert)} competitor{getCompetitorCount(alert) !== 1 ? 's' : ''}
                             </span>
                           </div>
-                          
+
                           <div className="flex items-center gap-2">
                             <TrendingUp className="h-4 w-4" />
                             <span>
                               {Array.isArray(alert.platforms) ? alert.platforms.length : 0} platform{Array.isArray(alert.platforms) && alert.platforms.length !== 1 ? 's' : ''}
                             </span>
                           </div>
-                          
+
                           <div className="flex items-center gap-2">
                             <Clock className="h-4 w-4" />
                             <span>
@@ -189,7 +188,7 @@ export default function RescanAlerts() {
                               </Badge>
                             )}
                           </div>
-                          
+
                           <div className="flex items-center gap-2">
                             <Calendar className="h-4 w-4" />
                             <span>
@@ -210,7 +209,7 @@ export default function RescanAlerts() {
                             </div>
                           </div>
                         )}
-                        
+
                         <div className="mt-3">
                           <p className="text-sm text-gray-500">
                             Platforms: {Array.isArray(alert.platforms) ? alert.platforms.join(', ') : alert.platforms}
@@ -220,7 +219,7 @@ export default function RescanAlerts() {
                           )}
                         </div>
                       </div>
-                      
+
                       <div className="flex items-center space-x-2 ml-4">
                         <Button 
                           variant="outline" 
@@ -230,7 +229,7 @@ export default function RescanAlerts() {
                           <Eye className="h-4 w-4 mr-1" />
                           View
                         </Button>
-                        
+
                         <Button 
                           variant="outline" 
                           size="sm"
@@ -239,7 +238,7 @@ export default function RescanAlerts() {
                           <Clock className="h-4 w-4 mr-1" />
                           Edit
                         </Button>
-                        
+
                         <Button 
                           variant="outline" 
                           size="sm"
@@ -258,7 +257,7 @@ export default function RescanAlerts() {
                             </>
                           )}
                         </Button>
-                        
+
                         <Button 
                           variant="destructive" 
                           size="sm"
@@ -277,34 +276,26 @@ export default function RescanAlerts() {
 
         <TabsContent value="dashboard" className="space-y-6">
           {selectedAlert ? (
-            <>
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle>Presence Dashboard - {Array.isArray(alerts) ? alerts.find((a: any) => a.id === selectedAlert)?.name : ''}</CardTitle>
-                    <Button variant="outline" onClick={() => setSelectedAlert(null)}>
-                      Back to Alerts
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <AlertRunsDashboard alertId={selectedAlert} />
-                </CardContent>
-              </Card>
-            </>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold">
+                  Alert Dashboard: {alerts?.find(a => a.id === selectedAlert)?.name || `Alert #${selectedAlert}`}
+                </h2>
+                <Button variant="outline" onClick={() => setSelectedAlert(null)}>
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Alerts
+                </Button>
+              </div>
+              <AlertRunsDashboard alertId={selectedAlert} />
+            </div>
           ) : (
             <Card>
-              <CardHeader>
-                <CardTitle>Presence Dashboard</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8">
-                  <TrendingUp className="mx-auto h-16 w-16 text-gray-400 mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Select an Alert to View Dashboard</h3>
-                  <p className="text-gray-600">
-                    Click "View" on any alert to see its presence history, run details, and analytics.
-                  </p>
-                </div>
+              <CardContent className="py-12 text-center">
+                <TrendingUp className="mx-auto h-16 w-16 text-gray-400 mb-4" />
+                <h3 className="text-xl font-medium text-gray-900 mb-2">Select an alert to view dashboard</h3>
+                <p className="text-gray-600">
+                  Click the "View" button on any alert to see its processing history and detected presences
+                </p>
               </CardContent>
             </Card>
           )}
