@@ -67,8 +67,19 @@ export function useAlerts() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['alerts'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/alerts'] });
+      toast({
+        title: "Success", 
+        description: "Alert updated successfully!"
+      });
     },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update alert",
+        variant: "destructive"
+      });
+    }
   });
 
   const deleteAlert = async (alertId: number) => {
