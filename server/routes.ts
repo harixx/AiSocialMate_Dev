@@ -1083,19 +1083,23 @@ Generate only the final reply text that would be posted.`;
       const alertId = parseInt(req.params.id);
       console.log(`🚀 Manually triggering alert with ID: ${alertId}`);
 
-      const alert = await storage.getAlert(alertId);
-      if (!alert) {
-        return res.status(404).json({ error: 'Alert not found' });
+      // Ensure processor is initialized
+      await initializeProcessor();
+
+      if (!competitorAlertProcessor) {
+        return res.status(500).json({ error: 'Alert processor not available' });
       }
 
-      // Process the alert immediately
-      const processor = new CompetitorAlertProcessor();
-      await processor.processAlert(alert);
+      // Use the singleton instance to trigger the alert
+      await competitorAlertProcessor.triggerAlert(alertId);
 
       res.json({ success: true, message: 'Alert triggered successfully' });
     } catch (error) {
       console.error('Failed to trigger alert:', error);
-      res.status(500).json({ error: 'Failed to trigger alert' });
+      res.status(500).json({ 
+        error: 'Failed to trigger alert',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 
