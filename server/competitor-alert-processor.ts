@@ -1,4 +1,3 @@
-
 import { storage } from "./storage";
 import { config } from "./config";
 import crypto from "crypto";
@@ -97,14 +96,14 @@ export class CompetitorAlertProcessor {
           }
 
           console.log(`🔍 Searching for ${competitor.canonicalName} on ${platform}`);
-          
+
           const query = this.buildCompetitorQuery(competitor, platform);
           const searchResults = await this.performSearch(query, alert.maxResults);
           apiCallsUsed++;
 
           const matches = await this.matchResultsToCompetitor(
-            searchResults, 
-            competitor, 
+            searchResults,
+            competitor,
             alert.enableFuzzyMatching
           );
 
@@ -113,12 +112,13 @@ export class CompetitorAlertProcessor {
           for (const match of matches) {
             const dedupeKey = this.generateDedupeKey(match.title, match.link);
             const isDuplicate = await storage.checkDuplicatePresence(
-              dedupeKey, 
-              competitor.canonicalName, 
+              dedupeKey,
+              competitor.canonicalName,
               alert.dedupeWindow
             );
 
             if (!isDuplicate) {
+              // Store presence record
               await storage.createPresenceRecord({
                 alertId: alert.id,
                 runId: alertRun.id,
@@ -165,12 +165,12 @@ export class CompetitorAlertProcessor {
 
       const processingTime = Date.now() - startTime;
       console.log(`✅ [${new Date().toISOString()}] Alert ${alert.name} completed: ${newPresencesFound} new presences, ${apiCallsUsed} API calls, ${processingTime}ms processing time`);
-      
+
       // Log performance metrics for monitoring
       if (processingTime > 60000) { // Alert if processing takes more than 1 minute
         console.warn(`⚠️ [PERFORMANCE] Alert ${alert.name} took ${processingTime}ms to process`);
       }
-      
+
       if (apiCallsUsed > alert.maxResults * alert.platforms.length * competitors.length) {
         console.warn(`⚠️ [QUOTA] Alert ${alert.name} used more API calls than expected: ${apiCallsUsed}`);
       }
@@ -197,7 +197,7 @@ export class CompetitorAlertProcessor {
   private buildCompetitorQuery(competitor: CompetitorConfig, platform: string): string {
     const platformDomain = this.getPlatformDomain(platform);
     const terms = [competitor.canonicalName];
-    
+
     // Add aliases
     if (competitor.aliases && competitor.aliases.length > 0) {
       terms.push(...competitor.aliases.filter(alias => alias.trim()));
@@ -212,7 +212,7 @@ export class CompetitorAlertProcessor {
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
         console.log(`🔍 [Attempt ${attempt}] Searching: ${query.substring(0, 50)}...`);
-        
+
         const response = await fetch('https://google.serper.dev/search', {
           method: 'POST',
           headers: {
@@ -235,27 +235,27 @@ export class CompetitorAlertProcessor {
         const data = await response.json();
         console.log(`✅ Search successful: ${(data.organic || []).length} results`);
         return data.organic || [];
-        
+
       } catch (error) {
         console.error(`❌ Search attempt ${attempt} failed:`, error);
-        
+
         if (attempt === retries) {
           console.error(`💥 Search failed after ${retries} attempts for query: ${query}`);
           return [];
         }
-        
+
         // Exponential backoff: wait 2^attempt seconds
         const waitTime = Math.pow(2, attempt) * 1000;
         console.log(`⏳ Waiting ${waitTime}ms before retry...`);
         await new Promise(resolve => setTimeout(resolve, waitTime));
       }
     }
-    
+
     return [];
   }
 
   private async matchResultsToCompetitor(
-    results: SearchResult[], 
+    results: SearchResult[],
     competitor: CompetitorConfig,
     enableFuzzyMatching: boolean
   ): Promise<Array<SearchResult & { detectionMethod: string }>> {
@@ -299,7 +299,7 @@ export class CompetitorAlertProcessor {
     // Simple fuzzy matching - could be enhanced with more sophisticated algorithms
     const termLower = term.toLowerCase();
     const words = termLower.split(' ');
-    
+
     // Check if most words from the term appear in the text
     const foundWords = words.filter(word => text.includes(word));
     return foundWords.length >= Math.ceil(words.length * 0.7); // 70% word match
@@ -317,7 +317,7 @@ export class CompetitorAlertProcessor {
   private async sendNotifications(alert: any, newPresencesCount: number): Promise<void> {
     try {
       console.log(`📧 Sending notifications for alert ${alert.name}: ${newPresencesCount} new presences`);
-      
+
       // Email notifications
       if (alert.emailNotifications && alert.email) {
         await this.sendEmailNotification(alert, newPresencesCount);
@@ -394,7 +394,7 @@ export class CompetitorAlertProcessor {
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #1f2937;">🎯 Competitor Alert: ${alert.name}</h2>
           <p>We've detected <strong>${newPresencesCount} new competitor mentions</strong> across your monitored platforms.</p>
-          
+
           <div style="background: #f9fafb; padding: 20px; border-radius: 8px; margin: 20px 0;">
             <h3 style="margin-top: 0;">Alert Details:</h3>
             <ul>
@@ -406,15 +406,15 @@ export class CompetitorAlertProcessor {
           </div>
 
           <p>
-            <a href="${process.env.APP_URL || 'http://localhost:5000'}" 
-               style="background: #2563eb; color: white; padding: 12px 24px; 
+            <a href="${process.env.APP_URL || 'http://localhost:5000'}"
+               style="background: #2563eb; color: white; padding: 12px 24px;
                       text-decoration: none; border-radius: 6px; display: inline-block;">
               View Full Dashboard
             </a>
           </p>
 
           <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
-            This email was sent by SocialMonitor AI. To stop receiving these notifications, 
+            This email was sent by SocialMonitor AI. To stop receiving these notifications,
             edit your alert settings in the dashboard.
           </p>
         </div>
@@ -448,7 +448,7 @@ export class CompetitorAlertProcessor {
   async triggerAlert(alertId: number): Promise<void> {
     const alerts = await storage.getAlerts();
     const alert = alerts.find(a => a.id === alertId);
-    
+
     if (!alert) {
       throw new Error(`Alert ${alertId} not found`);
     }

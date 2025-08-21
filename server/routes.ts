@@ -132,7 +132,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           /https?:\/\/(?:www\.|old\.|m\.|new\.)?reddit\.com\/r\/[a-zA-Z0-9_]+\/comments\/[a-zA-Z0-9]+(?:\/[^\s\)\]\,\.\!\?]*)?/gi,
           /reddit\.com\/r\/[a-zA-Z0-9_]+\/comments\/[a-zA-Z0-9]+/gi
         ];
-        
+
         // Extract all Reddit URLs from GPT response
         for (const pattern of redditPatterns) {
           const matches = sources.match(pattern);
@@ -147,18 +147,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
             break;
           }
         }
-        
+
         // Enhanced search with multiple strategies if no URLs found in GPT response
         if (platformUrls.length === 0) {
           console.log(`🔄 No Reddit URLs in GPT response, trying comprehensive search...`);
-          
+
           const searchStrategies = [
             `"${title}" site:reddit.com/r/`,
             `${title.replace(/[^\w\s]/g, '')} site:reddit.com/r/`,
             `${title.split(' ').slice(0, 3).join(' ')} site:reddit.com/r/`,
             `${title.split(' ').slice(-3).join(' ')} site:reddit.com/r/`
           ];
-          
+
           for (const searchQuery of searchStrategies) {
             try {
               const searchResponse = await fetch('https://google.serper.dev/search', {
@@ -174,22 +174,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   gl: 'us'
                 }),
               });
-              
+
               if (searchResponse.ok) {
-                const searchData = await searchResponse.json();
+                const searchData = await response.json();
                 const redditResults = searchData.organic?.filter(result => 
                   result.link && 
                   result.link.includes('reddit.com/r/') && 
                   result.link.includes('/comments/')
                 ) || [];
-                
+
                 redditResults.forEach(result => {
                   if (!platformUrls.includes(result.link)) {
                     platformUrls.push(result.link);
                     console.log(`✅ Found Reddit URL via search: ${result.link}`);
                   }
                 });
-                
+
                 if (platformUrls.length >= 5) break; // Limit to 5 URLs max
               }
             } catch (searchError) {
@@ -197,7 +197,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           }
         }
-        
+
         primaryUrl = platformUrls[0] || null;
       } else if (platform === 'Quora') {
         const quoraUrlRegex = /https?:\/\/(?:www\.)?quora\.com\/[\w\-\/]+/gi;
@@ -1081,17 +1081,21 @@ Generate only the final reply text that would be posted.`;
   app.post("/api/alerts/:id/trigger", async (req, res) => {
     try {
       const alertId = parseInt(req.params.id);
-      
-      // Import the processor dynamically to avoid circular imports
-      const { competitorAlertProcessor } = await import('./competitor-alert-processor');
-      await competitorAlertProcessor.triggerAlert(alertId);
-      
-      res.json({ success: true, message: "Alert triggered successfully" });
+      console.log(`🚀 Manually triggering alert with ID: ${alertId}`);
+
+      const alert = await storage.getAlert(alertId);
+      if (!alert) {
+        return res.status(404).json({ error: 'Alert not found' });
+      }
+
+      // Process the alert immediately
+      const processor = new CompetitorAlertProcessor();
+      await processor.processAlert(alert);
+
+      res.json({ success: true, message: 'Alert triggered successfully' });
     } catch (error) {
-      res.status(500).json({ 
-        message: "Failed to trigger alert",
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
+      console.error('Failed to trigger alert:', error);
+      res.status(500).json({ error: 'Failed to trigger alert' });
     }
   });
 
