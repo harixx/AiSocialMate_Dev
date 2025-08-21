@@ -15,6 +15,7 @@ export default function RescanAlerts() {
   const [selectedAlert, setSelectedAlert] = useState<number | null>(null);
   const [editingAlert, setEditingAlert] = useState<any | null>(null);
   const [runningAlerts, setRunningAlerts] = useState<Set<number>>(new Set());
+  const [activeTab, setActiveTab] = useState("alerts");
   const { alerts, deleteAlert } = useAlerts();
   const { toast } = useToast();
 
@@ -112,7 +113,7 @@ export default function RescanAlerts() {
       </div>
 
       {/* Modern Tabs */}
-      <Tabs defaultValue="alerts" className="space-y-8">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
         <div className="bg-white rounded-xl shadow-sm border border-gray-200">
           <TabsList className="grid w-full grid-cols-3 bg-gray-50 rounded-lg p-1 m-4">
             <TabsTrigger value="alerts" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">
@@ -261,8 +262,13 @@ export default function RescanAlerts() {
                         <Button 
                           variant="outline" 
                           size="sm"
-                          onClick={() => setSelectedAlert(alert.id)}
+                          onClick={() => {
+                            console.log('🔍 View Dashboard clicked for alert:', alert.id);
+                            setSelectedAlert(alert.id);
+                            setActiveTab("dashboard");
+                          }}
                           className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 hover:border-blue-300"
+                          data-testid={`button-view-dashboard-${alert.id}`}
                         >
                           <Eye className="h-4 w-4 mr-2" />
                           View Dashboard
@@ -328,7 +334,10 @@ export default function RescanAlerts() {
                   </div>
                   <Button 
                     variant="outline" 
-                    onClick={() => setSelectedAlert(null)}
+                    onClick={() => {
+                      setSelectedAlert(null);
+                      setActiveTab("alerts");
+                    }}
                     className="bg-gray-50 border-gray-300 hover:bg-gray-100"
                   >
                     <ArrowLeft className="h-4 w-4 mr-2" />
