@@ -388,7 +388,7 @@ export class CompetitorAlertProcessor {
 
       // Import nodemailer dynamically to avoid requiring it if not used
       const nodemailer = await import('nodemailer');
-      const transporter = nodemailer.createTransporter(smtpConfig);
+      const transporter = nodemailer.createTransport(smtpConfig);
 
       const emailHtml = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
