@@ -164,7 +164,7 @@ export class MemStorage implements IStorage {
   }
 
   async createGeneratedReply(insertReply: InsertGeneratedReply): Promise<GeneratedReply> {
-    const id = this.currentReplyId++;
+    const id = this.currentGeneratedReplyId++;
     const reply: GeneratedReply = { 
       ...insertReply,
       brandName: insertReply.brandName ?? null,
@@ -235,7 +235,7 @@ export class MemStorage implements IStorage {
     return presenceRecord;
   }
 
-  async getPresenceRecords(alertId?: number, competitorName?: string): Promise<PresenceRecord[]> {
+  async getPresenceRecords(alertId?: number, competitorName?: string): Promise<PresenceRecord[]>{
     const records = Array.from(this.presenceRecords.values());
     let filtered = records;
 

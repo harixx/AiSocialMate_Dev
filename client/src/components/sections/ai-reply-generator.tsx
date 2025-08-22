@@ -8,7 +8,10 @@ import { History } from "lucide-react";
 export default function AIReplyGenerator() {
   const { data: replyHistory } = useQuery({
     queryKey: ['/api/replies'],
-    select: (data) => data || []
+    select: (data) => data || [],
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
+    staleTime: 0 // Always fetch fresh data
   });
 
   return (
@@ -42,12 +45,22 @@ export default function AIReplyGenerator() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {replyHistory.map((reply: any) => (
-                    <div key={reply.id || reply.threadUrl} className="border border-gray-200 rounded-lg p-4">
+                  <div className="text-sm text-gray-600 mb-4">
+                    Showing {replyHistory.length} generated replies (most recent first)
+                  </div>
+                  {replyHistory
+                    .sort((a: any, b: any) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+                    .map((reply: any) => (
+                    <div key={reply.id || reply.generationId || `${reply.threadUrl}_${Math.random()}`} className="border border-gray-200 rounded-lg p-4">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm text-gray-500">
-                          {reply.createdAt ? new Date(reply.createdAt).toLocaleString() : 'Recently generated'}
-                        </span>
+                        <div className="flex flex-col">
+                          <span className="text-sm text-gray-500">
+                            {reply.createdAt ? new Date(reply.createdAt).toLocaleString() : 'Recently generated'}
+                          </span>
+                          <span className="text-xs text-gray-400 max-w-md truncate">
+                            {reply.threadUrl}
+                          </span>
+                        </div>
                         <div className="flex space-x-2">
                           <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
                             {reply.replyType || 'informational'}

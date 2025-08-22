@@ -994,7 +994,7 @@ Generate only the final reply text that would be posted.`;
         throw new Error('AI generated empty response. Please try again.');
       }
 
-      // Store generated reply
+      // Store generated reply with timestamp-based unique identifier
       const reply = await storage.createGeneratedReply({
         threadUrl,
         replyType,
@@ -1005,7 +1005,8 @@ Generate only the final reply text that would be posted.`;
         generatedText,
         creativity,
         aiProvider,
-        model
+        model,
+        uniqueId: `${threadUrl}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}` // Unique identifier per generation
       });
 
       console.log('💾 Storing reply in database');
