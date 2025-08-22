@@ -876,9 +876,15 @@ Reddit implements strict anti-bot measures including:
     }
   });
 
-  // AI Reply Generation
+  // AI Reply Generation (Enhanced)
   app.post("/api/generate-reply", async (req, res) => {
     try {
+      console.log('🤖 Reply generation request received:', { 
+        threadUrl: req.body.threadUrl, 
+        aiProvider: req.body.aiProvider,
+        model: req.body.model 
+      });
+
       const { 
         threadUrl,
         replyType,
@@ -892,7 +898,12 @@ Reddit implements strict anti-bot measures including:
       } = req.body;
 
       if (!threadUrl) {
-        return res.status(400).json({ message: "Thread URL is required" });
+        console.log('❌ Missing thread URL');
+        return res.status(400).json({ 
+          success: false,
+          error: "Thread URL is required",
+          message: "Thread URL is required" 
+        });
       }
 
       // Advanced AI techniques: Zero-shot, Few-shot, Chain-of-thought
@@ -935,35 +946,52 @@ Generate only the final reply text that would be posted.`;
 
       let generatedText = "";
 
-      // Handle different AI providers
+      // Handle different AI providers with better error handling
+      console.log(`🔄 Using ${aiProvider} with model ${model}`);
+      
       if (aiProvider === "gemini") {
-        // Use Gemini API
-        const response = await gemini.models.generateContent({
-          model: model,
-          contents: `${systemPrompt}\n\n${userPrompt}`,
-          config: {
-            temperature: parseFloat(creativity),
-            maxOutputTokens: 500,
-          },
-        });
+        try {
+          const response = await gemini.models.generateContent({
+            model: model,
+            contents: `${systemPrompt}\n\n${userPrompt}`,
+            config: {
+              temperature: parseFloat(creativity),
+              maxOutputTokens: 500,
+            },
+          });
 
-        generatedText = response.text || "";
+          generatedText = response.text || "";
+          console.log('✅ Gemini response generated');
+        } catch (geminiError) {
+          console.error('❌ Gemini API error:', geminiError);
+          throw new Error(`Gemini API error: ${geminiError instanceof Error ? geminiError.message : 'Unknown error'}`);
+        }
       } else {
-        // Use OpenAI API (default)
-        const apiKey = customApiKey || config.openai.apiKey;
-        const client = customApiKey ? new OpenAI({ apiKey: customApiKey }) : openai;
+        try {
+          // Use OpenAI API (default)
+          const apiKey = customApiKey || config.openai.apiKey;
+          const client = customApiKey ? new OpenAI({ apiKey: customApiKey }) : openai;
 
-        const response = await client.chat.completions.create({
-          model: model,
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userPrompt }
-          ],
-          temperature: parseFloat(creativity),
-          max_tokens: 500
-        });
+          const response = await client.chat.completions.create({
+            model: model,
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: userPrompt }
+            ],
+            temperature: parseFloat(creativity),
+            max_tokens: 500
+          });
 
-        generatedText = response.choices[0].message.content || "";
+          generatedText = response.choices[0].message.content || "";
+          console.log('✅ OpenAI response generated');
+        } catch (openaiError) {
+          console.error('❌ OpenAI API error:', openaiError);
+          throw new Error(`OpenAI API error: ${openaiError instanceof Error ? openaiError.message : 'Unknown error'}`);
+        }
+      }
+
+      if (!generatedText || generatedText.trim() === "") {
+        throw new Error('AI generated empty response. Please try again.');
       }
 
       // Store generated reply
@@ -980,6 +1008,8 @@ Generate only the final reply text that would be posted.`;
         model
       });
 
+      console.log('💾 Storing reply in database');
+      
       res.json({
         success: true,
         reply: {
@@ -991,16 +1021,41 @@ Generate only the final reply text that would be posted.`;
             tone,
             brandName,
             creativity,
-            model
+            model,
+            aiProvider
           }
-        }
+        },
+        message: "Reply generated successfully"
       });
 
+      console.log('✅ Reply generation completed successfully');
+
     } catch (error) {
-      console.error('Reply generation error:', error);
-      res.status(500).json({ 
-        message: "Failed to generate reply",
-        error: error instanceof Error ? error.message : 'Unknown error'
+      console.error('❌ Reply generation error:', error);
+      
+      let errorMessage = "Failed to generate reply";
+      let statusCode = 500;
+      
+      if (error instanceof Error) {
+        if (error.message.includes('API key') || error.message.includes('401')) {
+          errorMessage = "Invalid API key. Please check your API configuration.";
+          statusCode = 401;
+        } else if (error.message.includes('rate limit') || error.message.includes('429')) {
+          errorMessage = "API rate limit exceeded. Please try again later.";
+          statusCode = 429;
+        } else if (error.message.includes('quota') || error.message.includes('billing')) {
+          errorMessage = "API quota exceeded. Please check your billing settings.";
+          statusCode = 402;
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      res.status(statusCode).json({ 
+        success: false,
+        error: errorMessage,
+        message: errorMessage,
+        details: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   });

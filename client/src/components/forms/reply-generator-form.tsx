@@ -46,60 +46,76 @@ export default function ReplyGeneratorForm() {
   // Watch the aiProvider to update models dynamically
   const aiProvider = form.watch("aiProvider");
 
-  // Define models for each provider
+  // Define models for each provider (updated)
   const modelsByProvider = {
     openai: [
       { value: "gpt-4o", label: "GPT-4o (Latest)" },
+      { value: "gpt-4o-mini", label: "GPT-4o Mini" },
       { value: "gpt-4", label: "GPT-4" },
       { value: "gpt-3.5-turbo", label: "GPT-3.5 Turbo" }
     ],
     gemini: [
-      { value: "gemini-2.5-flash", label: "Gemini 2.5 Flash (Latest)" },
-      { value: "gemini-2.5-pro", label: "Gemini 2.5 Pro" },
-      { value: "gemini-1.5-flash", label: "Gemini 1.5 Flash" },
-      { value: "gemini-1.5-pro", label: "Gemini 1.5 Pro" }
+      { value: "gemini-1.5-flash", label: "Gemini 1.5 Flash (Latest)" },
+      { value: "gemini-1.5-pro", label: "Gemini 1.5 Pro" },
+      { value: "gemini-1.0-pro", label: "Gemini 1.0 Pro" }
     ],
     claude: [
       { value: "claude-3-5-sonnet-20241022", label: "Claude 3.5 Sonnet (Latest)" },
-      { value: "claude-3-haiku-20240307", label: "Claude 3 Haiku" },
+      { value: "claude-3-5-haiku-20241022", label: "Claude 3.5 Haiku" },
       { value: "claude-3-opus-20240229", label: "Claude 3 Opus" }
     ]
   };
 
-  // Update model when provider changes
+  // Update model when provider changes (fixed)
   React.useEffect(() => {
     const defaultModels = {
       openai: "gpt-4o",
-      gemini: "gemini-2.5-flash", 
+      gemini: "gemini-1.5-flash", 
       claude: "claude-3-5-sonnet-20241022"
     };
 
     if (aiProvider && defaultModels[aiProvider as keyof typeof defaultModels]) {
-      form.setValue("model", defaultModels[aiProvider as keyof typeof defaultModels]);
+      const newModel = defaultModels[aiProvider as keyof typeof defaultModels];
+      if (form.getValues("model") !== newModel) {
+        form.setValue("model", newModel);
+      }
     }
   }, [aiProvider, form]);
 
-  // Issue #2 fix - Auto-fill thread URL from query params
+  // Auto-fill thread URL from query params (improved)
   React.useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const threadUrl = urlParams.get('threadUrl');
     const title = urlParams.get('title');
 
-    if (threadUrl) {
+    if (threadUrl && !form.getValues('threadUrl')) {
+      // Only auto-fill if field is empty
       form.setValue('threadUrl', decodeURIComponent(threadUrl));
     }
 
-    // Clear URL params after auto-filling to clean up the URL
+    // Clear URL params after auto-filling, but with delay to prevent conflicts
     if (threadUrl || title) {
-      window.history.replaceState({}, document.title, window.location.pathname);
+      setTimeout(() => {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }, 1000);
     }
   }, [form]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      // Validate URL format
-      if (!values.threadUrl.includes('reddit.com') && !values.threadUrl.includes('twitter.com') && !values.threadUrl.includes('facebook.com')) {
-        throw new Error('Please provide a valid social media thread URL (Reddit, Twitter, Facebook, etc.)');
+      // Enhanced URL validation for all social platforms
+      const socialPlatforms = [
+        'reddit.com', 'twitter.com', 'x.com', 'facebook.com', 'linkedin.com', 
+        'youtube.com', 'instagram.com', 'tiktok.com', 'quora.com', 'medium.com',
+        'discord.com', 'telegram.org', 'whatsapp.com', 'snapchat.com'
+      ];
+      
+      const isValidSocialUrl = socialPlatforms.some(platform => 
+        values.threadUrl.toLowerCase().includes(platform)
+      );
+      
+      if (!isValidSocialUrl) {
+        throw new Error('Please provide a valid social media thread URL (Reddit, Twitter/X, Facebook, LinkedIn, YouTube, etc.)');
       }
 
       // Get custom API keys from localStorage if available
