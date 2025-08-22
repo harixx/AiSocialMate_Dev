@@ -176,7 +176,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               });
 
               if (searchResponse.ok) {
-                const searchData = await response.json();
+                const searchData = await searchResponse.json();
                 const redditResults = searchData.organic?.filter(result => 
                   result.link && 
                   result.link.includes('reddit.com/r/') && 

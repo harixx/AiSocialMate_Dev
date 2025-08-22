@@ -38,8 +38,17 @@ export const api = {
 
   // AI Reply Generation
   generateReply: async (data: any) => {
-    const response = await apiRequest('POST', '/api/generate-reply', data);
-    return response.json();
+    try {
+      const response = await apiRequest('POST', '/api/generate-reply', data);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `HTTP ${response.status}: Request failed`);
+      }
+      return response.json();
+    } catch (error) {
+      console.error('Generate reply API error:', error);
+      throw error;
+    }
   },
 
   // Alerts

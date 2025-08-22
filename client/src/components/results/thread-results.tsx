@@ -6,6 +6,8 @@ import { useLocation } from "wouter";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import RedditComments from "./reddit-comments";
+import { useReplyGenerator } from "@/hooks/use-reply-generator";
+import { useToast } from "@/hooks/use-toast";
 
 interface ThreadResultsProps {
   results: any[];
@@ -16,14 +18,31 @@ interface ThreadResultsProps {
 export default function ThreadResults({ results, totalResults, query }: ThreadResultsProps) {
   const [, setLocation] = useLocation();
   const [expandedThreads, setExpandedThreads] = useState<Set<number>>(new Set());
+  const { generateReply, isLoading } = useReplyGenerator();
+  const { toast } = useToast();
 
-  if (!results || results.length === 0) {
-    return null;
-  }
+  const handleGenerateReply = async (url: string, title: string) => {
+    try {
+      await generateReply({
+        threadUrl: url,
+        replyType: 'supportive',
+        tone: 'professional',
+        brandName: 'Your Brand',
+        brandContext: `Responding to: ${title}`,
+        creativity: 0.7
+      });
 
-  const handleGenerateReply = (threadUrl: string, threadTitle: string) => {
-    // Issue #2 fix - Navigate to correct AI Reply Generator route
-    setLocation(`/ai-reply-generator?threadUrl=${encodeURIComponent(threadUrl)}&title=${encodeURIComponent(threadTitle)}`);
+      toast({
+        title: "Reply Generated",
+        description: "Your AI reply has been generated! Check the AI Reply Generator tab to view it.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to generate reply. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const toggleExpanded = (index: number) => {

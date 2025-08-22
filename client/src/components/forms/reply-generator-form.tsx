@@ -73,7 +73,7 @@ export default function ReplyGeneratorForm() {
       gemini: "gemini-2.5-flash", 
       claude: "claude-3-5-sonnet-20241022"
     };
-    
+
     if (aiProvider && defaultModels[aiProvider as keyof typeof defaultModels]) {
       form.setValue("model", defaultModels[aiProvider as keyof typeof defaultModels]);
     }
@@ -84,39 +84,49 @@ export default function ReplyGeneratorForm() {
     const urlParams = new URLSearchParams(window.location.search);
     const threadUrl = urlParams.get('threadUrl');
     const title = urlParams.get('title');
-    
+
     if (threadUrl) {
       form.setValue('threadUrl', decodeURIComponent(threadUrl));
     }
-    
+
     // Clear URL params after auto-filling to clean up the URL
     if (threadUrl || title) {
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, [form]);
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    // Get custom API keys from localStorage if available
-    const customKeys = localStorage.getItem('customApiKeys');
-    let customApiKey = '';
-    
-    if (customKeys) {
-      try {
-        const keys = JSON.parse(customKeys);
-        if (keys.useCustomKeys && keys.openaiApiKey) {
-          customApiKey = keys.openaiApiKey;
-        }
-      } catch (error) {
-        console.error('Error parsing custom API keys:', error);
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    try {
+      // Validate URL format
+      if (!values.threadUrl.includes('reddit.com') && !values.threadUrl.includes('twitter.com') && !values.threadUrl.includes('facebook.com')) {
+        throw new Error('Please provide a valid social media thread URL (Reddit, Twitter, Facebook, etc.)');
       }
+
+      // Get custom API keys from localStorage if available
+      const customKeys = localStorage.getItem('customApiKeys');
+      let customApiKey = '';
+
+      if (customKeys) {
+        try {
+          const keys = JSON.parse(customKeys);
+          if (keys.useCustomKeys && keys.openaiApiKey) {
+            customApiKey = keys.openaiApiKey;
+          }
+        } catch (error) {
+          console.error('Error parsing custom API keys:', error);
+        }
+      }
+
+      const submitData = {
+        ...values,
+        creativity: values.creativity[0].toString(),
+        customApiKey: customApiKey,
+      };
+      generateReply(submitData);
+    } catch (error) {
+      console.error('Form submission error:', error);
+      // Error handling is done in the hook
     }
-    
-    const submitData = {
-      ...values,
-      creativity: values.creativity[0].toString(),
-      customApiKey: customApiKey,
-    };
-    generateReply(submitData);
   };
 
   return (

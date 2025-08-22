@@ -29,8 +29,9 @@ export function useReplyGenerator() {
     
     try {
       const result = await api.generateReply(replyData);
+      console.log('API Response:', result);
       
-      if (result.success && result.reply) {
+      if (result?.success && result?.reply) {
         const newReply: ReplyData = {
           id: result.reply.id,
           text: result.reply.text,
