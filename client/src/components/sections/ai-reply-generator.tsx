@@ -42,19 +42,24 @@ export default function AIReplyGenerator() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {Array.isArray(replyHistory) && replyHistory.map((reply: any) => (
-                    <div key={reply.id} className="border border-gray-200 rounded-lg p-4">
+                  {replyHistory.map((reply: any) => (
+                    <div key={reply.id || reply.threadUrl} className="border border-gray-200 rounded-lg p-4">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-sm text-gray-500">
-                          {new Date(reply.createdAt).toLocaleString()}
+                          {reply.createdAt ? new Date(reply.createdAt).toLocaleString() : 'Recently generated'}
                         </span>
                         <div className="flex space-x-2">
                           <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
-                            {reply.replyType}
+                            {reply.replyType || 'informational'}
                           </span>
                           <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">
-                            {reply.tone}
+                            {reply.tone || 'friendly'}
                           </span>
+                          {reply.aiProvider && (
+                            <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded">
+                              {reply.aiProvider}
+                            </span>
+                          )}
                         </div>
                       </div>
                       <p className="text-gray-800 mb-3">{reply.generatedText}</p>
@@ -74,7 +79,12 @@ export default function AIReplyGenerator() {
                           Copy
                         </button>
                       </div>
-                    </div>
+                      {reply.brandName && (
+                        <div className="mt-2 text-xs text-gray-500">
+                          Brand: {reply.brandName}
+                        </div>
+                      )}
+                      </div>
                   ))}
                 </div>
               )}
