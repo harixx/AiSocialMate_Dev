@@ -1,0 +1,83 @@
+🔍 Reddit Integration: ✓ Runtime Authentication Only
+Browserslist: browsers data (caniuse-lite) is 10 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+🔍 Getting all items of type: alert
+📋 Found keys for alert: { ok: true, value: [ 'alert:1' ] }
+✅ Valid alert loaded: ResimpliMon (ID: 1) - Next run: Tue Aug 26 2025 06:47:10 GMT+0000 (Coordinated Universal Time)
+✅ Returning 1 valid alerts (cleaned 0 invalid entries)
+6:48:23 AM [express] GET /api/alerts 200 in 649ms :: [{"name":"ResimpliMon","competitors":[{"canonic…
+🚀 Manually triggering alert with ID: 1
+🔍 Getting all items of type: alert
+📋 Found keys for alert: { ok: true, value: [ 'alert:1' ] }
+✅ Valid alert loaded: ResimpliMon (ID: 1) - Next run: Tue Aug 26 2025 06:47:10 GMT+0000 (Coordinated Universal Time)
+✅ Returning 1 valid alerts (cleaned 0 invalid entries)
+🚀 Manually triggering alert: ResimpliMon
+🎯 [2025-08-25T06:48:25.750Z] Processing alert: ResimpliMon (ID: 1)
+🔢 Generated ID for alertRun: 1 (previous: [object Object])
+📊 Processing 1 competitors across 1 platforms
+🔍 Searching for Resimpli on Reddit
+🔍 [Attempt 1] Searching: ("Resimpli") site:reddit.com...
+✅ Search successful: 10 results
+📝 Found 10 matches for Resimpli on Reddit
+🔍 Getting all items of type: presenceRecord
+📋 Found keys for presenceRecord: { ok: true, value: [] }
+📊 Key array length: 0 []
+✅ Returning 0 items for type presenceRecord
+🔢 Generated ID for presenceRecord: 1 (previous: [object Object])
+🔍 Getting all items of type: presenceRecord
+📋 Found keys for presenceRecord: { ok: true, value: [ 'presenceRecord:1' ] }
+📊 Key array length: 1 [ 'presenceRecord:1' ]
+📄 Retrieved item for key presenceRecord:1: Found
+✅ Returning 1 items for type presenceRecord
+🔢 Generated ID for presenceRecord: 1 (previous: [object Object])
+🔍 Getting all items of type: presenceRecord
+📋 Found keys for presenceRecord: { ok: true, value: [ 'presenceRecord:1' ] }
+📊 Key array length: 1 [ 'presenceRecord:1' ]
+📄 Retrieved item for key presenceRecord:1: Found
+✅ Returning 1 items for type presenceRecord
+🔢 Generated ID for presenceRecord: 1 (previous: [object Object])
+🔍 Getting all items of type: presenceRecord
+📋 Found keys for presenceRecord: { ok: true, value: [ 'presenceRecord:1' ] }
+📊 Key array length: 1 [ 'presenceRecord:1' ]
+📄 Retrieved item for key presenceRecord:1: Found
+✅ Returning 1 items for type presenceRecord
+🔢 Generated ID for presenceRecord: 1 (previous: [object Object])
+🔍 Getting all items of type: presenceRecord
+📋 Found keys for presenceRecord: { ok: true, value: [ 'presenceRecord:1' ] }
+📊 Key array length: 1 [ 'presenceRecord:1' ]
+📄 Retrieved item for key presenceRecord:1: Found
+✅ Returning 1 items for type presenceRecord
+🔢 Generated ID for presenceRecord: 1 (previous: [object Object])
+🔍 Getting all items of type: presenceRecord
+📋 Found keys for presenceRecord: { ok: true, value: [ 'presenceRecord:1' ] }
+📊 Key array length: 1 [ 'presenceRecord:1' ]
+📄 Retrieved item for key presenceRecord:1: Found
+✅ Returning 1 items for type presenceRecord
+🔢 Generated ID for presenceRecord: 1 (previous: [object Object])
+🔍 Getting all items of type: presenceRecord
+📋 Found keys for presenceRecord: { ok: true, value: [ 'presenceRecord:1' ] }
+📊 Key array length: 1 [ 'presenceRecord:1' ]
+📄 Retrieved item for key presenceRecord:1: Found
+✅ Returning 1 items for type presenceRecord
+🔢 Generated ID for presenceRecord: 1 (previous: [object Object])
+🔍 Getting all items of type: presenceRecord
+📋 Found keys for presenceRecord: { ok: true, value: [ 'presenceRecord:1' ] }
+📊 Key array length: 1 [ 'presenceRecord:1' ]
+📄 Retrieved item for key presenceRecord:1: Found
+✅ Returning 1 items for type presenceRecord
+🔢 Generated ID for presenceRecord: 1 (previous: [object Object])
+🔍 Getting all items of type: presenceRecord
+📋 Found keys for presenceRecord: { ok: true, value: [ 'presenceRecord:1' ] }
+📊 Key array length: 1 [ 'presenceRecord:1' ]
+📄 Retrieved item for key presenceRecord:1: Found
+✅ Returning 1 items for type presenceRecord
+🔢 Generated ID for presenceRecord: 1 (previous: [object Object])
+🔍 Getting all items of type: presenceRecord
+📋 Found keys for presenceRecord: { ok: true, value: [ 'presenceRecord:1' ] }
+📊 Key array length: 1 [ 'presenceRecord:1' ]
+📄 Retrieved item for key presenceRecord:1: Found
+✅ Returning 1 items for type presenceRecord
+🔢 Generated ID for presenceRecord: 1 (previous: [object Object])
+📧 Sending notifications for alert ResimpliMon: 10 new presences
+^C
