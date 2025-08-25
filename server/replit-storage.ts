@@ -21,9 +21,11 @@ export class ReplitStorage implements IStorage {
   // Helper methods for generating IDs and managing data
   private async getNextId(type: string): Promise<number> {
     const key = `${type}_counter`;
-    const current = await this.db.get(key) || 0;
-    const next = current + 1;
+    const current = await this.db.get(key);
+    const currentNumber = typeof current === 'number' ? current : 0;
+    const next = currentNumber + 1;
     await this.db.set(key, next);
+    console.log(`🔢 Generated ID for ${type}: ${next} (previous: ${current})`);
     return next;
   }
 
@@ -32,9 +34,16 @@ export class ReplitStorage implements IStorage {
       console.log(`🔍 Getting all items of type: ${type}`);
       const keys = await this.db.list(`${type}:`);
       console.log(`📋 Found keys for ${type}:`, keys);
-      // Ensure keys is an array
-      const keyArray = Array.isArray(keys) ? keys : [];
-      console.log(`📊 Key array length: ${keyArray.length}`);
+      
+      // Handle Replit Database response format
+      let keyArray: string[] = [];
+      if (keys && typeof keys === 'object' && 'value' in keys) {
+        keyArray = Array.isArray(keys.value) ? keys.value : [];
+      } else if (Array.isArray(keys)) {
+        keyArray = keys;
+      }
+      
+      console.log(`📊 Key array length: ${keyArray.length}`, keyArray);
       const items: T[] = [];
       for (const key of keyArray) {
         const item = await this.db.get(key);
