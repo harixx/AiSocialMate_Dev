@@ -168,7 +168,31 @@ export default function APISettings() {
 
   const clearSettings = async () => {
     try {
-      // Only clear the frontend form and localStorage, keep server values intact
+      const response = await fetch('/api/settings/keys', {
+        method: 'DELETE',
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        localStorage.removeItem('customApiKeys');
+        // Clear both server and frontend form values
+        form.reset({
+          openaiApiKey: "",
+          serperApiKey: "",
+          geminiApiKey: "",
+          useCustomKeys: false,
+        });
+        toast({
+          title: "Settings Cleared",
+          description: "All API keys have been cleared from both server and frontend.",
+        });
+      } else {
+        throw new Error(result.error || 'Failed to clear API keys');
+      }
+    } catch (error) {
+      console.error('Failed to clear API keys:', error);
+      // Still clear localStorage and form as fallback
       localStorage.removeItem('customApiKeys');
       form.reset({
         openaiApiKey: "",
@@ -177,14 +201,8 @@ export default function APISettings() {
         useCustomKeys: false,
       });
       toast({
-        title: "Form Cleared",
-        description: "Form fields cleared. Server values remain saved for loading later.",
-      });
-    } catch (error) {
-      console.error('Failed to clear form:', error);
-      toast({
-        title: "Error",
-        description: "Failed to clear form fields.",
+        title: "Warning",
+        description: "API keys cleared locally, but server update failed.",
         variant: "destructive",
       });
     }
