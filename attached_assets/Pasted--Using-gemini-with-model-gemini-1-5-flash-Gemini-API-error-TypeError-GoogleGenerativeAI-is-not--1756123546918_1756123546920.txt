@@ -1,0 +1,34 @@
+ Using gemini with model gemini-1.5-flash
+❌ Gemini API error: TypeError: GoogleGenerativeAI is not a constructor
+    at createGeminiClient (/home/runner/workspace/server/runtime-config.ts:238:10)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:1168:26)
+❌ Reply generation error: Error: Gemini API error: GoogleGenerativeAI is not a constructor
+    at <anonymous> (/home/runner/workspace/server/routes.ts:1176:17)
+12:05:14 PM [express] POST /api/generate-reply 500 in 393ms :: {"success":false,"error":"Gemini API e…
+🤖 Reply generation request received: {
+  threadUrl: 'https://www.reddit.com/r/CRM/comments/1jyz0uv/best_crm_for_real_estate_agents_according_to/',
+  aiProvider: 'gemini',
+  model: 'gemini-1.5-pro'
+}
+🔄 Using gemini with model gemini-1.5-pro
+❌ Gemini API error: TypeError: GoogleGenerativeAI is not a constructor
+    at createGeminiClient (/home/runner/workspace/server/runtime-config.ts:238:10)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:1168:26)
+❌ Reply generation error: Error: Gemini API error: GoogleGenerativeAI is not a constructor
+    at <anonymous> (/home/runner/workspace/server/routes.ts:1176:17)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+12:05:21 PM [express] POST /api/generate-reply 500 in 19ms :: {"success":false,"error":"Gemini API er…
+🤖 Reply generation request received: {
+  threadUrl: 'https://www.reddit.com/r/CRM/comments/1jyz0uv/best_crm_for_real_estate_agents_according_to/',
+  aiProvider: 'gemini',
+  model: 'gemini-1.0-pro'
+}
+🔄 Using gemini with model gemini-1.0-pro
+❌ Gemini API error: TypeError: GoogleGenerativeAI is not a constructor
+    at createGeminiClient (/home/runner/workspace/server/runtime-config.ts:238:10)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:1168:26)
+❌ Reply generation error: Error: Gemini API error: GoogleGenerativeAI is not a constructor
+    at <anonymous> (/home/runner/workspace/server/routes.ts:1176:17)
+12:05:28 PM [express] POST /api/generate-reply 500 in 8ms :: {"success":false,"error":"Gemini API err…
+^[[1;2B
