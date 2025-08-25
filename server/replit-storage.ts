@@ -88,17 +88,20 @@ export class ReplitStorage implements IStorage {
 
     const alerts: Alert[] = [];
     const validKeys: string[] = [];
+    const invalidKeys: string[] = [];
 
     for (const key of keys.value) {
-      // Skip malformed keys
+      // Skip malformed keys and mark for cleanup
       if (key.includes('[object Object]')) {
-        console.log(`🗑️ Skipping malformed key: ${key}`);
+        console.log(`🗑️ Marking malformed key for cleanup: ${key}`);
+        invalidKeys.push(key);
         continue;
       }
 
       // Validate key format
       if (!key.match(/^alert:\d+$/)) {
-        console.log(`⚠️ Invalid key format: ${key}`);
+        console.log(`⚠️ Invalid key format, marking for cleanup: ${key}`);
+        invalidKeys.push(key);
         continue;
       }
 
@@ -107,16 +110,40 @@ export class ReplitStorage implements IStorage {
         const alert = item.value as Alert;
         // Ensure the alert has required properties
         if (alert.name && alert.id && typeof alert.id === 'number') {
-          alerts.push(alert);
-          validKeys.push(key);
-          console.log(`✅ Valid alert loaded: ${alert.name} (ID: ${alert.id})`);
+          // Additional validation for data integrity
+          if (alert.competitors && Array.isArray(alert.competitors) && 
+              alert.platforms && Array.isArray(alert.platforms)) {
+            alerts.push(alert);
+            validKeys.push(key);
+            console.log(`✅ Valid alert loaded: ${alert.name} (ID: ${alert.id})`);
+          } else {
+            console.log(`❌ Alert missing required arrays, marking for cleanup: ${key}`);
+            invalidKeys.push(key);
+          }
         } else {
-          console.log(`❌ Invalid alert data in key ${key}:`, alert);
+          console.log(`❌ Invalid alert data, marking for cleanup: ${key}`, alert);
+          invalidKeys.push(key);
+        }
+      } else {
+        console.log(`❌ Failed to load alert data for key: ${key}`);
+        invalidKeys.push(key);
+      }
+    }
+
+    // Clean up invalid keys automatically
+    if (invalidKeys.length > 0) {
+      console.log(`🧹 Auto-cleaning ${invalidKeys.length} invalid keys`);
+      for (const invalidKey of invalidKeys) {
+        try {
+          await this.db.delete(invalidKey);
+          console.log(`✅ Cleaned up invalid key: ${invalidKey}`);
+        } catch (error) {
+          console.error(`❌ Failed to clean up key ${invalidKey}:`, error);
         }
       }
     }
 
-    console.log(`✅ Returning ${alerts.length} valid alerts`);
+    console.log(`✅ Returning ${alerts.length} valid alerts (cleaned ${invalidKeys.length} invalid entries)`);
     return alerts.sort((a, b) => a.id - b.id);
   }
 
@@ -126,6 +153,15 @@ export class ReplitStorage implements IStorage {
 
   // Create Alert
   async createAlert(alertData: any): Promise<Alert> {
+    // Validate input data
+    if (!alertData.name || !alertData.competitors || !alertData.platforms) {
+      throw new Error('Alert must have name, competitors, and platforms');
+    }
+
+    if (!Array.isArray(alertData.competitors) || !Array.isArray(alertData.platforms)) {
+      throw new Error('Competitors and platforms must be arrays');
+    }
+
     const alerts = await this.getAlerts();
 
     // Generate a proper sequential ID
@@ -138,9 +174,18 @@ export class ReplitStorage implements IStorage {
 
     console.log(`🔢 Generated ID for alert: ${nextId}`);
 
+    // Ensure competitors have proper structure
+    const validatedCompetitors = alertData.competitors.map((comp: any) => ({
+      canonicalName: comp.canonicalName || comp.name || '',
+      aliases: Array.isArray(comp.aliases) ? comp.aliases : [],
+      domains: Array.isArray(comp.domains) ? comp.domains : []
+    }));
+
     const alert: Alert = {
       ...alertData,
       id: nextId,
+      competitors: validatedCompetitors,
+      platforms: Array.isArray(alertData.platforms) ? alertData.platforms : [],
       isActive: alertData.isActive ?? true,
       createdAt: new Date(),
       lastRun: null,
@@ -149,6 +194,11 @@ export class ReplitStorage implements IStorage {
 
     const key = `alert:${nextId}`;
     console.log(`💾 Storing alert with key: ${key}`);
+    console.log(`📋 Alert data:`, { 
+      name: alert.name, 
+      competitors: alert.competitors.length, 
+      platforms: alert.platforms.length 
+    });
 
     const result = await this.db.set(key, alert);
     if (!result.ok) {
