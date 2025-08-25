@@ -29,14 +29,19 @@ export class ReplitStorage implements IStorage {
 
   private async getAllByType<T>(type: string): Promise<T[]> {
     try {
+      console.log(`🔍 Getting all items of type: ${type}`);
       const keys = await this.db.list(`${type}:`);
+      console.log(`📋 Found keys for ${type}:`, keys);
       // Ensure keys is an array
       const keyArray = Array.isArray(keys) ? keys : [];
+      console.log(`📊 Key array length: ${keyArray.length}`);
       const items: T[] = [];
       for (const key of keyArray) {
         const item = await this.db.get(key);
+        console.log(`📄 Retrieved item for key ${key}:`, item ? 'Found' : 'Not found');
         if (item) items.push(item);
       }
+      console.log(`✅ Returning ${items.length} items for type ${type}`);
       return items;
     } catch (error) {
       console.error(`Error in getAllByType for ${type}:`, error);
@@ -87,7 +92,9 @@ export class ReplitStorage implements IStorage {
       createdAt: now,
       lastRun: null
     };
+    console.log(`💾 Storing alert with key: alert:${id}`, alert);
     await this.db.set(`alert:${id}`, alert);
+    console.log(`✅ Alert stored successfully with ID: ${id}`);
     return alert;
   }
 
