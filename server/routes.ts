@@ -70,7 +70,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/settings/reddit-credentials", (req, res) => {
+  app.post("/api/settings/reddit-credentials", async (req, res) => {
     try {
       const { clientId, clientSecret, username, password } = req.body;
 
@@ -81,7 +81,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      runtimeConfig.setRedditCredentials(clientId, clientSecret, username, password);
+      await runtimeConfig.setRedditCredentials(clientId, clientSecret, username, password);
 
       res.json({
         success: true,
@@ -95,9 +95,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/settings/reddit-credentials", (req, res) => {
+  app.delete("/api/settings/reddit-credentials", async (req, res) => {
     try {
-      runtimeConfig.clearRedditCredentials();
+      await runtimeConfig.clearRedditCredentials();
       res.json({
         success: true,
         message: 'Reddit credentials cleared'
@@ -126,7 +126,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/settings/keys", (req, res) => {
+  app.post("/api/settings/keys", async (req, res) => {
     try {
       const { openaiApiKey, geminiApiKey, serperApiKey } = req.body;
 
@@ -141,7 +141,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updates.serper = serperApiKey.trim();
       }
 
-      runtimeConfig.updateAPIKeys(updates);
+      await runtimeConfig.updateAPIKeys(updates);
 
       res.json({
         success: true,
@@ -156,9 +156,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/settings/keys", (req, res) => {
+  app.delete("/api/settings/keys", async (req, res) => {
     try {
-      runtimeConfig.clearAllAPIKeys();
+      await runtimeConfig.clearAllAPIKeys();
       res.json({
         success: true,
         message: 'All API keys cleared',

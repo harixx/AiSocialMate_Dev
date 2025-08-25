@@ -112,10 +112,10 @@ class RuntimeConfigManager {
   /**
    * Set a runtime API key
    */
-  setAPIKey(service: keyof RuntimeAPIKeys, key: string): void {
+  async setAPIKey(service: keyof RuntimeAPIKeys, key: string): Promise<void> {
     this.apiKeys[service] = key;
     console.log(`✅ Runtime API key updated for ${service}`);
-    this.saveToDatabase(); // Persist to database
+    await this.saveToDatabase(); // Persist to database
   }
 
   /**
@@ -139,32 +139,32 @@ class RuntimeConfigManager {
   /**
    * Update multiple API keys at once
    */
-  updateAPIKeys(keys: Partial<RuntimeAPIKeys>): void {
+  async updateAPIKeys(keys: Partial<RuntimeAPIKeys>): Promise<void> {
     Object.entries(keys).forEach(([service, key]) => {
       if (key !== undefined && key !== null && key.trim()) {
         this.apiKeys[service as keyof RuntimeAPIKeys] = key.trim();
       }
     });
     console.log('✅ Multiple runtime API keys updated');
-    this.saveToDatabase(); // Persist to database
+    await this.saveToDatabase(); // Persist to database
   }
 
   /**
    * Remove a runtime API key (falls back to default if available)
    */
-  removeAPIKey(service: keyof RuntimeAPIKeys): void {
+  async removeAPIKey(service: keyof RuntimeAPIKeys): Promise<void> {
     delete this.apiKeys[service];
     console.log(`🗑️ Runtime API key removed for ${service}, falling back to default`);
-    this.saveToDatabase(); // Persist to database
+    await this.saveToDatabase(); // Persist to database
   }
 
   /**
    * Clear all runtime API keys (falls back to defaults)
    */
-  clearAllAPIKeys(): void {
+  async clearAllAPIKeys(): Promise<void> {
     this.apiKeys = { ...this.defaultKeys };
     console.log('🗑️ All runtime API keys cleared, using defaults');
-    this.saveToDatabase(); // Persist to database
+    await this.saveToDatabase(); // Persist to database
   }
 
   /**
@@ -258,8 +258,8 @@ export function getRedditCredentials(): { clientId?: string; clientSecret?: stri
 declare module "./runtime-config" {
   interface RuntimeConfigManager {
     getRedditCredentials(): { clientId?: string; clientSecret?: string; username?: string; password?: string };
-    setRedditCredentials(clientId: string, clientSecret: string, username?: string, password?: string): void;
-    clearRedditCredentials(): void;
+    setRedditCredentials(clientId: string, clientSecret: string, username?: string, password?: string): Promise<void>;
+    clearRedditCredentials(): Promise<void>;
   }
 }
 
@@ -273,8 +273,8 @@ RuntimeConfigManager.prototype.getRedditCredentials = function() {
   };
 };
 
-RuntimeConfigManager.prototype.setRedditCredentials = function(clientId, clientSecret, username, password) {
-  this.updateAPIKeys({
+RuntimeConfigManager.prototype.setRedditCredentials = async function(clientId: string, clientSecret: string, username?: string, password?: string) {
+  await this.updateAPIKeys({
     redditClientId: clientId,
     redditClientSecret: clientSecret,
     redditUsername: username,
@@ -283,10 +283,12 @@ RuntimeConfigManager.prototype.setRedditCredentials = function(clientId, clientS
   console.log('✅ Reddit credentials saved successfully');
 };
 
-RuntimeConfigManager.prototype.clearRedditCredentials = function() {
-  this.removeAPIKey('redditClientId');
-  this.removeAPIKey('redditClientSecret');
-  this.removeAPIKey('redditUsername');
-  this.removeAPIKey('redditPassword');
+RuntimeConfigManager.prototype.clearRedditCredentials = async function() {
+  await Promise.all([
+    this.removeAPIKey('redditClientId'),
+    this.removeAPIKey('redditClientSecret'),
+    this.removeAPIKey('redditUsername'),
+    this.removeAPIKey('redditPassword')
+  ]);
   console.log('🗑️ Reddit credentials cleared');
 };
