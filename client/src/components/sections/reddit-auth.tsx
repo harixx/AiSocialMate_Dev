@@ -175,6 +175,7 @@ export default function RedditAuth({ onAuthChange }: RedditAuthProps) {
       username: '',
       password: ''
     });
+    setIsRuntimeAuth(false);
     toast({
       title: "Credentials Cleared",
       description: "Reddit credentials have been cleared from the frontend only. Server credentials remain saved.",
@@ -368,13 +369,6 @@ export default function RedditAuth({ onAuthChange }: RedditAuthProps) {
                     variant="outline"
                   >
                     Load Saved
-                  </Button>
-                  <Button 
-                    onClick={clearFrontendOnly} 
-                    disabled={loading}
-                    variant="outline"
-                  >
-                    Clear Credentials
                   </Button>
                   <Button 
                     onClick={clearAllCredentials} 
