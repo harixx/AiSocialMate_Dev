@@ -1,0 +1,117 @@
+ 
+
+Error: expected dbUrl, got undefined
+
+    at getDbUrl (file:///app/node_modules/@replit/database/dist/index.mjs:219:11)
+
+    at new Client (file:///app/node_modules/@replit/database/dist/index.mjs:25:21)
+
+    at new ReplitStorage (file:///app/dist/index.js:20:19)
+
+    at server/storage.ts (file:///app/dist/index.js:570:15)
+
+    at __init (file:///app/dist/index.js:4:56)
+
+    at file:///app/dist/index.js:1285:1
+
+    at ModuleJob.run (node:internal/modules/esm/module_job:263:25)
+
+    at async ModuleLoader.import (node:internal/modules/esm/loader:540:24)
+
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+ 
+
+Node.js v20.19.4
+
+file:///app/node_modules/@replit/database/dist/index.mjs:219
+
+    throw new Error("expected dbUrl, got undefined");
+
+          ^
+
+ 
+
+Error: expected dbUrl, got undefined
+
+    at getDbUrl (file:///app/node_modules/@replit/database/dist/index.mjs:219:11)
+
+    at new Client (file:///app/node_modules/@replit/database/dist/index.mjs:25:21)
+
+    at new ReplitStorage (file:///app/dist/index.js:20:19)
+
+    at server/storage.ts (file:///app/dist/index.js:570:15)
+
+    at __init (file:///app/dist/index.js:4:56)
+
+    at file:///app/dist/index.js:1285:1
+
+    at ModuleJob.run (node:internal/modules/esm/module_job:263:25)
+
+    at async ModuleLoader.import (node:internal/modules/esm/loader:540:24)
+
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+ 
+
+Node.js v20.19.4
+
+file:///app/node_modules/@replit/database/dist/index.mjs:219
+
+    throw new Error("expected dbUrl, got undefined");
+
+          ^
+
+ 
+
+Error: expected dbUrl, got undefined
+
+    at getDbUrl (file:///app/node_modules/@replit/database/dist/index.mjs:219:11)
+
+    at new Client (file:///app/node_modules/@replit/database/dist/index.mjs:25:21)
+
+    at new ReplitStorage (file:///app/dist/index.js:20:19)
+
+    at server/storage.ts (file:///app/dist/index.js:570:15)
+
+    at __init (file:///app/dist/index.js:4:56)
+
+    at file:///app/dist/index.js:1285:1
+
+    at ModuleJob.run (node:internal/modules/esm/module_job:263:25)
+
+    at async ModuleLoader.import (node:internal/modules/esm/loader:540:24)
+
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+ 
+
+Node.js v20.19.4
+
+file:///app/node_modules/@replit/database/dist/index.mjs:219
+
+    throw new Error("expected dbUrl, got undefined");
+
+          ^
+
+ 
+
+Error: expected dbUrl, got undefined
+
+    at getDbUrl (file:///app/node_modules/@replit/database/dist/index.mjs:219:11)
+
+    at new Client (file:///app/node_modules/@replit/database/dist/index.mjs:25:21)
+
+    at new ReplitStorage (file:///app/dist/index.js:20:19)
+
+    at server/storage.ts (file:///app/dist/index.js:570:15)
+
+    at __init (file:///app/dist/index.js:4:56)
+
+    at file:///app/dist/index.js:1285:1
+
+    at ModuleJob.run (node:internal/modules/esm/module_job:263:25)
+
+    at async ModuleLoader.import (node:internal/modules/esm/loader:540:24)
+
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
