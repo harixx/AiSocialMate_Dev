@@ -8,7 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
-import { Search, Zap } from "lucide-react";
+import { Search, Zap, Target } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect } from "react";
+import { SearchResults } from "../results/search-results";
+import { Badge } from "@/components/ui/badge";
 
 const formSchema = z.object({
   brandName: z.string().min(1, "Brand name is required"),
@@ -63,10 +67,40 @@ export default function BrandOpportunityForm({ onSearch, isLoading, activeTab }:
     onSearch(values);
   };
 
+  const [results, setResults] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [redditAuthStatus, setRedditAuthStatus] = useState<boolean>(false);
+  const { toast } = useToast();
+
+  // Check Reddit authentication status on component mount
+  useEffect(() => {
+    const checkRedditAuth = async () => {
+      try {
+        const response = await fetch('/api/settings/reddit-credentials');
+        if (response.ok) {
+          const data = await response.json();
+          setRedditAuthStatus(data.hasCredentials || false);
+        }
+      } catch (error) {
+        console.log('Failed to check Reddit auth status');
+      }
+    };
+
+    checkRedditAuth();
+  }, []);
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Brand Opportunity Search</CardTitle>
+        <CardTitle className="flex items-center space-x-2">
+          <Target className="h-5 w-5" />
+          <span>Brand Opportunity Discovery</span>
+          {redditAuthStatus && (
+            <Badge variant="secondary" className="bg-green-100 text-green-800">
+              Reddit Auth Active
+            </Badge>
+          )}
+        </CardTitle>
         <p className="text-sm text-gray-600">
           Find mentions of competitors without your brand to discover new opportunities
         </p>
@@ -250,8 +284,8 @@ export default function BrandOpportunityForm({ onSearch, isLoading, activeTab }:
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Max Results</FormLabel>
-                    <Select 
-                      onValueChange={(value) => field.onChange(parseInt(value))} 
+                    <Select
+                      onValueChange={(value) => field.onChange(parseInt(value))}
                       defaultValue={field.value.toString()}
                     >
                       <FormControl>

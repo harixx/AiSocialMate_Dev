@@ -6,7 +6,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search } from "lucide-react";
+import { Search, Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { ThreadResults } from "../results/thread-results";
+import { Badge } from "@/components/ui/badge";
+import React, { useState, useEffect } from "react";
 
 const formSchema = z.object({
   keywords: z.string().min(1, "Keywords are required"),
@@ -34,6 +38,28 @@ export default function ThreadSearchForm({ onSearch, isLoading }: ThreadSearchFo
     { id: "Twitter", label: "Twitter" },
   ];
 
+  const [results, setResults] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [redditAuthStatus, setRedditAuthStatus] = useState<boolean>(false);
+  const { toast } = useToast();
+
+  // Check Reddit authentication status on component mount
+  useEffect(() => {
+    const checkRedditAuth = async () => {
+      try {
+        const response = await fetch('/api/settings/reddit-credentials');
+        if (response.ok) {
+          const data = await response.json();
+          setRedditAuthStatus(data.hasCredentials || false);
+        }
+      } catch (error) {
+        console.log('Failed to check Reddit auth status');
+      }
+    };
+
+    checkRedditAuth();
+  }, []);
+
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     onSearch(values);
   };
@@ -41,7 +67,15 @@ export default function ThreadSearchForm({ onSearch, isLoading }: ThreadSearchFo
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Thread Search</CardTitle>
+        <CardTitle className="flex items-center space-x-2">
+          <Search className="h-5 w-5" />
+          <span>Thread Discovery</span>
+          {redditAuthStatus && (
+            <Badge variant="secondary" className="bg-green-100 text-green-800">
+              Reddit Auth Active
+            </Badge>
+          )}
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <Form {...form}>

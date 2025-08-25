@@ -476,13 +476,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
             // Extract real Reddit statistics if this is a Reddit URL
             if (pr.platform === 'Reddit' && result.link.includes('reddit.com')) {
-              const redditStats = await extractRealRedditStats(result.link, req.body);
+              // Get persistent Reddit credentials and merge with any provided runtime credentials
+              const persistentCredentials = runtimeConfig.getRedditCredentials();
+              const requestWithCredentials = {
+                ...req.body,
+                runtimeClientId: req.body.runtimeClientId || persistentCredentials.clientId,
+                runtimeClientSecret: req.body.runtimeClientSecret || persistentCredentials.clientSecret,
+                runtimeUsername: req.body.runtimeUsername || persistentCredentials.username,
+                runtimePassword: req.body.runtimePassword || persistentCredentials.password
+              };
+
+              const redditStats = await extractRealRedditStats(result.link, requestWithCredentials);
               if (redditStats.real_stats) {
                 realStats = redditStats;
                 processedResult = { ...result, ...redditStats };
               } else {
-                // Mark that Reddit auth is available but stats couldn't be fetched
-                processedResult = { ...result, reddit_auth_available: hasRedditAuth(req.body) };
+                // Mark that Reddit auth is available
+                const hasAuth = !!(persistentCredentials.clientId && persistentCredentials.clientSecret);
+                processedResult = { ...result, reddit_auth_available: hasAuth };
               }
             }
 
@@ -617,13 +628,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
           let processedResult = result;
 
           if (pr.platform === 'Reddit' && result.link.includes('reddit.com')) {
-            const redditStats = await extractRealRedditStats(result.link, req.body);
+            // Get persistent Reddit credentials and merge with any provided runtime credentials
+            const persistentCredentials = runtimeConfig.getRedditCredentials();
+            const requestWithCredentials = {
+              ...req.body,
+              runtimeClientId: req.body.runtimeClientId || persistentCredentials.clientId,
+              runtimeClientSecret: req.body.runtimeClientSecret || persistentCredentials.clientSecret,
+              runtimeUsername: req.body.runtimeUsername || persistentCredentials.username,
+              runtimePassword: req.body.runtimePassword || persistentCredentials.password
+            };
+
+            const redditStats = await extractRealRedditStats(result.link, requestWithCredentials);
             if (redditStats.real_stats) {
               realStats = redditStats;
               processedResult = { ...result, ...redditStats };
             } else {
-              // Mark that Reddit auth is available but stats couldn't be fetched
-              processedResult = { ...result, reddit_auth_available: hasRedditAuth(req.body) };
+              // Mark that Reddit auth is available
+              const hasAuth = !!(persistentCredentials.clientId && persistentCredentials.clientSecret);
+              processedResult = { ...result, reddit_auth_available: hasAuth };
             }
           }
 
@@ -731,7 +753,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get persistent Reddit credentials from runtime config
       const persistentCredentials = runtimeConfig.getRedditCredentials();
-      
+
       // Use provided runtime credentials or fall back to persistent ones
       const finalClientId = runtimeClientId || persistentCredentials.clientId;
       const finalClientSecret = runtimeClientSecret || persistentCredentials.clientSecret;
@@ -833,7 +855,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     selftext: post.selftext,
                     created_utc: post.created_utc
                   },
-                  comments: formattedComments,
+                  comments: formattedResults,
                   total_comments: formattedComments.length,
                   source: 'runtime_api',
                   authenticated: true
