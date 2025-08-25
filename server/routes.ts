@@ -1211,9 +1211,12 @@ Generate only the final reply text that would be posted.`;
   app.get("/api/alerts/:id/runs", async (req, res) => {
     try {
       const alertId = parseInt(req.params.id);
+      console.log(`🔍 API: Fetching alert runs for alertId: ${alertId}`);
       const runs = await storage.getAlertRuns(alertId);
+      console.log(`📊 API: Retrieved ${runs.length} alert runs`);
       res.json(runs);
     } catch (error) {
+      console.error('❌ Error fetching alert runs:', error);
       res.status(500).json({ message: "Failed to fetch alert runs" });
     }
   });
@@ -1223,9 +1226,12 @@ Generate only the final reply text that would be posted.`;
     try {
       const alertId = parseInt(req.params.id);
       const competitor = req.query.competitor as string;
+      console.log(`🔍 API: Fetching presence records for alertId: ${alertId}, competitor: ${competitor}`);
       const records = await storage.getPresenceRecords(alertId, competitor);
+      console.log(`📊 API: Retrieved ${records.length} presence records`);
       res.json(records);
     } catch (error) {
+      console.error('❌ Error fetching presence records:', error);
       res.status(500).json({ message: "Failed to fetch presence records" });
     }
   });
@@ -1260,9 +1266,12 @@ Generate only the final reply text that would be posted.`;
   app.get("/api/quota-usage", async (req, res) => {
     try {
       const month = req.query.month as string || new Date().toISOString().slice(0, 7);
+      console.log(`📊 Fetching quota usage for month: ${month}`);
       const quotaUsage = await storage.getQuotaUsage(month);
+      console.log('📊 Retrieved quota usage:', quotaUsage);
       res.json(quotaUsage || { month, totalApiCalls: 0, remainingCalls: 1000 });
     } catch (error) {
+      console.error('❌ Quota usage fetch error:', error);
       res.status(500).json({ message: "Failed to fetch quota usage" });
     }
   });

@@ -45,9 +45,28 @@ export class ReplitStorage implements IStorage {
       console.log(`📊 Key array length: ${keyArray.length}`, keyArray);
       const items: T[] = [];
       for (const key of keyArray) {
-        const item = await this.db.get(key);
-        console.log(`📄 Retrieved item for key ${key}:`, item ? 'Found' : 'Not found');
-        if (item) items.push(item);
+        const result = await this.db.get(key);
+        console.log(`📄 Retrieved item for key ${key}:`, result ? 'Found' : 'Not found');
+        console.log(`📄 Raw data structure for ${key}:`, JSON.stringify(result).substring(0, 200));
+        
+        if (result) {
+          // Handle deeply nested Replit Database response format
+          let item = result;
+          
+          // Keep unwrapping while we have nested ok/value structures
+          let unwrapCount = 0;
+          while (item && typeof item === 'object' && 'ok' in item && item.ok && 'value' in item && unwrapCount < 5) {
+            console.log(`📄 Unwrapping nested response for ${key} (level ${unwrapCount + 1})`);
+            item = item.value;
+            unwrapCount++;
+          }
+          
+          console.log(`📄 Final unwrapped item for ${key}:`, JSON.stringify(item).substring(0, 200));
+          
+          if (item) {
+            items.push(item as T);
+          }
+        }
       }
       console.log(`✅ Returning ${items.length} items for type ${type}`);
       return items;
@@ -345,7 +364,14 @@ export class ReplitStorage implements IStorage {
 
   async getAlertRuns(alertId?: number): Promise<AlertRun[]> {
     const runs = await this.getAllByType<AlertRun>('alertRun');
-    return alertId ? runs.filter(run => run.alertId === alertId) : runs;
+    if (alertId) {
+      console.log(`🔍 Filtering ${runs.length} alert runs for alertId: ${alertId}`);
+      console.log('Alert runs:', runs.map(run => ({ id: run.id, alertId: run.alertId, status: run.status })));
+      const filtered = runs.filter(run => Number(run.alertId) === Number(alertId));
+      console.log(`✅ Filtered to ${filtered.length} matching runs`);
+      return filtered;
+    }
+    return runs;
   }
 
   // Presence Records
@@ -366,7 +392,10 @@ export class ReplitStorage implements IStorage {
     let filtered = records;
 
     if (alertId) {
-      filtered = filtered.filter(record => record.alertId === alertId);
+      console.log(`🔍 Filtering ${records.length} presence records for alertId: ${alertId}`);
+      console.log('Presence records:', records.map(record => ({ id: record.id, alertId: record.alertId, competitorName: record.competitorName })));
+      filtered = filtered.filter(record => Number(record.alertId) === Number(alertId));
+      console.log(`✅ Filtered to ${filtered.length} matching presence records`);
     }
 
     if (competitorName) {
@@ -400,7 +429,26 @@ export class ReplitStorage implements IStorage {
 
   // Quota Usage
   async getQuotaUsage(month: string): Promise<QuotaUsage | undefined> {
-    return await this.db.get(`quotaUsage:${month}`);
+    const result = await this.db.get(`quotaUsage:${month}`);
+    
+    // Handle deeply nested response structure from Replit Database
+    let data = result;
+    while (data && typeof data === 'object' && 'ok' in data && 'value' in data) {
+      if (data.ok) {
+        data = data.value;
+      } else {
+        // If we hit a failed response, return undefined
+        console.log('Quota usage not found for month:', month);
+        return undefined;
+      }
+    }
+    
+    // Check if we have valid quota data
+    if (data && typeof data === 'object' && 'month' in data) {
+      return data as QuotaUsage;
+    }
+    
+    return undefined;
   }
 
   async updateQuotaUsage(month: string, apiCalls: number): Promise<void> {

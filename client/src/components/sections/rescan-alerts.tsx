@@ -401,7 +401,7 @@ export default function RescanAlerts() {
                 <div className="flex items-center justify-between">
                   <div>
                     <h2 className="text-2xl font-bold text-gray-900">
-                      {alerts?.find((a: any) => a.id === selectedAlert)?.name || `Alert #${selectedAlert}`}
+                      {Array.isArray(alerts) ? alerts.find((a: any) => a.id === selectedAlert)?.name || `Alert #${selectedAlert}` : `Alert #${selectedAlert}`}
                     </h2>
                     <p className="text-gray-600 mt-1">Real-time monitoring dashboard and presence detection results</p>
                   </div>
