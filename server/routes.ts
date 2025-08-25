@@ -49,6 +49,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/settings/reddit-credentials-raw", (req, res) => {
+    try {
+      const credentials = runtimeConfig.getRedditCredentials();
+      res.json({
+        success: true,
+        credentials: {
+          clientId: credentials.clientId,
+          clientSecret: credentials.clientSecret,
+          username: credentials.username,
+          password: credentials.password
+        },
+        hasCredentials: !!(credentials.clientId && credentials.clientSecret)
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: 'Failed to get Reddit credentials'
+      });
+    }
+  });
+
   app.post("/api/settings/reddit-credentials", (req, res) => {
     try {
       const { clientId, clientSecret, username, password } = req.body;

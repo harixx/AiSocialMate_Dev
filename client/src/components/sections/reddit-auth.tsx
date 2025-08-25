@@ -53,6 +53,66 @@ export default function RedditAuth({ onAuthChange }: RedditAuthProps) {
     }
   };
 
+  const loadSavedCredentials = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/settings/reddit-credentials');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.credentials) {
+          const { clientId, clientSecret, username, password } = data.credentials;
+          
+          // Load the actual saved values (not masked)
+          const actualResponse = await fetch('/api/settings/reddit-credentials-raw');
+          if (actualResponse.ok) {
+            const actualData = await actualResponse.json();
+            if (actualData.success && actualData.credentials) {
+              setRuntimeCredentials({
+                clientId: actualData.credentials.clientId || '',
+                clientSecret: actualData.credentials.clientSecret || '',
+                username: actualData.credentials.username || '',
+                password: actualData.credentials.password || ''
+              });
+              
+              toast({
+                title: "Credentials Loaded",
+                description: "Saved Reddit credentials have been loaded into the form fields.",
+                variant: "default"
+              });
+            }
+          } else {
+            // Fallback to loading what we can (clientId and username)
+            setRuntimeCredentials(prev => ({
+              ...prev,
+              clientId: clientId || '',
+              username: username || ''
+            }));
+            
+            toast({
+              title: "Partial Load",
+              description: "Client ID and username loaded. You'll need to re-enter the client secret and password.",
+              variant: "default"
+            });
+          }
+        }
+      } else {
+        toast({
+          title: "No Saved Credentials",
+          description: "No saved Reddit credentials found.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Load Failed",
+        description: "Failed to load saved credentials. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   const handleRuntimeAuth = async () => {
     if (!runtimeCredentials.clientId || !runtimeCredentials.clientSecret) {
@@ -227,14 +287,25 @@ export default function RedditAuth({ onAuthChange }: RedditAuthProps) {
                   </div>
                 </div>
 
-                <Button 
-                  onClick={handleRuntimeAuth} 
-                  disabled={loading}
-                  className="w-full flex items-center space-x-2"
-                >
-                  <Settings className="h-4 w-4" />
-                  <span>{loading ? 'Saving...' : 'Set Persistent Authentication'}</span>
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={loadSavedCredentials} 
+                    disabled={loading}
+                    variant="outline"
+                    className="flex-1 flex items-center space-x-2"
+                  >
+                    <Key className="h-4 w-4" />
+                    <span>{loading ? 'Loading...' : 'Load Saved'}</span>
+                  </Button>
+                  <Button 
+                    onClick={handleRuntimeAuth} 
+                    disabled={loading}
+                    className="flex-1 flex items-center space-x-2"
+                  >
+                    <Settings className="h-4 w-4" />
+                    <span>{loading ? 'Saving...' : 'Set Persistent Authentication'}</span>
+                  </Button>
+                </div>
 
                 <div className="text-xs text-gray-500 space-y-1">
                   <p><strong>How to get Reddit API credentials:</strong></p>
