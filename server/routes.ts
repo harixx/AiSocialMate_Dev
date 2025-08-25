@@ -1165,15 +1165,16 @@ Generate only the final reply text that would be posted.`;
 
       if (aiProvider === "gemini") {
         try {
-          const gemini = await createGeminiClient();
-          const response = await gemini.models.generateContent(model, {
-            contents: [{
-              role: 'user',
-              parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }]
-            }]
-          });
-
-          generatedText = response.candidates?.[0]?.content?.parts?.[0]?.text || "";
+          const gemini = await createGeminiClient(customApiKey);
+          const model_instance = gemini.getGenerativeModel({ model: model });
+          
+          const prompt = `${systemPrompt}\n\n${userPrompt}`;
+          console.log('🔄 Gemini prompt:', prompt.substring(0, 200) + '...');
+          
+          const response = await model_instance.generateContent(prompt);
+          const result = await response.response;
+          
+          generatedText = result.text() || "";
           console.log('✅ Gemini response generated');
         } catch (geminiError) {
           console.error('❌ Gemini API error:', geminiError);
