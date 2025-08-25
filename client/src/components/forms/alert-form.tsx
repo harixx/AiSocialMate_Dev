@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { X, Calendar, Plus, Minus, Building2 } from "lucide-react";
 import { useAlerts } from "../../hooks/use-alerts";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import React, { useState, useEffect } from 'react';
 
 
