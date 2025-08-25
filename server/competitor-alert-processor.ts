@@ -1,5 +1,5 @@
 import { storage } from "./storage";
-import { runtimeConfig } from "./runtime-config";
+import { getSerperAPIKey } from "./runtime-config";
 import crypto from "crypto";
 
 interface CompetitorConfig {
@@ -216,7 +216,7 @@ export class CompetitorAlertProcessor {
         const response = await fetch('https://google.serper.dev/search', {
           method: 'POST',
           headers: {
-            'X-API-KEY': runtimeConfig.getSerperAPIKey(),
+            'X-API-KEY': getSerperAPIKey(),
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
