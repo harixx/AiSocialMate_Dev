@@ -444,7 +444,7 @@ export class ReplitStorage implements IStorage {
 
       console.log(`📄 Current alert run ${id} before update:`, { status: (alertRun as any).status, endTime: (alertRun as any).endTime });
       
-      const updatedAlertRun = { ...(alertRun as AlertRun), ...updates };
+      const updatedAlertRun = { ...(alertRun as any), ...updates } as AlertRun;
       await this.db.set(`alertRun:${id}`, updatedAlertRun);
       
       console.log(`✅ Successfully updated alert run ${id}: status=${updates.status}, endTime=${updates.endTime}, apiCalls=${updates.apiCallsUsed}, newPresences=${updates.newPresencesFound}`);
@@ -553,7 +553,7 @@ export class ReplitStorage implements IStorage {
     }
     
     // Check if we have valid quota data
-    if (data && typeof data === 'object' && 'month' in data && 'id' in data) {
+    if (data && typeof data === 'object' && 'month' in data && 'id' in data && 'totalApiCalls' in data && 'remainingCalls' in data && 'lastUpdated' in data) {
       return data as QuotaUsage;
     }
     
