@@ -35,8 +35,8 @@ function createConfig(): AppConfig {
 
   // Database configuration with deployment fallbacks
   if (process.env.DATABASE_URL) {
-    process.env.DATABASE_URL; // This line seems like a leftover from previous change, it should be assigned to config.database.url
     console.log('✅ PostgreSQL database configured');
+    console.log('📊 DATABASE_URL available:', process.env.DATABASE_URL ? 'Yes' : 'No');
   } else if (process.env.REPLIT_DB_URL) {
     console.log('✅ Replit Database available for development');
   } else {
