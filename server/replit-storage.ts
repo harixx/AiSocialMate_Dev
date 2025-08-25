@@ -400,15 +400,21 @@ export class ReplitStorage implements IStorage {
     );
   }
 
-  // Placeholder for calculateNextRunTime as it's not provided in the original code
-  // Assuming a simple daily calculation for demonstration
-  private calculateNextRunTime(frequency: string): Date | null {
-    if (frequency === 'daily') {
-      const nextRun = new Date();
-      nextRun.setDate(nextRun.getDate() + 1);
-      return nextRun;
+  // Calculate next run time based on frequency
+  private calculateNextRunTime(frequency: string): Date {
+    const now = new Date();
+    switch (frequency) {
+      case 'hourly':
+        return new Date(now.getTime() + 60 * 60 * 1000); // +1 hour
+      case 'weekly':
+        return new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // +1 week
+      case 'monthly':
+        const nextMonth = new Date(now);
+        nextMonth.setMonth(nextMonth.getMonth() + 1);
+        return nextMonth;
+      case 'daily':
+      default:
+        return new Date(now.getTime() + 24 * 60 * 60 * 1000); // +1 day
     }
-    // Add other frequency calculations if needed
-    return null;
   }
 }

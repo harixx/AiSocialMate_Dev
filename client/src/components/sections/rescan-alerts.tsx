@@ -188,8 +188,8 @@ export default function RescanAlerts() {
             <div className="grid gap-6">
               {Array.isArray(alerts) && alerts
                 .filter((alert: any) => alert && alert.id && alert.name && typeof alert.id === 'number')
-                .map((alert: any) => (
-                <div key={`alert-${alert.id}-${alert.name}`} className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200">
+                .map((alert: any, index: number) => (
+                <div key={`alert-${alert.id}-${index}`} className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200">
                   <div className="p-6">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
