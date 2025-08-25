@@ -110,8 +110,8 @@ export function getAPIKey(service: keyof RuntimeAPIKeys, override?: string): str
 /**
  * Create OpenAI client with runtime key
  */
-export function createOpenAIClient(customKey?: string) {
-  const OpenAI = require('openai').default;
+export async function createOpenAIClient(customKey?: string) {
+  const { default: OpenAI } = await import('openai');
   const apiKey = getAPIKey('openai', customKey);
   
   if (!apiKey) {
@@ -124,15 +124,15 @@ export function createOpenAIClient(customKey?: string) {
 /**
  * Create Gemini client with runtime key
  */
-export function createGeminiClient(customKey?: string) {
-  const { GoogleGenAI } = require('@google/genai');
+export async function createGeminiClient(customKey?: string) {
+  const { GoogleGenerativeAI } = await import('@google/generative-ai');
   const apiKey = getAPIKey('gemini', customKey);
   
   if (!apiKey) {
     throw new Error('Gemini API key not available. Please set it in the API Settings.');
   }
   
-  return new GoogleGenAI({ apiKey });
+  return new GoogleGenerativeAI(apiKey);
 }
 
 /**

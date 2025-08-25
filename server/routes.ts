@@ -138,7 +138,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`🔍 Checking source for: "${title}" on platform: ${platform}`);
 
       // First ChatGPT query with exact title
-      const openai = createOpenAIClient();
+      const openai = await createOpenAIClient();
       const firstResponse = await openai.chat.completions.create({
         model: 'gpt-4o',
         messages: [
@@ -381,7 +381,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Use GPT-4o for advanced sentiment analysis when sentiment filtering is requested
           if (sentiment && sentiment !== 'all') {
             try {
-              const openai = createOpenAIClient();
+              const openai = await createOpenAIClient();
               const sentimentResponse = await openai.chat.completions.create({
                 model: 'gpt-4o',
                 messages: [
@@ -525,7 +525,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           // Use GPT-4o for advanced sentiment analysis
           try {
-            const openai = createOpenAIClient();
+            const openai = await createOpenAIClient();
             const sentimentResponse = await openai.chat.completions.create({
               model: 'gpt-4o',
               messages: [
@@ -1010,17 +1010,11 @@ Generate only the final reply text that would be posted.`;
       
       if (aiProvider === "gemini") {
         try {
-          const gemini = createGeminiClient();
-          const response = await gemini.models.generateContent({
-            model: model,
-            contents: `${systemPrompt}\n\n${userPrompt}`,
-            config: {
-              temperature: parseFloat(creativity),
-              maxOutputTokens: 500,
-            },
-          });
+          const gemini = await createGeminiClient();
+          const model_instance = gemini.getGenerativeModel({ model: model });
+          const response = await model_instance.generateContent(`${systemPrompt}\n\n${userPrompt}`);
 
-          generatedText = response.text || "";
+          generatedText = response.response.text() || "";
           console.log('✅ Gemini response generated');
         } catch (geminiError) {
           console.error('❌ Gemini API error:', geminiError);
@@ -1029,7 +1023,7 @@ Generate only the final reply text that would be posted.`;
       } else {
         try {
           // Use OpenAI API (default)
-          const client = createOpenAIClient(customApiKey);
+          const client = await createOpenAIClient(customApiKey);
 
           const response = await client.chat.completions.create({
             model: model,
@@ -1443,7 +1437,7 @@ Search results: ${JSON.stringify(allResults.slice(0, 20))}
 
 Generate a JSON object with an array called "faqs" containing objects with "question" and "answer" fields. Focus on questions that would be most valuable for the brand's website or customer support.`;
 
-      const openai = createOpenAIClient();
+      const openai = await createOpenAIClient();
       const response = await openai.chat.completions.create({
         model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
         messages: [{ role: "user", content: prompt }],
