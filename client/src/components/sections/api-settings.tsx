@@ -110,19 +110,25 @@ export default function APISettings() {
       const response = await fetch('/api/settings/keys');
       const result = await response.json();
       
-      if (result.success) {
+      if (result.success && (result.keys.openai || result.keys.gemini || result.keys.serper)) {
         // Load current status and update form
         const saved = localStorage.getItem('customApiKeys');
         if (saved) {
           const settings = JSON.parse(saved);
           form.reset(settings);
+          toast({
+            title: "Settings Loaded",
+            description: `API Status: OpenAI ${result.keys.openai ? '✓' : '✗'}, Gemini ${result.keys.gemini ? '✓' : '✗'}, Serper ${result.keys.serper ? '✓' : '✗'}`,
+          });
+        } else {
+          toast({
+            title: "No Local Settings Found",
+            description: "API keys are active on server but no local settings to load into form.",
+            variant: "destructive"
+          });
         }
-        toast({
-          title: "Settings Loaded",
-          description: `API Status: OpenAI ${result.keys.openai ? '✓' : '✗'}, Gemini ${result.keys.gemini ? '✓' : '✗'}, Serper ${result.keys.serper ? '✓' : '✗'}`,
-        });
       } else {
-        // Fallback to localStorage
+        // No values stored on server, check localStorage as fallback
         const saved = localStorage.getItem('customApiKeys');
         if (saved) {
           const settings = JSON.parse(saved);
@@ -130,6 +136,12 @@ export default function APISettings() {
           toast({
             title: "Settings Loaded",
             description: "Your saved API settings have been loaded from local storage.",
+          });
+        } else {
+          toast({
+            title: "No Values Saved",
+            description: "No values have been saved on the server.",
+            variant: "destructive"
           });
         }
       }
@@ -140,6 +152,16 @@ export default function APISettings() {
       if (saved) {
         const settings = JSON.parse(saved);
         form.reset(settings);
+        toast({
+          title: "Settings Loaded",
+          description: "Your saved API settings have been loaded from local storage.",
+        });
+      } else {
+        toast({
+          title: "No Values Saved", 
+          description: "No values have been saved on the server.",
+          variant: "destructive"
+        });
       }
     }
   };
@@ -154,19 +176,30 @@ export default function APISettings() {
       
       if (result.success) {
         localStorage.removeItem('customApiKeys');
-        form.reset();
+        // Clear both server and frontend form values
+        form.reset({
+          openaiApiKey: "",
+          serperApiKey: "",
+          geminiApiKey: "",
+          useCustomKeys: false,
+        });
         toast({
           title: "Settings Cleared",
-          description: "All API keys have been cleared from the server.",
+          description: "All API keys have been cleared from both server and frontend.",
         });
       } else {
         throw new Error(result.error || 'Failed to clear API keys');
       }
     } catch (error) {
       console.error('Failed to clear API keys:', error);
-      // Still clear localStorage as fallback
+      // Still clear localStorage and form as fallback
       localStorage.removeItem('customApiKeys');
-      form.reset();
+      form.reset({
+        openaiApiKey: "",
+        serperApiKey: "",
+        geminiApiKey: "",
+        useCustomKeys: false,
+      });
       toast({
         title: "Warning",
         description: "API keys cleared locally, but server update failed.",

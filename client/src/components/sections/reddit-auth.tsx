@@ -59,7 +59,7 @@ export default function RedditAuth({ onAuthChange }: RedditAuthProps) {
       const response = await fetch('/api/settings/reddit-credentials');
       if (response.ok) {
         const data = await response.json();
-        if (data.success && data.credentials) {
+        if (data.success && data.credentials && (data.credentials.clientId || data.credentials.clientSecret || data.credentials.username || data.credentials.password)) {
           const { clientId, clientSecret, username, password } = data.credentials;
           
           // Load the actual saved values (not masked)
@@ -94,11 +94,17 @@ export default function RedditAuth({ onAuthChange }: RedditAuthProps) {
               variant: "default"
             });
           }
+        } else {
+          toast({
+            title: "No Values Saved",
+            description: "No values have been saved on the server.",
+            variant: "destructive"
+          });
         }
       } else {
         toast({
-          title: "No Saved Credentials",
-          description: "No saved Reddit credentials found.",
+          title: "No Values Saved",
+          description: "No values have been saved on the server.",
           variant: "destructive"
         });
       }
@@ -199,6 +205,52 @@ export default function RedditAuth({ onAuthChange }: RedditAuthProps) {
     }
   };
 
+  const clearAllCredentials = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/settings/reddit-credentials', {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        setIsRuntimeAuth(false);
+        // Clear both server and frontend form values
+        setRuntimeCredentials({
+          clientId: '',
+          clientSecret: '',
+          username: '',
+          password: ''
+        });
+        toast({
+          title: "Settings Cleared", 
+          description: "All Reddit credentials have been cleared from both server and frontend.",
+          variant: "default"
+        });
+        if (onAuthChange) {
+          onAuthChange(false);
+        }
+      } else {
+        throw new Error('Failed to clear credentials');
+      }
+    } catch (error) {
+      // Still clear frontend form as fallback
+      setIsRuntimeAuth(false);
+      setRuntimeCredentials({
+        clientId: '',
+        clientSecret: '',
+        username: '',
+        password: ''
+      });
+      toast({
+        title: "Warning",
+        description: "Reddit credentials cleared locally, but server update failed.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const hasRuntimeAuth = isRuntimeAuth;
 
   // Notify parent component of auth changes
@@ -289,21 +341,26 @@ export default function RedditAuth({ onAuthChange }: RedditAuthProps) {
 
                 <div className="flex gap-2">
                   <Button 
-                    onClick={loadSavedCredentials} 
-                    disabled={loading}
-                    variant="outline"
-                    className="flex-1 flex items-center space-x-2"
-                  >
-                    <Key className="h-4 w-4" />
-                    <span>{loading ? 'Loading...' : 'Load Saved'}</span>
-                  </Button>
-                  <Button 
                     onClick={handleRuntimeAuth} 
                     disabled={loading}
                     className="flex-1 flex items-center space-x-2"
                   >
                     <Settings className="h-4 w-4" />
-                    <span>{loading ? 'Saving...' : 'Set Persistent Authentication'}</span>
+                    <span>{loading ? 'Saving...' : 'Save Settings'}</span>
+                  </Button>
+                  <Button 
+                    onClick={loadSavedCredentials} 
+                    disabled={loading}
+                    variant="outline"
+                  >
+                    Load Saved
+                  </Button>
+                  <Button 
+                    onClick={clearAllCredentials} 
+                    disabled={loading}
+                    variant="destructive"
+                  >
+                    Clear All
                   </Button>
                 </div>
 
