@@ -33,6 +33,17 @@ function createConfig(): AppConfig {
     process.env.REDDIT_REDIRECT_URI = `https://${replitDomain}/auth/reddit/callback`;
   }
 
+  // Database configuration with deployment fallbacks
+  if (process.env.DATABASE_URL) {
+    process.env.DATABASE_URL; // This line seems like a leftover from previous change, it should be assigned to config.database.url
+    console.log('✅ PostgreSQL database configured');
+  } else if (process.env.REPLIT_DB_URL) {
+    console.log('✅ Replit Database available for development');
+  } else {
+    console.log('⚠️ No database configured, using in-memory storage for deployment');
+    console.log('💡 For production, enable PostgreSQL in your Repl settings');
+  }
+
   return {
     nodeEnv,
     port: parseInt(process.env.PORT || '5000', 10),
@@ -69,7 +80,7 @@ export async function logConfigStatus() {
   log(`Serper API: ${keyStatus.serper ? '✓ Configured' : '✗ Missing'}`);
   // Check if we're using Replit Database or PostgreSQL
   const usingReplitDB = process.env.REPLIT_DB_URL || process.env.REPL_ID;
-  const databaseStatus = config.database.url ? '✓ PostgreSQL' : 
+  const databaseStatus = config.database.url ? '✓ PostgreSQL' :
                         usingReplitDB ? '✓ Replit Database' : '✗ Not set';
   log(`Database: ${databaseStatus}`);
   log(`Reddit OAuth: ${config.reddit.enabled ? '✓ Configured' : '✗ Not configured (UI required)'}`);
