@@ -20,11 +20,18 @@ export class ReplitStorage implements IStorage {
   // Helper methods for generating IDs and managing data
   private async getNextId(type: string): Promise<number> {
     const key = `${type}_counter`;
-    const current = await this.db.get(key);
+    const result = await this.db.get(key);
+    
+    // Handle nested response structure
+    let current = result;
+    if (result && typeof result === 'object' && 'ok' in result && result.ok && 'value' in result) {
+      current = result.value;
+    }
+    
     const currentNumber = typeof current === 'number' ? current : 0;
     const next = currentNumber + 1;
     await this.db.set(key, next);
-    console.log(`🔢 Generated ID for ${type}: ${next} (previous: ${current})`);
+    console.log(`🔢 Generated ID for ${type}: ${next} (previous: ${currentNumber})`);
     return next;
   }
 

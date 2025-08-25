@@ -1,0 +1,127 @@
+🔍 Getting all items of type: alert
+📋 Found keys for alert: { ok: true, value: [ 'alert:1' ] }
+✅ Valid alert loaded: ResimpliMon (ID: 1) - Next run: Mon Aug 25 2025 08:00:40 GMT+0000 (Coordinated Universal Time)
+✅ Returning 1 valid alerts (cleaned 0 invalid entries)
+7:02:06 AM [express] GET /api/alerts 200 in 654ms :: [{"name":"ResimpliMon","competitors":[{"canonic…
+🚀 Manually triggering alert with ID: 1
+🔍 Getting all items of type: alert
+📋 Found keys for alert: { ok: true, value: [ 'alert:1' ] }
+✅ Valid alert loaded: ResimpliMon (ID: 1) - Next run: Mon Aug 25 2025 08:00:40 GMT+0000 (Coordinated Universal Time)
+✅ Returning 1 valid alerts (cleaned 0 invalid entries)
+🚀 Manually triggering alert: ResimpliMon
+🎯 [2025-08-25T07:02:13.430Z] Processing alert: ResimpliMon (ID: 1)
+🔢 Generated ID for alertRun: 1 (previous: [object Object])
+📊 Processing 1 competitors across 1 platforms
+🔍 Searching for Resimpli on Reddit
+🔍 [Attempt 1] Searching: ("Resimpli") site:reddit.com...
+✅ Search successful: 10 results
+📝 Found 10 matches for Resimpli on Reddit
+🔍 Getting all items of type: presenceRecord
+📋 Found keys for presenceRecord: { ok: true, value: [ 'presenceRecord:1' ] }
+📊 Key array length: 1 [ 'presenceRecord:1' ]
+📄 Retrieved item for key presenceRecord:1: Found
+📄 Raw data structure for presenceRecord:1: {"ok":true,"value":{"alertId":1,"runId":1,"competitorName":"Resimpli","platform":"Reddit","title":"I need a new CRM : r/WholesalingHouses - Reddit","url":"https://www.reddit.com/r/WholesalingHouses/co
+📄 Unwrapping nested response for presenceRecord:1 (level 1)
+📄 Final unwrapped item for presenceRecord:1: {"alertId":1,"runId":1,"competitorName":"Resimpli","platform":"Reddit","title":"I need a new CRM : r/WholesalingHouses - Reddit","url":"https://www.reddit.com/r/WholesalingHouses/comments/1b98blr/i_ne
+✅ Returning 1 items for type presenceRecord
+🔍 Duplicate check for Resimpli: NEW (dedupeKey: 4bcb6f74...)
+🔢 Generated ID for presenceRecord: 1 (previous: [object Object])
+🔍 Getting all items of type: presenceRecord
+📋 Found keys for presenceRecord: { ok: true, value: [ 'presenceRecord:1' ] }
+📊 Key array length: 1 [ 'presenceRecord:1' ]
+📄 Retrieved item for key presenceRecord:1: Found
+📄 Raw data structure for presenceRecord:1: {"ok":true,"value":{"alertId":1,"runId":1,"competitorName":"Resimpli","platform":"Reddit","title":"What crm are most wholesalers using RESimpli?","url":"https://www.reddit.com/r/WholesalingHouses/comm
+📄 Unwrapping nested response for presenceRecord:1 (level 1)
+📄 Final unwrapped item for presenceRecord:1: {"alertId":1,"runId":1,"competitorName":"Resimpli","platform":"Reddit","title":"What crm are most wholesalers using RESimpli?","url":"https://www.reddit.com/r/WholesalingHouses/comments/1jl6fs3/what_c
+✅ Returning 1 items for type presenceRecord
+🔍 Duplicate check for Resimpli: NEW (dedupeKey: 64a79b73...)
+🔢 Generated ID for presenceRecord: 1 (previous: [object Object])
+🔍 Getting all items of type: presenceRecord
+📋 Found keys for presenceRecord: { ok: true, value: [ 'presenceRecord:1' ] }
+📊 Key array length: 1 [ 'presenceRecord:1' ]
+📄 Retrieved item for key presenceRecord:1: Found
+📄 Raw data structure for presenceRecord:1: {"ok":true,"value":{"alertId":1,"runId":1,"competitorName":"Resimpli","platform":"Reddit","title":"Is REsimpli good? : r/WholesalingHouses - Reddit","url":"https://www.reddit.com/r/WholesalingHouses/c
+📄 Unwrapping nested response for presenceRecord:1 (level 1)
+📄 Final unwrapped item for presenceRecord:1: {"alertId":1,"runId":1,"competitorName":"Resimpli","platform":"Reddit","title":"Is REsimpli good? : r/WholesalingHouses - Reddit","url":"https://www.reddit.com/r/WholesalingHouses/comments/1lin176/is_
+✅ Returning 1 items for type presenceRecord
+🔍 Duplicate check for Resimpli: NEW (dedupeKey: 4268ee43...)
+🔢 Generated ID for presenceRecord: 1 (previous: [object Object])
+🔍 Getting all items of type: presenceRecord
+📋 Found keys for presenceRecord: { ok: true, value: [ 'presenceRecord:1' ] }
+📊 Key array length: 1 [ 'presenceRecord:1' ]
+📄 Retrieved item for key presenceRecord:1: Found
+📄 Raw data structure for presenceRecord:1: {"ok":true,"value":{"alertId":1,"runId":1,"competitorName":"Resimpli","platform":"Reddit","title":"Real estate investing CRM suggestions - Reddit","url":"https://www.reddit.com/r/CRM/comments/zn3le9/r
+📄 Unwrapping nested response for presenceRecord:1 (level 1)
+📄 Final unwrapped item for presenceRecord:1: {"alertId":1,"runId":1,"competitorName":"Resimpli","platform":"Reddit","title":"Real estate investing CRM suggestions - Reddit","url":"https://www.reddit.com/r/CRM/comments/zn3le9/real_estate_investin
+✅ Returning 1 items for type presenceRecord
+🔍 Duplicate check for Resimpli: NEW (dedupeKey: 5092cf62...)
+🔢 Generated ID for presenceRecord: 1 (previous: [object Object])
+🔍 Getting all items of type: presenceRecord
+📋 Found keys for presenceRecord: { ok: true, value: [ 'presenceRecord:1' ] }
+📊 Key array length: 1 [ 'presenceRecord:1' ]
+📄 Retrieved item for key presenceRecord:1: Found
+📄 Raw data structure for presenceRecord:1: {"ok":true,"value":{"alertId":1,"runId":1,"competitorName":"Resimpli","platform":"Reddit","title":"How do I bulk upload leads to RESimpli from csv? - Reddit","url":"https://www.reddit.com/r/WholesaleR
+📄 Unwrapping nested response for presenceRecord:1 (level 1)
+📄 Final unwrapped item for presenceRecord:1: {"alertId":1,"runId":1,"competitorName":"Resimpli","platform":"Reddit","title":"How do I bulk upload leads to RESimpli from csv? - Reddit","url":"https://www.reddit.com/r/WholesaleRealestate/comments/
+✅ Returning 1 items for type presenceRecord
+🔍 Duplicate check for Resimpli: NEW (dedupeKey: e1211324...)
+🔢 Generated ID for presenceRecord: 1 (previous: [object Object])
+🔍 Getting all items of type: presenceRecord
+📋 Found keys for presenceRecord: { ok: true, value: [ 'presenceRecord:1' ] }
+📊 Key array length: 1 [ 'presenceRecord:1' ]
+📄 Retrieved item for key presenceRecord:1: Found
+📄 Raw data structure for presenceRecord:1: {"ok":true,"value":{"alertId":1,"runId":1,"competitorName":"Resimpli","platform":"Reddit","title":"Best CRM's for wholesale real estate : r/WholesaleRealestate - Reddit","url":"https://www.reddit.com/
+📄 Unwrapping nested response for presenceRecord:1 (level 1)
+📄 Final unwrapped item for presenceRecord:1: {"alertId":1,"runId":1,"competitorName":"Resimpli","platform":"Reddit","title":"Best CRM's for wholesale real estate : r/WholesaleRealestate - Reddit","url":"https://www.reddit.com/r/WholesaleRealesta
+✅ Returning 1 items for type presenceRecord
+🔍 Duplicate check for Resimpli: NEW (dedupeKey: 3efb555a...)
+🔢 Generated ID for presenceRecord: 1 (previous: [object Object])
+🔍 Getting all items of type: presenceRecord
+📋 Found keys for presenceRecord: { ok: true, value: [ 'presenceRecord:1' ] }
+📊 Key array length: 1 [ 'presenceRecord:1' ]
+📄 Retrieved item for key presenceRecord:1: Found
+📄 Raw data structure for presenceRecord:1: {"ok":true,"value":{"alertId":1,"runId":1,"competitorName":"Resimpli","platform":"Reddit","title":"REsimpli - Reddit","url":"https://www.reddit.com/user/REsimpli/","snippet":"At REsimpli, we've helped
+📄 Unwrapping nested response for presenceRecord:1 (level 1)
+📄 Final unwrapped item for presenceRecord:1: {"alertId":1,"runId":1,"competitorName":"Resimpli","platform":"Reddit","title":"REsimpli - Reddit","url":"https://www.reddit.com/user/REsimpli/","snippet":"At REsimpli, we've helped real estate invest
+✅ Returning 1 items for type presenceRecord
+🔍 Duplicate check for Resimpli: NEW (dedupeKey: c024e36f...)
+🔢 Generated ID for presenceRecord: 1 (previous: [object Object])
+🔍 Getting all items of type: presenceRecord
+📋 Found keys for presenceRecord: { ok: true, value: [ 'presenceRecord:1' ] }
+📊 Key array length: 1 [ 'presenceRecord:1' ]
+📄 Retrieved item for key presenceRecord:1: Found
+📄 Raw data structure for presenceRecord:1: {"ok":true,"value":{"alertId":1,"runId":1,"competitorName":"Resimpli","platform":"Reddit","title":"CRM for wholesaling : r/WholesaleRealestate - Reddit","url":"https://www.reddit.com/r/WholesaleReales
+📄 Unwrapping nested response for presenceRecord:1 (level 1)
+📄 Final unwrapped item for presenceRecord:1: {"alertId":1,"runId":1,"competitorName":"Resimpli","platform":"Reddit","title":"CRM for wholesaling : r/WholesaleRealestate - Reddit","url":"https://www.reddit.com/r/WholesaleRealestate/comments/1cd1i
+✅ Returning 1 items for type presenceRecord
+🔍 Duplicate check for Resimpli: NEW (dedupeKey: 45244243...)
+🔢 Generated ID for presenceRecord: 1 (previous: [object Object])
+🔍 Getting all items of type: presenceRecord
+📋 Found keys for presenceRecord: { ok: true, value: [ 'presenceRecord:1' ] }
+📊 Key array length: 1 [ 'presenceRecord:1' ]
+📄 Retrieved item for key presenceRecord:1: Found
+📄 Raw data structure for presenceRecord:1: {"ok":true,"value":{"alertId":1,"runId":1,"competitorName":"Resimpli","platform":"Reddit","title":"I need a new CRM : r/WholesalingHouses - Reddit","url":"https://www.reddit.com/r/WholesalingHouses/co
+📄 Unwrapping nested response for presenceRecord:1 (level 1)
+📄 Final unwrapped item for presenceRecord:1: {"alertId":1,"runId":1,"competitorName":"Resimpli","platform":"Reddit","title":"I need a new CRM : r/WholesalingHouses - Reddit","url":"https://www.reddit.com/r/WholesalingHouses/comments/1b98blr/i_ne
+✅ Returning 1 items for type presenceRecord
+🔍 Duplicate check for Resimpli: NEW (dedupeKey: 979da765...)
+🔢 Generated ID for presenceRecord: 1 (previous: [object Object])
+🔍 Getting all items of type: presenceRecord
+📋 Found keys for presenceRecord: { ok: true, value: [ 'presenceRecord:1' ] }
+📊 Key array length: 1 [ 'presenceRecord:1' ]
+📄 Retrieved item for key presenceRecord:1: Found
+📄 Raw data structure for presenceRecord:1: {"ok":true,"value":{"alertId":1,"runId":1,"competitorName":"Resimpli","platform":"Reddit","title":"Has anyone had issues with RESimply's Phone? - Reddit","url":"https://www.reddit.com/r/WholesaleReale
+📄 Unwrapping nested response for presenceRecord:1 (level 1)
+📄 Final unwrapped item for presenceRecord:1: {"alertId":1,"runId":1,"competitorName":"Resimpli","platform":"Reddit","title":"Has anyone had issues with RESimply's Phone? - Reddit","url":"https://www.reddit.com/r/WholesaleRealestate/comments/1jhp
+✅ Returning 1 items for type presenceRecord
+🔍 Duplicate check for Resimpli: NEW (dedupeKey: a0981a25...)
+🔢 Generated ID for presenceRecord: 1 (previous: [object Object])
+📧 Sending notifications for alert ResimpliMon: 10 new presences
+✅ Email sent successfully to muhammadharissalman@gmail.com
+✅ [2025-08-25T07:02:35.800Z] Alert ResimpliMon completed: 10 new presences, 1 API calls, 22370ms processing time
+7:02:35 AM [express] POST /api/alerts/1/trigger 200 in 23078ms :: {"success":true,"message":"Alert t…
+🔍 Getting all items of type: alert
+📋 Found keys for alert: { ok: true, value: [ 'alert:1' ] }
+✅ Valid alert loaded: ResimpliMon (ID: 1) - Next run: Mon Aug 25 2025 08:02:35 GMT+0000 (Coordinated Universal Time)
+✅ Returning 1 valid alerts (cleaned 0 invalid entries)
+🔍 Found 0 due alerts to process
