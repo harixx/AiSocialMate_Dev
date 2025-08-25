@@ -228,7 +228,7 @@ export async function createOpenAIClient(customApiKey?: string): Promise<OpenAI>
  * Create Gemini client with runtime key
  */
 export async function createGeminiClient(customKey?: string) {
-  const { GoogleGenerativeAI } = await import('@google/generative-ai');
+  const { GoogleGenerativeAI } = await import('@google/genai');
   const apiKey = getAPIKey('gemini', customKey);
 
   if (!apiKey) {
