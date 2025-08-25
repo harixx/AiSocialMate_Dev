@@ -46,7 +46,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/settings/keys", (req, res) => {
     try {
       const { openaiApiKey, geminiApiKey, serperApiKey } = req.body;
-      
+
       const updates: any = {};
       if (openaiApiKey && openaiApiKey.trim()) {
         updates.openai = openaiApiKey.trim();
@@ -59,7 +59,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       runtimeConfig.updateAPIKeys(updates);
-      
+
       res.json({
         success: true,
         message: 'API keys updated successfully',
@@ -1007,7 +1007,7 @@ Generate only the final reply text that would be posted.`;
 
       // Handle different AI providers with better error handling
       console.log(`🔄 Using ${aiProvider} with model ${model}`);
-      
+
       if (aiProvider === "gemini") {
         try {
           const gemini = await createGeminiClient();
@@ -1062,7 +1062,7 @@ Generate only the final reply text that would be posted.`;
       });
 
       console.log('💾 Storing reply in database');
-      
+
       res.json({
         success: true,
         reply: {
@@ -1085,10 +1085,10 @@ Generate only the final reply text that would be posted.`;
 
     } catch (error) {
       console.error('❌ Reply generation error:', error);
-      
+
       let errorMessage = "Failed to generate reply";
       let statusCode = 500;
-      
+
       if (error instanceof Error) {
         if (error.message.includes('API key') || error.message.includes('401')) {
           errorMessage = "Invalid API key. Please check your API configuration.";
@@ -1103,7 +1103,7 @@ Generate only the final reply text that would be posted.`;
           errorMessage = error.message;
         }
       }
-      
+
       res.status(statusCode).json({ 
         success: false,
         error: errorMessage,
@@ -1131,7 +1131,7 @@ Generate only the final reply text that would be posted.`;
   app.delete("/api/alerts/cleanup", async (req, res) => {
     try {
       console.log('🧹 Starting cleanup of malformed alert data...');
-      
+
       const keys = await storage.storage.db.list('alert:');
       if (!keys.ok || !keys.value) {
         return res.json({ success: true, message: 'No alert data found' });

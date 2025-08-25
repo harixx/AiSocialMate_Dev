@@ -8,6 +8,10 @@ interface RuntimeAPIKeys {
   openai?: string;
   gemini?: string;
   serper?: string;
+  redditClientId?: string; // Added for Reddit
+  redditClientSecret?: string; // Added for Reddit
+  redditUsername?: string; // Added for Reddit
+  redditPassword?: string; // Added for Reddit
 }
 
 interface APIKeyStatus {
@@ -43,7 +47,7 @@ class RuntimeConfigManager {
       this.db = new Database.default();
       this.dbInitialized = true;
       console.log('✅ Runtime Config: Replit Database initialized');
-      
+
       // Load persisted keys from database after initialization
       await this.loadPersistedKeys();
     } catch (error) {
@@ -73,7 +77,7 @@ class RuntimeConfigManager {
     try {
       // Only save non-default keys to database
       const keysToSave: RuntimeAPIKeys = {};
-      
+
       if (this.apiKeys.openai && this.apiKeys.openai !== this.defaultKeys.openai) {
         keysToSave.openai = this.apiKeys.openai;
       }
@@ -83,6 +87,20 @@ class RuntimeConfigManager {
       if (this.apiKeys.serper && this.apiKeys.serper !== this.defaultKeys.serper) {
         keysToSave.serper = this.apiKeys.serper;
       }
+      // Save Reddit credentials if they are set and not just defaults
+      if (this.apiKeys.redditClientId && this.apiKeys.redditClientId !== this.defaultKeys.redditClientId) {
+        keysToSave.redditClientId = this.apiKeys.redditClientId;
+      }
+      if (this.apiKeys.redditClientSecret && this.apiKeys.redditClientSecret !== this.defaultKeys.redditClientSecret) {
+        keysToSave.redditClientSecret = this.apiKeys.redditClientSecret;
+      }
+      if (this.apiKeys.redditUsername && this.apiKeys.redditUsername !== this.defaultKeys.redditUsername) {
+        keysToSave.redditUsername = this.apiKeys.redditUsername;
+      }
+      if (this.apiKeys.redditPassword && this.apiKeys.redditPassword !== this.defaultKeys.redditPassword) {
+        keysToSave.redditPassword = this.apiKeys.redditPassword;
+      }
+
 
       await this.db.set('runtime_api_keys', keysToSave);
       console.log('💾 API keys saved to persistent storage');
@@ -112,9 +130,9 @@ class RuntimeConfigManager {
    */
   getAPIKeyStatus(): APIKeyStatus {
     return {
-      openai: !!(this.apiKeys.openai || this.defaultKeys.openai),
-      gemini: !!(this.apiKeys.gemini || this.defaultKeys.gemini),
-      serper: !!(this.apiKeys.serper || this.defaultKeys.serper)
+      openai: !!(this.getAPIKey('openai')),
+      gemini: !!(this.getAPIKey('gemini')),
+      serper: !!(this.getAPIKey('serper'))
     };
   }
 
@@ -123,7 +141,7 @@ class RuntimeConfigManager {
    */
   updateAPIKeys(keys: Partial<RuntimeAPIKeys>): void {
     Object.entries(keys).forEach(([service, key]) => {
-      if (key && key.trim()) {
+      if (key !== undefined && key !== null && key.trim()) {
         this.apiKeys[service as keyof RuntimeAPIKeys] = key.trim();
       }
     });
@@ -177,11 +195,11 @@ export function getAPIKey(service: keyof RuntimeAPIKeys, override?: string): str
 export async function createOpenAIClient(customKey?: string) {
   const { default: OpenAI } = await import('openai');
   const apiKey = getAPIKey('openai', customKey);
-  
+
   if (!apiKey) {
     throw new Error('OpenAI API key not available. Please set it in the API Settings.');
   }
-  
+
   return new OpenAI({ apiKey });
 }
 
@@ -191,11 +209,11 @@ export async function createOpenAIClient(customKey?: string) {
 export async function createGeminiClient(customKey?: string) {
   const { GoogleGenerativeAI } = await import('@google/generative-ai');
   const apiKey = getAPIKey('gemini', customKey);
-  
+
   if (!apiKey) {
     throw new Error('Gemini API key not available. Please set it in the API Settings.');
   }
-  
+
   return new GoogleGenerativeAI(apiKey);
 }
 
@@ -204,10 +222,34 @@ export async function createGeminiClient(customKey?: string) {
  */
 export function getSerperAPIKey(customKey?: string): string {
   const apiKey = getAPIKey('serper', customKey);
-  
+
   if (!apiKey) {
     throw new Error('Serper API key not available. Please set it in the API Settings.');
   }
-  
+
   return apiKey;
+}
+
+/**
+ * Set Reddit credentials
+ */
+export function setRedditCredentials(clientId: string, clientSecret: string, username?: string, password?: string): void {
+  runtimeConfig.updateAPIKeys({
+    redditClientId: clientId,
+    redditClientSecret: clientSecret,
+    redditUsername: username,
+    redditPassword: password
+  });
+}
+
+/**
+ * Get Reddit credentials
+ */
+export function getRedditCredentials(): { clientId?: string; clientSecret?: string; username?: string; password?: string } {
+  return {
+    clientId: runtimeConfig.getAPIKey('redditClientId'),
+    clientSecret: runtimeConfig.getAPIKey('redditClientSecret'),
+    username: runtimeConfig.getAPIKey('redditUsername'),
+    password: runtimeConfig.getAPIKey('redditPassword')
+  };
 }

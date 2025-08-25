@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,7 +23,25 @@ export default function RedditAuth({ onAuthChange }: RedditAuthProps) {
   const [isRuntimeAuth, setIsRuntimeAuth] = useState(false);
   const { toast } = useToast();
 
-  
+  // Check for existing persistent credentials on mount and update state
+  useEffect(() => {
+    const storedAuth = localStorage.getItem('reddit_persistent_auth'); // Using localStorage for persistence
+    if (storedAuth) {
+      const parsedAuth = JSON.parse(storedAuth);
+      // Optionally, you could check the timestamp here to expire old credentials
+      setRuntimeCredentials({
+        clientId: parsedAuth.clientId || '',
+        clientSecret: parsedAuth.clientSecret || '',
+        username: parsedAuth.username || '',
+        password: parsedAuth.password || ''
+      });
+      setIsRuntimeAuth(true);
+      if (onAuthChange) {
+        onAuthChange(true);
+      }
+    }
+  }, [onAuthChange]);
+
 
   const handleRuntimeAuth = () => {
     // Store runtime credentials in session for current browsing session
@@ -36,8 +54,8 @@ export default function RedditAuth({ onAuthChange }: RedditAuthProps) {
       return;
     }
 
-    // Store in sessionStorage for runtime use
-    sessionStorage.setItem('reddit_runtime_auth', JSON.stringify({
+    // Store in localStorage for persistent use across browser refreshes
+    localStorage.setItem('reddit_persistent_auth', JSON.stringify({
       clientId: runtimeCredentials.clientId,
       clientSecret: runtimeCredentials.clientSecret,
       username: runtimeCredentials.username,
@@ -48,14 +66,17 @@ export default function RedditAuth({ onAuthChange }: RedditAuthProps) {
     setIsRuntimeAuth(true);
 
     toast({
-      title: "Runtime Authentication Set",
-      description: "Your Reddit API credentials are now active for this session",
+      title: "Persistent Authentication Set",
+      description: "Your Reddit API credentials are now active and will persist across browser refreshes.",
       variant: "default"
     });
+    if (onAuthChange) {
+      onAuthChange(true);
+    }
   };
 
   const clearRuntimeAuth = () => {
-    sessionStorage.removeItem('reddit_runtime_auth');
+    localStorage.removeItem('reddit_persistent_auth'); // Clear from persistent storage
     setIsRuntimeAuth(false);
     setRuntimeCredentials({
       clientId: '',
@@ -65,19 +86,20 @@ export default function RedditAuth({ onAuthChange }: RedditAuthProps) {
     });
 
     toast({
-      title: "Runtime Authentication Cleared",
-      description: "Your credentials have been removed from this session",
+      title: "Persistent Authentication Cleared",
+      description: "Your Reddit API credentials have been removed.",
       variant: "default"
     });
+    if (onAuthChange) {
+      onAuthChange(false);
+    }
   };
 
   // Check if runtime auth is already set
-  const hasRuntimeAuth = sessionStorage.getItem('reddit_runtime_auth') !== null || isRuntimeAuth;
+  const hasRuntimeAuth = localStorage.getItem('reddit_persistent_auth') !== null || isRuntimeAuth;
 
   // Notify parent component of auth changes
-  if (onAuthChange) {
-    onAuthChange(hasRuntimeAuth);
-  }
+  // This is now handled within useEffect and handleRuntimeAuth/clearRuntimeAuth to ensure it's called on initial load and after changes.
 
   return (
     <Card>
@@ -94,9 +116,9 @@ export default function RedditAuth({ onAuthChange }: RedditAuthProps) {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <CheckCircle className="h-5 w-5 text-green-600" />
-                    <span className="font-medium">Runtime Auth Active</span>
+                    <span className="font-medium">Persistent Auth Active</span>
                     <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                      Session-Based
+                      Persistent
                     </Badge>
                   </div>
                   <Button variant="outline" onClick={clearRuntimeAuth}>
@@ -104,9 +126,9 @@ export default function RedditAuth({ onAuthChange }: RedditAuthProps) {
                   </Button>
                 </div>
                 <div className="text-sm text-gray-600">
-                  <p>✅ Your Reddit API credentials are active for this browsing session.</p>
+                  <p>✅ Your Reddit API credentials are active and saved.</p>
                   <p className="text-xs mt-1">
-                    <strong>Note:</strong> Credentials are stored only in your browser session and will be cleared when you close the browser.
+                    <strong>Note:</strong> Credentials are stored persistently in your browser's local storage.
                   </p>
                 </div>
               </div>
@@ -160,7 +182,7 @@ export default function RedditAuth({ onAuthChange }: RedditAuthProps) {
 
                 <Button onClick={handleRuntimeAuth} className="w-full flex items-center space-x-2">
                   <Settings className="h-4 w-4" />
-                  <span>Set Runtime Authentication</span>
+                  <span>Set Persistent Authentication</span>
                 </Button>
 
                 <div className="text-xs text-gray-500 space-y-1">
@@ -172,7 +194,7 @@ export default function RedditAuth({ onAuthChange }: RedditAuthProps) {
                     <li>Set redirect URI to: <code className="bg-gray-100 px-1 rounded">http://localhost:8080</code></li>
                     <li>Copy the Client ID and Client Secret</li>
                   </ol>
-                  <p className="mt-2"><strong>Security:</strong> Credentials are stored only in your browser session and never sent to our servers permanently.</p>
+                  <p className="mt-2"><strong>Security:</strong> Credentials are stored persistently in your browser's local storage and never sent to our servers permanently.</p>
                   <p className="mt-1 text-green-600"><strong>✅ No Environment Variables Required:</strong> This app doesn't need Reddit credentials in server environment variables - everything is handled through this UI.</p>
                 </div>
               </div>
