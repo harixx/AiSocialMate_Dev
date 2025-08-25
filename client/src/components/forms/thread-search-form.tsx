@@ -11,7 +11,6 @@ import { Search } from "lucide-react";
 const formSchema = z.object({
   keywords: z.string().min(1, "Keywords are required"),
   platforms: z.array(z.string()).min(1, "Select at least one platform"),
-  serperApiKey: z.string().optional(),
 });
 
 interface ThreadSearchFormProps {
@@ -25,7 +24,6 @@ export default function ThreadSearchForm({ onSearch, isLoading }: ThreadSearchFo
     defaultValues: {
       keywords: "",
       platforms: ["Reddit", "Quora"],
-      serperApiKey: "",
     },
   });
 
@@ -105,22 +103,6 @@ export default function ThreadSearchForm({ onSearch, isLoading }: ThreadSearchFo
                     ))}
                   </div>
                   <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="serperApiKey"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Serper API Key (Optional)</FormLabel>
-                  <FormControl>
-                    <Input type="password" placeholder="Enter your custom Serper.dev API key" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Leave empty to use default API key
-                  </FormDescription>
                 </FormItem>
               )}
             />
