@@ -125,8 +125,15 @@ export default function ReplyGeneratorForm() {
       if (customKeys) {
         try {
           const keys = JSON.parse(customKeys);
-          if (keys.useCustomKeys && keys.openaiApiKey) {
-            customApiKey = keys.openaiApiKey;
+          if (keys.useCustomKeys) {
+            // Send the appropriate API key based on the selected provider
+            if (aiProvider === 'openai' && keys.openaiApiKey) {
+              customApiKey = keys.openaiApiKey;
+            } else if (aiProvider === 'gemini' && keys.geminiApiKey) {
+              customApiKey = keys.geminiApiKey;
+            } else if (aiProvider === 'claude' && keys.claudeApiKey) {
+              customApiKey = keys.claudeApiKey;
+            }
           }
         } catch (error) {
           console.error('Error parsing custom API keys:', error);
