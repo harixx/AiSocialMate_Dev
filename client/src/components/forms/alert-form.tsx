@@ -26,8 +26,6 @@ const formSchema = z.object({
   includeNegativeSentiment: z.boolean().default(false),
   emailNotifications: z.boolean().default(true),
   email: z.string().email("Please enter a valid email address").optional().or(z.literal("")),
-  webhookUrl: z.string().url("Please enter a valid webhook URL").optional().or(z.literal("")),
-  reportUrl: z.string().url("Please enter a valid report URL").optional().or(z.literal("")),
   enableFuzzyMatching: z.boolean().default(false),
   dedupeWindow: z.number().default(30),
 });
@@ -52,8 +50,6 @@ export default function AlertForm({ onClose, alert }: AlertFormProps) {
       includeNegativeSentiment: alert.includeNegativeSentiment || false,
       emailNotifications: alert.emailNotifications || true,
       email: alert.email || "",
-      webhookUrl: alert.webhookUrl || "",
-      reportUrl: alert.reportUrl || "",
       enableFuzzyMatching: alert.enableFuzzyMatching || false,
       dedupeWindow: alert.dedupeWindow || 30,
     } : {
@@ -65,8 +61,6 @@ export default function AlertForm({ onClose, alert }: AlertFormProps) {
       includeNegativeSentiment: false,
       emailNotifications: true,
       email: "",
-      webhookUrl: "",
-      reportUrl: "",
       enableFuzzyMatching: false,
       dedupeWindow: 30,
     },
@@ -501,46 +495,6 @@ export default function AlertForm({ onClose, alert }: AlertFormProps) {
                 />
               )}
             </div>
-
-            <FormField
-              control={form.control}
-              name="webhookUrl"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Webhook URL (Optional)</FormLabel>
-                  <FormControl>
-                    <Input 
-                      type="url" 
-                      placeholder="https://your-webhook.com/alerts" 
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Receive real-time alerts via webhook with HMAC signing
-                  </FormDescription>
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="reportUrl"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Report URL (Optional)</FormLabel>
-                  <FormControl>
-                    <Input 
-                      type="url" 
-                      placeholder="https://your-reports-dashboard.com" 
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    URL where detailed presence history reports will be published
-                  </FormDescription>
-                </FormItem>
-              )}
-            />
 
             <div className="flex justify-end space-x-4">
               <Button type="button" variant="outline" onClick={onClose}>
