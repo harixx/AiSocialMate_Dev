@@ -1226,8 +1226,9 @@ Generate only the final reply text that would be posted.`;
     try {
       const alertId = parseInt(req.params.id);
       const competitor = req.query.competitor as string;
-      console.log(`🔍 API: Fetching presence records for alertId: ${alertId}, competitor: ${competitor}`);
-      const records = await storage.getPresenceRecords(alertId, competitor);
+      const runId = req.query.runId ? parseInt(req.query.runId as string) : undefined;
+      console.log(`🔍 API: Fetching presence records for alertId: ${alertId}, competitor: ${competitor}, runId: ${runId}`);
+      const records = await storage.getPresenceRecords(alertId, competitor, runId);
       console.log(`📊 API: Retrieved ${records.length} presence records`);
       res.json(records);
     } catch (error) {

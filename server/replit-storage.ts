@@ -361,12 +361,37 @@ export class ReplitStorage implements IStorage {
   }
 
   async updateAlertRun(id: number, updates: Partial<AlertRun>): Promise<AlertRun | undefined> {
-    const alertRun = await this.db.get(`alertRun:${id}`);
-    if (!alertRun) return undefined;
+    try {
+      console.log(`🔄 Attempting to update alert run ${id} with:`, updates);
+      const result = await this.db.get(`alertRun:${id}`);
+      
+      if (!result) {
+        console.log(`❌ Alert run ${id} not found`);
+        return undefined;
+      }
 
-    const updatedAlertRun = { ...alertRun, ...updates };
-    await this.db.set(`alertRun:${id}`, updatedAlertRun);
-    return updatedAlertRun;
+      // Handle nested response structure
+      let alertRun = result;
+      while (alertRun && typeof alertRun === 'object' && 'ok' in alertRun && alertRun.ok && 'value' in alertRun) {
+        alertRun = alertRun.value;
+      }
+      
+      if (!alertRun) {
+        console.log(`❌ Alert run ${id} data is null after unwrapping`);
+        return undefined;
+      }
+
+      console.log(`📄 Current alert run ${id} before update:`, { status: alertRun.status, endTime: alertRun.endTime });
+      
+      const updatedAlertRun = { ...alertRun, ...updates };
+      await this.db.set(`alertRun:${id}`, updatedAlertRun);
+      
+      console.log(`✅ Successfully updated alert run ${id}: status=${updates.status}, endTime=${updates.endTime}, apiCalls=${updates.apiCallsUsed}, newPresences=${updates.newPresencesFound}`);
+      return updatedAlertRun;
+    } catch (error) {
+      console.error(`❌ Error updating alert run ${id}:`, error);
+      return undefined;
+    }
   }
 
   async getAlertRuns(alertId?: number): Promise<AlertRun[]> {
@@ -394,7 +419,7 @@ export class ReplitStorage implements IStorage {
     return presenceRecord;
   }
 
-  async getPresenceRecords(alertId?: number, competitorName?: string): Promise<PresenceRecord[]>{
+  async getPresenceRecords(alertId?: number, competitorName?: string, runId?: number): Promise<PresenceRecord[]>{
     const records = await this.getAllByType<PresenceRecord>('presenceRecord');
     let filtered = records;
 
@@ -407,6 +432,12 @@ export class ReplitStorage implements IStorage {
 
     if (competitorName) {
       filtered = filtered.filter(record => record.competitorName === competitorName);
+    }
+
+    if (runId) {
+      console.log(`🔍 Filtering ${filtered.length} presence records for runId: ${runId}`);
+      filtered = filtered.filter(record => Number(record.runId) === Number(runId));
+      console.log(`✅ Filtered to ${filtered.length} matching run-specific presence records`);
     }
 
     return filtered.sort((a, b) => {
