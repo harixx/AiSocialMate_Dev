@@ -35,37 +35,68 @@ export default function AlertRunsDashboard({ alertId }: { alertId: number }) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let isMounted = true; // Prevent state updates after unmount
+
     const fetchData = async () => {
+      if (!isMounted) return;
+      
       try {
         setLoading(true);
         setError(null);
 
-        // Fetch alert runs
+        console.log(`🚀 Starting optimized fetch for alertId: ${alertId}, runId: ${selectedRunId}`);
+        const startTime = Date.now();
+
+        // Fetch alert runs first (they're usually fewer)
         const runsResponse = await fetch(`/api/alerts/${alertId}/runs`);
         if (!runsResponse.ok) {
           throw new Error(`Failed to fetch runs: ${runsResponse.status}`);
         }
         const runs = await runsResponse.json();
-        console.log('📊 Alert runs fetched:', runs.length);
+        
+        if (!isMounted) return;
+        
+        console.log(`📊 Alert runs fetched: ${runs.length} in ${Date.now() - startTime}ms`);
         setAlertRuns(runs);
 
-        // Fetch presence records
-        const presenceResponse = await fetch(`/api/alerts/${alertId}/presences${selectedRunId !== null ? `?runId=${selectedRunId}` : ''}`);
-        if (!presenceResponse.ok) {
-          throw new Error(`Failed to fetch presences: ${presenceResponse.status}`);
+        // Only fetch presence records if we have runs or a specific runId
+        if (runs.length > 0 || selectedRunId !== null) {
+          const presenceUrl = `/api/alerts/${alertId}/presences${selectedRunId !== null ? `?runId=${selectedRunId}` : ''}`;
+          console.log(`📡 Fetching presence records from: ${presenceUrl}`);
+          
+          const presenceResponse = await fetch(presenceUrl);
+          if (!presenceResponse.ok) {
+            throw new Error(`Failed to fetch presences: ${presenceResponse.status}`);
+          }
+          const presences = await presenceResponse.json();
+          
+          if (!isMounted) return;
+          
+          console.log(`📝 Presence records fetched: ${presences.length} in ${Date.now() - startTime}ms total`);
+          setPresenceRecords(presences);
+        } else {
+          console.log('📭 No runs found, skipping presence records fetch');
+          setPresenceRecords([]);
         }
-        const presences = await presenceResponse.json();
-        console.log('📝 Presence records fetched:', presences.length);
-        setPresenceRecords(presences);
       } catch (error) {
-        console.error('Failed to fetch alert dashboard data:', error);
+        if (!isMounted) return;
+        
+        console.error('❌ Failed to fetch alert dashboard data:', error);
         setError(error instanceof Error ? error.message : 'Failed to fetch data');
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
-    fetchData();
+    // Add a small delay to batch rapid successive calls
+    const timeoutId = setTimeout(fetchData, 100);
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timeoutId);
+    };
   }, [alertId, selectedRunId]);
 
   const getStatusIcon = (status: string) => {

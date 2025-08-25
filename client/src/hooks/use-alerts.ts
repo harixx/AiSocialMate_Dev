@@ -1,20 +1,30 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import useSWR from 'swr';
+
+// A simple fetcher function for useSWR
+const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 export function useAlerts() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const { data: alerts, isLoading } = useQuery({
-    queryKey: ['/api/alerts'],
-    select: (data) => data || []
+  // Using useSWR for fetching alerts with improved caching and refresh interval
+  const { data: alerts, error, mutate } = useSWR('/api/alerts', fetcher, {
+    refreshInterval: 10000, // Refresh every 10 seconds for more real-time updates
+    revalidateOnFocus: true,
+    revalidateOnReconnect: true,
+    dedupingInterval: 5000, // Prevent duplicate requests within 5 seconds
   });
+
+  const isLoading = !alerts && !error;
 
   const createAlertMutation = useMutation({
     mutationFn: api.createAlert,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/alerts'] });
+      mutate(); // Invalidate SWR cache to trigger a refresh
       toast({
         title: "Success",
         description: "Alert created successfully!"
@@ -33,6 +43,7 @@ export function useAlerts() {
     mutationFn: api.deleteAlert,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/alerts'] });
+      mutate(); // Invalidate SWR cache to trigger a refresh
       toast({
         title: "Success",
         description: "Alert deleted successfully!"
@@ -47,15 +58,6 @@ export function useAlerts() {
     }
   });
 
-  const createAlert = async (alertData: any) => {
-    try {
-      await createAlertMutation.mutateAsync(alertData);
-      return true;
-    } catch (error) {
-      return false;
-    }
-  };
-
   const updateAlertMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number, data: any }) => {
       const response = await fetch(`/api/alerts/${id}`, {
@@ -63,13 +65,17 @@ export function useAlerts() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      if (!response.ok) throw new Error('Failed to update alert');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update alert');
+      }
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['/api/alerts'] });
+      mutate(); // Invalidate SWR cache to trigger a refresh
       toast({
-        title: "Success", 
+        title: "Success",
         description: "Alert updated successfully!"
       });
     },
@@ -81,6 +87,15 @@ export function useAlerts() {
       });
     }
   });
+
+  const createAlert = async (alertData: any) => {
+    try {
+      await createAlertMutation.mutateAsync(alertData);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  };
 
   const deleteAlert = async (alertId: number) => {
     try {
@@ -101,10 +116,11 @@ export function useAlerts() {
   };
 
   return {
-    alerts,
-    isLoading: isLoading || createAlertMutation.isPending || deleteAlertMutation.isPending || updateAlertMutation.isPending,
+    alerts: alerts || [], // Ensure alerts is always an array
+    isLoading,
     createAlert,
     updateAlert,
-    deleteAlert
+    deleteAlert,
+    error // Expose error for potential UI handling
   };
 }

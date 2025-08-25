@@ -1,4 +1,3 @@
-
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -10,6 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { X, Calendar, Plus, Minus, Building2 } from "lucide-react";
 import { useAlerts } from "../../hooks/use-alerts";
+import { useToast } from "@/components/ui/use-toast";
+import React, { useState, useEffect } from 'react';
+
 
 const competitorSchema = z.object({
   canonicalName: z.string().min(1, "Competitor name is required"),
@@ -33,25 +35,27 @@ const formSchema = z.object({
 interface AlertFormProps {
   onClose: () => void;
   alert?: any; // For editing existing alerts
+  onSuccess?: (alertData: any) => void;
 }
 
-export default function AlertForm({ onClose, alert }: AlertFormProps) {
+export default function AlertForm({ onClose, alert: initialAlert, onSuccess }: AlertFormProps) {
   const { createAlert, updateAlert, isLoading } = useAlerts();
-  const isEditing = !!alert;
+  const { toast } = useToast();
+  const isEditing = !!initialAlert;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: isEditing ? {
-      name: alert.name || "",
-      competitors: alert.competitors || [{ canonicalName: "", aliases: [], domains: [] }],
-      platforms: alert.platforms || [],
-      frequency: alert.frequency || "daily",
-      maxResults: alert.maxResults || 10,
-      includeNegativeSentiment: alert.includeNegativeSentiment || false,
-      emailNotifications: alert.emailNotifications || true,
-      email: alert.email || "",
-      enableFuzzyMatching: alert.enableFuzzyMatching || false,
-      dedupeWindow: alert.dedupeWindow || 30,
+      name: initialAlert.name || "",
+      competitors: initialAlert.competitors || [{ canonicalName: "", aliases: [], domains: [] }],
+      platforms: initialAlert.platforms || [],
+      frequency: initialAlert.frequency || "daily",
+      maxResults: initialAlert.maxResults || 10,
+      includeNegativeSentiment: initialAlert.includeNegativeSentiment || false,
+      emailNotifications: initialAlert.emailNotifications || true,
+      email: initialAlert.email || "",
+      enableFuzzyMatching: initialAlert.enableFuzzyMatching || false,
+      dedupeWindow: initialAlert.dedupeWindow || 30,
     } : {
       name: "",
       competitors: [{ canonicalName: "", aliases: [], domains: [] }],
@@ -80,8 +84,8 @@ export default function AlertForm({ onClose, alert }: AlertFormProps) {
   ];
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    const success = isEditing 
-      ? await updateAlert(alert.id, values)
+    const success = isEditing
+      ? await updateAlert(initialAlert.id, values)
       : await createAlert(values);
     if (success) {
       onClose();
@@ -109,6 +113,32 @@ export default function AlertForm({ onClose, alert }: AlertFormProps) {
     const newDomains = currentDomains.filter((_, index) => index !== domainIndex);
     form.setValue(`competitors.${competitorIndex}.domains`, newDomains);
   };
+
+  // State for the "Next Run" display, to be updated based on frequency
+  const [nextRunDisplay, setNextRunDisplay] = useState<string>('Will be scheduled automatically');
+
+  // Effect to update nextRunDisplay when frequency changes
+  useEffect(() => {
+    const freq = form.getValues('frequency');
+    if (freq) {
+      // In a real application, you'd calculate the next run time based on the current date and frequency.
+      // For this example, we'll just show a descriptive string.
+      switch (freq) {
+        case 'hourly':
+          setNextRunDisplay('Next run within the hour');
+          break;
+        case 'daily':
+          setNextRunDisplay('Next run within 24 hours');
+          break;
+        case 'weekly':
+          setNextRunDisplay('Next run within 7 days');
+          break;
+        default:
+          setNextRunDisplay('Will be scheduled automatically');
+      }
+    }
+  }, [form.watch('frequency')]);
+
 
   return (
     <Card>
@@ -145,7 +175,7 @@ export default function AlertForm({ onClose, alert }: AlertFormProps) {
               <FormDescription className="mb-4">
                 Add competitors with their canonical names, aliases, and domains for comprehensive detection
               </FormDescription>
-              
+
               <div className="space-y-4">
                 {competitorFields.map((field, competitorIndex) => (
                   <Card key={field.id} className="border-l-4 border-l-blue-500">
@@ -282,7 +312,7 @@ export default function AlertForm({ onClose, alert }: AlertFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Frequency</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={(value) => { field.onChange(value); }} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue />
@@ -302,7 +332,7 @@ export default function AlertForm({ onClose, alert }: AlertFormProps) {
                 <FormLabel>Next Run</FormLabel>
                 <div className="flex items-center space-x-2 text-gray-600 mt-2">
                   <Calendar className="h-4 w-4" />
-                  <span className="text-sm">Will be scheduled automatically</span>
+                  <span className="text-sm">{nextRunDisplay}</span>
                 </div>
               </div>
             </div>
@@ -354,7 +384,7 @@ export default function AlertForm({ onClose, alert }: AlertFormProps) {
 
             <div>
               <h4 className="text-lg font-medium text-gray-900 mb-4">Advanced Settings</h4>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField
                   control={form.control}
@@ -362,8 +392,8 @@ export default function AlertForm({ onClose, alert }: AlertFormProps) {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Max Results per Platform</FormLabel>
-                      <Select 
-                        onValueChange={(value) => field.onChange(parseInt(value))} 
+                      <Select
+                        onValueChange={(value) => field.onChange(parseInt(value))}
                         defaultValue={field.value.toString()}
                       >
                         <FormControl>
@@ -388,8 +418,8 @@ export default function AlertForm({ onClose, alert }: AlertFormProps) {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Deduplication Window</FormLabel>
-                      <Select 
-                        onValueChange={(value) => field.onChange(parseInt(value))} 
+                      <Select
+                        onValueChange={(value) => field.onChange(parseInt(value))}
                         defaultValue={field.value.toString()}
                       >
                         <FormControl>
@@ -501,8 +531,8 @@ export default function AlertForm({ onClose, alert }: AlertFormProps) {
                 Cancel
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading 
-                  ? (isEditing ? 'Updating Alert...' : 'Creating Alert...') 
+                {isLoading
+                  ? (isEditing ? 'Updating Alert...' : 'Creating Alert...')
                   : (isEditing ? 'Update Alert' : 'Create Competitor Alert')
                 }
               </Button>

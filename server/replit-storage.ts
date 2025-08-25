@@ -21,13 +21,13 @@ export class ReplitStorage implements IStorage {
   private async getNextId(type: string): Promise<number> {
     const key = `${type}_counter`;
     const result = await this.db.get(key);
-    
+
     // Handle nested response structure
     let current = result;
     if (result && typeof result === 'object' && 'ok' in result && result.ok && 'value' in result) {
       current = result.value;
     }
-    
+
     const currentNumber = typeof current === 'number' ? current : 0;
     const next = currentNumber + 1;
     await this.db.set(key, next);
@@ -55,11 +55,11 @@ export class ReplitStorage implements IStorage {
         const result = await this.db.get(key);
         console.log(`📄 Retrieved item for key ${key}:`, result ? 'Found' : 'Not found');
         console.log(`📄 Raw data structure for ${key}:`, JSON.stringify(result).substring(0, 200));
-        
+
         if (result) {
           // Handle deeply nested Replit Database response format
           let item = result;
-          
+
           // Keep unwrapping while we have nested ok/value structures
           let unwrapCount = 0;
           while (item && typeof item === 'object' && 'ok' in item && item.ok && 'value' in item && unwrapCount < 5) {
@@ -67,9 +67,9 @@ export class ReplitStorage implements IStorage {
             item = item.value;
             unwrapCount++;
           }
-          
+
           console.log(`📄 Final unwrapped item for ${key}:`, JSON.stringify(item).substring(0, 200));
-          
+
           if (item) {
             items.push(item as T);
           }
@@ -140,7 +140,7 @@ export class ReplitStorage implements IStorage {
         // Ensure the alert has required properties
         if (alert.name && alert.id && typeof alert.id === 'number') {
           // Additional validation for data integrity
-          if (alert.competitors && Array.isArray(alert.competitors) && 
+          if (alert.competitors && Array.isArray(alert.competitors) &&
               alert.platforms && Array.isArray(alert.platforms)) {
 
             // Ensure dates are properly converted from strings to Date objects
@@ -206,6 +206,26 @@ export class ReplitStorage implements IStorage {
     return undefined;
   }
 
+  // Helper method to get alert by ID, used in updateAlert
+  private async getAlertById(id: number): Promise<Alert | undefined> {
+    const result = await this.db.get(`alert:${id}`);
+    if (result && typeof result === 'object' && 'ok' in result && result.ok && 'value' in result) {
+      const alert = result.value as Alert;
+      // Ensure dates are properly converted
+      if (alert.nextRunTime && typeof alert.nextRunTime === 'string') {
+        alert.nextRunTime = new Date(alert.nextRunTime);
+      }
+      if (alert.lastRun && typeof alert.lastRun === 'string') {
+        alert.lastRun = new Date(alert.lastRun);
+      }
+      if (alert.createdAt && typeof alert.createdAt === 'string') {
+        alert.createdAt = new Date(alert.createdAt);
+      }
+      return alert;
+    }
+    return undefined;
+  }
+
   // Create Alert
   async createAlert(alertData: any): Promise<Alert> {
     // Validate input data
@@ -249,10 +269,10 @@ export class ReplitStorage implements IStorage {
 
     const key = `alert:${nextId}`;
     console.log(`💾 Storing alert with key: ${key}`);
-    console.log(`📋 Alert data:`, { 
-      name: alert.name, 
-      competitors: Array.isArray(alert.competitors) ? alert.competitors.length : 0, 
-      platforms: Array.isArray(alert.platforms) ? alert.platforms.length : 0 
+    console.log(`📋 Alert data:`, {
+      name: alert.name,
+      competitors: Array.isArray(alert.competitors) ? alert.competitors.length : 0,
+      platforms: Array.isArray(alert.platforms) ? alert.platforms.length : 0
     });
 
     const result = await this.db.set(key, alert);
@@ -264,13 +284,46 @@ export class ReplitStorage implements IStorage {
     return alert;
   }
 
-  async updateAlert(id: number, alertUpdate: Partial<Alert>): Promise<Alert | undefined> {
-    const existingAlert = await this.getAlert(id);
-    if (!existingAlert) return undefined;
+  async updateAlert(id: number, data: Partial<InsertAlert>): Promise<Alert | undefined> {
+    try {
+      const existingAlert = await this.getAlertById(id);
+      if (!existingAlert) {
+        console.log(`❌ Alert ${id} not found for update`);
+        return undefined;
+      }
 
-    const updatedAlert = { ...existingAlert, ...alertUpdate };
-    await this.db.set(`alert:${id}`, updatedAlert);
-    return updatedAlert;
+      // Calculate new next run time if frequency changed
+      let nextRunTime = existingAlert.nextRunTime;
+      if (data.frequency && data.frequency !== existingAlert.frequency) {
+        const now = new Date();
+        switch (data.frequency) {
+          case 'hourly':
+            nextRunTime = new Date(now.getTime() + 60 * 60 * 1000); // +1 hour
+            break;
+          case 'weekly':
+            nextRunTime = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // +1 week
+            break;
+          case 'daily':
+          default:
+            nextRunTime = new Date(now.getTime() + 24 * 60 * 60 * 1000); // +1 day
+        }
+        console.log(`🔄 Frequency changed from ${existingAlert.frequency} to ${data.frequency}, new next run: ${nextRunTime}`);
+      }
+
+      const updatedAlert: Alert = {
+        ...existingAlert,
+        ...data,
+        id, // Ensure ID is preserved
+        nextRunTime // Update next run time
+      };
+
+      await this.db.set(`alert:${id}`, updatedAlert);
+      console.log(`✅ Alert ${id} updated successfully with all fields`);
+      return updatedAlert;
+    } catch (error) {
+      console.error(`❌ Error updating alert ${id}:`, error);
+      return undefined;
+    }
   }
 
   // Delete Alert with cascade deletion
@@ -287,7 +340,7 @@ export class ReplitStorage implements IStorage {
       console.log(`🔍 Finding presence records for alert ${id}...`);
       const presenceKeys = await this.db.list('presenceRecord:');
       let deletedPresenceRecords = 0;
-      
+
       if (presenceKeys.ok && presenceKeys.value) {
         for (const presenceKey of presenceKeys.value) {
           const presenceRecord = await this.db.get(presenceKey);
@@ -307,7 +360,7 @@ export class ReplitStorage implements IStorage {
       console.log(`🔍 Finding alert runs for alert ${id}...`);
       const alertRunKeys = await this.db.list('alertRun:');
       let deletedAlertRuns = 0;
-      
+
       if (alertRunKeys.ok && alertRunKeys.value) {
         for (const runKey of alertRunKeys.value) {
           const alertRun = await this.db.get(runKey);
@@ -326,7 +379,7 @@ export class ReplitStorage implements IStorage {
       // Step 3: Delete the alert itself
       const alertKey = `alert:${id}`;
       console.log(`🗑️ Deleting main alert with key: ${alertKey}`);
-      
+
       const result = await this.db.delete(alertKey);
       if (result.ok) {
         console.log(`✅ Alert ${id} and all related data deleted successfully`);
@@ -425,7 +478,7 @@ export class ReplitStorage implements IStorage {
     try {
       console.log(`🔄 Attempting to update alert run ${id} with:`, updates);
       const result = await this.db.get(`alertRun:${id}`);
-      
+
       if (!result) {
         console.log(`❌ Alert run ${id} not found`);
         return undefined;
@@ -436,17 +489,17 @@ export class ReplitStorage implements IStorage {
       while (alertRun && typeof alertRun === 'object' && 'ok' in alertRun && alertRun.ok && 'value' in alertRun) {
         alertRun = alertRun.value;
       }
-      
+
       if (!alertRun) {
         console.log(`❌ Alert run ${id} data is null after unwrapping`);
         return undefined;
       }
 
       console.log(`📄 Current alert run ${id} before update:`, { status: (alertRun as any).status, endTime: (alertRun as any).endTime });
-      
+
       const updatedAlertRun = { ...(alertRun as any), ...updates } as AlertRun;
       await this.db.set(`alertRun:${id}`, updatedAlertRun);
-      
+
       console.log(`✅ Successfully updated alert run ${id}: status=${updates.status}, endTime=${updates.endTime}, apiCalls=${updates.apiCallsUsed}, newPresences=${updates.newPresencesFound}`);
       return updatedAlertRun;
     } catch (error) {
@@ -539,7 +592,7 @@ export class ReplitStorage implements IStorage {
   // Quota Usage
   async getQuotaUsage(month: string): Promise<QuotaUsage | undefined> {
     const result = await this.db.get(`quotaUsage:${month}`);
-    
+
     // Handle deeply nested response structure from Replit Database
     let data = result;
     while (data && typeof data === 'object' && 'ok' in data && 'value' in data) {
@@ -551,12 +604,12 @@ export class ReplitStorage implements IStorage {
         return undefined;
       }
     }
-    
+
     // Check if we have valid quota data
     if (data && typeof data === 'object' && 'month' in data && 'id' in data && 'totalApiCalls' in data && 'remainingCalls' in data && 'lastUpdated' in data) {
       return data as QuotaUsage;
     }
-    
+
     return undefined;
   }
 
