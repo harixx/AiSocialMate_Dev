@@ -383,9 +383,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     } catch (error) {
       console.error('Error in checked source:', error);
-      res.status(500).json({ 
+      
+      let errorMessage = 'Failed to check source';
+      let statusCode = 500;
+
+      if (error instanceof Error) {
+        if (error.message.includes('API key') || error.message.includes('401')) {
+          errorMessage = 'Invalid OpenAI API key. Please check your API configuration in Settings.';
+          statusCode = 401;
+        } else if (error.message.includes('rate limit') || error.message.includes('429')) {
+          errorMessage = 'API rate limit exceeded. Please try again later.';
+          statusCode = 429;
+        } else if (error.message.includes('quota') || error.message.includes('billing')) {
+          errorMessage = 'OpenAI API quota exceeded. Please check your billing settings.';
+          statusCode = 402;
+        } else {
+          errorMessage = error.message;
+        }
+      }
+
+      res.status(statusCode).json({ 
         success: false, 
-        error: 'Failed to check source',
+        error: errorMessage,
         details: error instanceof Error ? error.message : 'Unknown error'
       });
     }

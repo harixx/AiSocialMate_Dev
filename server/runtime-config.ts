@@ -192,15 +192,27 @@ export function getAPIKey(service: keyof RuntimeAPIKeys, override?: string): str
 /**
  * Create OpenAI client with runtime key
  */
-export async function createOpenAIClient(customKey?: string) {
-  const { default: OpenAI } = await import('openai');
-  const apiKey = getAPIKey('openai', customKey);
+export async function createOpenAIClient(customApiKey?: string): Promise<OpenAI> {
+  const apiKey = customApiKey || (await getAPIKey('openai')); // Changed to use getAPIKey directly
 
   if (!apiKey) {
     throw new Error('OpenAI API key not available. Please set it in the API Settings.');
   }
 
-  return new OpenAI({ apiKey });
+  // Validate API key format
+  if (!apiKey.startsWith('sk-') || apiKey.length < 40) {
+    throw new Error('Invalid OpenAI API key format. Please check your API key and try again.');
+  }
+
+  // Clean the API key (remove any extra whitespace or hidden characters)
+  const cleanApiKey = apiKey.trim();
+
+  // Dynamically import OpenAI only when needed
+  const { default: OpenAI } = await import('openai');
+
+  return new OpenAI({
+    apiKey: cleanApiKey
+  });
 }
 
 /**

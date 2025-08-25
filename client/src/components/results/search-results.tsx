@@ -34,6 +34,14 @@ export default function SearchResults({ results, type, totalResults, query }: Se
     setLoadingSource(prev => ({ ...prev, [index]: true }));
 
     try {
+      // First check if API keys are configured
+      const keysResponse = await fetch('/api/settings/keys');
+      const keysData = await keysResponse.json();
+
+      if (!keysData.success || !keysData.keys.openai) {
+        throw new Error('OpenAI API key not configured. Please add your API key in Settings.');
+      }
+
       const response = await fetch('/api/checked-source', {
         method: 'POST',
         headers: {
@@ -56,6 +64,12 @@ export default function SearchResults({ results, type, totalResults, query }: Se
       }
     } catch (error) {
       console.error('Error checking source:', error);
+      // Optionally, display an error message to the user
+      if (error instanceof Error) {
+        alert(`Error verifying source: ${error.message}`);
+      } else {
+        alert('An unexpected error occurred during source verification.');
+      }
     } finally {
       setLoadingSource(prev => ({ ...prev, [index]: false }));
     }
