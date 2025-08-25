@@ -1,4 +1,4 @@
-import { 
+import {
   users, alerts, searchResults, generatedReplies, faqs,
   type User, type InsertUser, type Alert, type InsertAlert,
   type SearchResult, type InsertSearchResult,

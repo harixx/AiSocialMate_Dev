@@ -199,13 +199,13 @@ export async function createOpenAIClient(customApiKey?: string): Promise<OpenAI>
     throw new Error('OpenAI API key not available. Please set it in the API Settings.');
   }
 
-  // Validate API key format
-  if (!apiKey.startsWith('sk-') || apiKey.length < 40) {
+  // Clean the API key first (remove any extra whitespace or hidden characters)
+  const cleanApiKey = apiKey.trim().replace(/[^\w-]/g, '');
+
+  // Validate API key format after cleaning
+  if (!cleanApiKey.startsWith('sk-') || cleanApiKey.length < 50) {
     throw new Error('Invalid OpenAI API key format. Please check your API key and try again.');
   }
-
-  // Clean the API key (remove any extra whitespace or hidden characters)
-  const cleanApiKey = apiKey.trim();
 
   // Dynamically import OpenAI only when needed
   const { default: OpenAI } = await import('openai');

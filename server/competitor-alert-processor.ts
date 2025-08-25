@@ -1,4 +1,3 @@
-
 import { storage } from "./storage";
 import { getSerperAPIKey } from "./runtime-config";
 import crypto from "crypto";
@@ -35,13 +34,13 @@ export class CompetitorAlertProcessor {
     try {
       console.log('🚀 Initializing individual alert timers...');
       const alerts = await storage.getAlerts();
-      
+
       for (const alert of alerts) {
         if (alert.isActive) {
           this.scheduleAlert(alert);
         }
       }
-      
+
       console.log(`✅ Initialized ${this.alertTimers.size} alert timers`);
     } catch (error) {
       console.error('❌ Failed to initialize alert timers:', error);
@@ -68,7 +67,7 @@ export class CompetitorAlertProcessor {
     const timerId = setTimeout(async () => {
       try {
         await this.processAlert(alert);
-        
+
         // Reschedule for next run
         const updatedAlert = {
           ...alert,
@@ -77,7 +76,7 @@ export class CompetitorAlertProcessor {
         this.scheduleAlert(updatedAlert);
       } catch (error) {
         console.error(`❌ Error processing scheduled alert ${alert.name}:`, error);
-        
+
         // Still reschedule to avoid getting stuck
         const updatedAlert = {
           ...alert,
@@ -95,13 +94,24 @@ export class CompetitorAlertProcessor {
     });
   }
 
-  clearAlertTimer(alertId: number) {
-    const existingTimer = this.alertTimers.get(alertId);
-    if (existingTimer) {
-      clearTimeout(existingTimer.timerId);
+  clearAlertTimer(alertId: number): void {
+    const timer = this.alertTimers.get(alertId);
+    if (timer) {
+      clearTimeout(timer.timerId); // Corrected: clearTimeout expects the timer ID, not the whole timer object
       this.alertTimers.delete(alertId);
-      console.log(`🗑️ Cleared timer for alert ID: ${alertId}`);
+      console.log(`⏰ Cleared timer for alert ${alertId}`);
     }
+  }
+
+  // Add cleanup method for graceful shutdown
+  cleanup(): void {
+    console.log('🧹 Cleaning up alert processor timers...');
+    for (const [alertId, timer] of this.alertTimers.entries()) {
+      clearTimeout(timer.timerId); // Corrected: clearTimeout expects the timer ID, not the whole timer object
+      console.log(`⏰ Cleared timer for alert ${alertId}`);
+    }
+    this.alertTimers.clear();
+    console.log('✅ Alert processor cleanup completed');
   }
 
   // Called when alerts are created/updated/deleted
@@ -109,7 +119,7 @@ export class CompetitorAlertProcessor {
     try {
       const alerts = await storage.getAlerts();
       const alert = alerts.find(a => a.id === alertId);
-      
+
       if (alert) {
         this.scheduleAlert(alert);
         console.log(`🔄 Refreshed timer for alert: ${alert.name}`);
@@ -126,12 +136,12 @@ export class CompetitorAlertProcessor {
   async refreshAllAlertTimers() {
     try {
       console.log('🔄 Refreshing all alert timers...');
-      
+
       // Clear all existing timers
       for (const [alertId] of this.alertTimers) {
         this.clearAlertTimer(alertId);
       }
-      
+
       // Reinitialize all timers
       await this.initializeAlertTimers();
     } catch (error) {
@@ -216,7 +226,7 @@ export class CompetitorAlertProcessor {
 
           for (const match of matches) {
             const dedupeKey = this.generateDedupeKey(match.title, match.link);
-            
+
             // Check for duplicates using cached data
             const duplicate = cachedPresenceRecords.find(record => {
               if (record.dedupeKey === dedupeKey && record.competitorName === competitor.canonicalName) {
@@ -245,7 +255,7 @@ export class CompetitorAlertProcessor {
                 dedupeKey: dedupeKey,
                 detectionMethod: match.detectionMethod || 'exact'
               });
-              
+
               // Add to cache for subsequent checks within this run
               cachedPresenceRecords.push(newRecord);
               newPresencesFound++;
@@ -572,7 +582,7 @@ export class CompetitorAlertProcessor {
 
     console.log(`🚀 Manually triggering alert: ${alert.name}`);
     await this.processAlert(alert);
-    
+
     // Reschedule the alert after manual trigger
     this.scheduleAlert(alert);
   }

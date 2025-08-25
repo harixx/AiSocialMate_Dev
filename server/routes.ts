@@ -397,15 +397,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } else if (error.message.includes('quota') || error.message.includes('billing')) {
           errorMessage = 'OpenAI API quota exceeded. Please check your billing settings.';
           statusCode = 402;
+        } else if (error.message.includes('ECONNRESET') || error.message.includes('ETIMEDOUT')) {
+          errorMessage = 'Network connection error. Please try again.';
+          statusCode = 503;
         } else {
           errorMessage = error.message;
         }
       }
 
+      // Ensure we always have a fallback response
       res.status(statusCode).json({ 
         success: false, 
         error: errorMessage,
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
+        retry: statusCode === 503 || statusCode === 429
       });
     }
   });
@@ -1693,9 +1698,21 @@ function hasRedditAuth(reqBody: any): boolean {
   return !!(runtimeClientId && runtimeClientSecret);
 }
 
+// Rate limiting for Reddit API calls
+const redditRateLimit = new Map<string, number>();
+
 // Extract real Reddit statistics from Reddit URLs
 async function extractRealRedditStats(redditUrl: string, reqBody: any): Promise<any> {
   try {
+    // Rate limiting: max 1 request per second per URL
+    const now = Date.now();
+    const lastCall = redditRateLimit.get(redditUrl) || 0;
+    if (now - lastCall < 1000) {
+      console.log(`⏰ Rate limiting Reddit call for: ${redditUrl}`);
+      await new Promise(resolve => setTimeout(resolve, 1000 - (now - lastCall)));
+    }
+    redditRateLimit.set(redditUrl, Date.now());
+    
     console.log(`🔍 Extracting real Reddit stats from: ${redditUrl}`);
 
     // Parse Reddit URL to get subreddit and post ID
