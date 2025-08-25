@@ -1136,11 +1136,34 @@ Generate only the final reply text that would be posted.`;
   // Cleanup endpoint for bad data
   app.delete("/api/alerts/cleanup", async (req, res) => {
     try {
-      // This will help clean up any alerts with malformed IDs
-      console.log('🧹 Cleaning up bad alert data...');
-      // For now, we'll just return success - the new ID generation should prevent future issues
-      res.json({ success: true, message: 'Cleanup completed' });
+      console.log('🧹 Starting cleanup of malformed alert data...');
+      
+      const keys = await storage.storage.db.list('alert:');
+      if (!keys.ok || !keys.value) {
+        return res.json({ success: true, message: 'No alert data found' });
+      }
+
+      let cleanedCount = 0;
+      let totalCount = keys.value.length;
+
+      for (const key of keys.value) {
+        // Remove keys with malformed IDs
+        if (key.includes('[object Object]') || !key.match(/^alert:\d+$/)) {
+          console.log(`🗑️ Removing malformed key: ${key}`);
+          await storage.storage.db.delete(key);
+          cleanedCount++;
+        }
+      }
+
+      console.log(`✅ Cleanup completed: ${cleanedCount}/${totalCount} malformed entries removed`);
+      res.json({ 
+        success: true, 
+        message: `Cleanup completed: ${cleanedCount} malformed entries removed`,
+        totalKeys: totalCount,
+        cleanedKeys: cleanedCount
+      });
     } catch (error) {
+      console.error('Cleanup failed:', error);
       res.status(500).json({ success: false, error: 'Cleanup failed' });
     }
   });

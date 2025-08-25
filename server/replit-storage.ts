@@ -1,6 +1,5 @@
-
 import Database from "@replit/database";
-import { 
+import {
   type User, type InsertUser, type Alert, type InsertAlert,
   type SearchResult, type InsertSearchResult,
   type GeneratedReply, type InsertGeneratedReply,
@@ -13,7 +12,7 @@ import { IStorage } from "./storage";
 
 export class ReplitStorage implements IStorage {
   private db: Database;
-  
+
   constructor() {
     this.db = new Database();
   }
@@ -34,7 +33,7 @@ export class ReplitStorage implements IStorage {
       console.log(`🔍 Getting all items of type: ${type}`);
       const keys = await this.db.list(`${type}:`);
       console.log(`📋 Found keys for ${type}:`, keys);
-      
+
       // Handle Replit Database response format
       let keyArray: string[] = [];
       if (keys && typeof keys === 'object' && 'value' in keys) {
@@ -42,7 +41,7 @@ export class ReplitStorage implements IStorage {
       } else if (Array.isArray(keys)) {
         keyArray = keys;
       }
-      
+
       console.log(`📊 Key array length: ${keyArray.length}`, keyArray);
       const items: T[] = [];
       for (const key of keyArray) {
@@ -76,34 +75,87 @@ export class ReplitStorage implements IStorage {
   }
 
   // Alerts
+  // Get Alerts
   async getAlerts(): Promise<Alert[]> {
-    return await this.getAllByType<Alert>('alert');
+    console.log('🔍 Getting all items of type: alert');
+    const keys = await this.db.list('alert:');
+    console.log('📋 Found keys for alert:', keys);
+
+    if (!keys.ok || !keys.value) {
+      console.log('❌ Failed to get alert keys or no keys found');
+      return [];
+    }
+
+    const alerts: Alert[] = [];
+    const validKeys: string[] = [];
+
+    for (const key of keys.value) {
+      // Skip malformed keys
+      if (key.includes('[object Object]')) {
+        console.log(`🗑️ Skipping malformed key: ${key}`);
+        continue;
+      }
+
+      // Validate key format
+      if (!key.match(/^alert:\d+$/)) {
+        console.log(`⚠️ Invalid key format: ${key}`);
+        continue;
+      }
+
+      const item = await this.db.get(key);
+      if (item.ok && item.value) {
+        const alert = item.value as Alert;
+        // Ensure the alert has required properties
+        if (alert.name && alert.id && typeof alert.id === 'number') {
+          alerts.push(alert);
+          validKeys.push(key);
+          console.log(`✅ Valid alert loaded: ${alert.name} (ID: ${alert.id})`);
+        } else {
+          console.log(`❌ Invalid alert data in key ${key}:`, alert);
+        }
+      }
+    }
+
+    console.log(`✅ Returning ${alerts.length} valid alerts`);
+    return alerts.sort((a, b) => a.id - b.id);
   }
 
   async getAlert(id: number): Promise<Alert | undefined> {
     return await this.db.get(`alert:${id}`);
   }
 
-  async createAlert(insertAlert: InsertAlert): Promise<Alert> {
-    const id = await this.getNextId('alert');
-    const now = new Date();
-    const alert: Alert = { 
-      ...insertAlert,
-      maxResults: insertAlert.maxResults ?? 10,
-      minOpportunityScore: insertAlert.minOpportunityScore ?? "medium",
-      includeNegativeSentiment: insertAlert.includeNegativeSentiment ?? false,
-      emailNotifications: insertAlert.emailNotifications ?? true,
-      email: insertAlert.email ?? null,
-      reportUrl: insertAlert.reportUrl ?? null,
-      webhookUrl: insertAlert.webhookUrl ?? null,
-      isActive: true,
-      id,
-      createdAt: now,
-      lastRun: null
+  // Create Alert
+  async createAlert(alertData: any): Promise<Alert> {
+    const alerts = await this.getAlerts();
+
+    // Generate a proper sequential ID
+    const existingIds = alerts
+      .map(a => a.id)
+      .filter(id => typeof id === 'number' && !isNaN(id))
+      .sort((a, b) => a - b);
+
+    const nextId = existingIds.length > 0 ? Math.max(...existingIds) + 1 : 1;
+
+    console.log(`🔢 Generated ID for alert: ${nextId}`);
+
+    const alert: Alert = {
+      ...alertData,
+      id: nextId,
+      isActive: alertData.isActive ?? true,
+      createdAt: new Date(),
+      lastRun: null,
+      nextRunTime: this.calculateNextRunTime(alertData.frequency || 'daily')
     };
-    console.log(`💾 Storing alert with key: alert:${id}`, alert);
-    await this.db.set(`alert:${id}`, alert);
-    console.log(`✅ Alert stored successfully with ID: ${id}`);
+
+    const key = `alert:${nextId}`;
+    console.log(`💾 Storing alert with key: ${key}`);
+
+    const result = await this.db.set(key, alert);
+    if (!result.ok) {
+      throw new Error('Failed to store alert');
+    }
+
+    console.log(`✅ Alert stored successfully with ID: ${nextId}`);
     return alert;
   }
 
@@ -116,11 +168,24 @@ export class ReplitStorage implements IStorage {
     return updatedAlert;
   }
 
+  // Delete Alert
   async deleteAlert(id: number): Promise<boolean> {
-    const alert = await this.getAlert(id);
-    if (!alert) return false;
-    await this.db.delete(`alert:${id}`);
-    return true;
+    if (!id || isNaN(id)) {
+      console.log(`❌ Invalid alert ID for deletion: ${id}`);
+      return false;
+    }
+
+    const key = `alert:${id}`;
+    console.log(`🗑️ Deleting alert with key: ${key}`);
+
+    const result = await this.db.delete(key);
+    if (result.ok) {
+      console.log(`✅ Alert ${id} deleted successfully`);
+    } else {
+      console.log(`❌ Failed to delete alert ${id}`);
+    }
+
+    return result.ok;
   }
 
   // Search Results
@@ -131,8 +196,8 @@ export class ReplitStorage implements IStorage {
 
   async createSearchResult(insertResult: InsertSearchResult): Promise<SearchResult> {
     const id = await this.getNextId('searchResult');
-    const result: SearchResult = { 
-      ...insertResult, 
+    const result: SearchResult = {
+      ...insertResult,
       id,
       createdAt: new Date()
     };
@@ -148,7 +213,7 @@ export class ReplitStorage implements IStorage {
 
   async createGeneratedReply(insertReply: InsertGeneratedReply): Promise<GeneratedReply> {
     const id = await this.getNextId('generatedReply');
-    const reply: GeneratedReply = { 
+    const reply: GeneratedReply = {
       ...insertReply,
       brandName: insertReply.brandName ?? null,
       brandContext: insertReply.brandContext ?? null,
@@ -172,7 +237,7 @@ export class ReplitStorage implements IStorage {
   async createFaq(insertFaq: InsertFaq): Promise<Faq> {
     const id = await this.getNextId('faq');
     const now = new Date();
-    const faq: Faq = { 
+    const faq: Faq = {
       ...insertFaq,
       id,
       createdAt: now
@@ -241,8 +306,8 @@ export class ReplitStorage implements IStorage {
     cutoffDate.setDate(cutoffDate.getDate() - windowDays);
 
     const records = await this.getAllByType<PresenceRecord>('presenceRecord');
-    return records.some(record => 
-      record.dedupeKey === dedupeKey && 
+    return records.some(record =>
+      record.dedupeKey === dedupeKey &&
       record.competitorName === competitorName &&
       record.createdAt && record.createdAt > cutoffDate
     );
@@ -278,10 +343,22 @@ export class ReplitStorage implements IStorage {
   async getDueAlerts(): Promise<Alert[]> {
     const now = new Date();
     const alerts = await this.getAlerts();
-    return alerts.filter(alert => 
-      alert.isActive && 
-      alert.nextRunTime && 
+    return alerts.filter(alert =>
+      alert.isActive &&
+      alert.nextRunTime &&
       alert.nextRunTime <= now
     );
+  }
+
+  // Placeholder for calculateNextRunTime as it's not provided in the original code
+  // Assuming a simple daily calculation for demonstration
+  private calculateNextRunTime(frequency: string): Date | null {
+    if (frequency === 'daily') {
+      const nextRun = new Date();
+      nextRun.setDate(nextRun.getDate() + 1);
+      return nextRun;
+    }
+    // Add other frequency calculations if needed
+    return null;
   }
 }

@@ -186,8 +186,10 @@ export default function RescanAlerts() {
           ) : (
             /* Alert Cards */
             <div className="grid gap-6">
-              {Array.isArray(alerts) && alerts.map((alert: any) => (
-                <div key={alert.id} className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200">
+              {Array.isArray(alerts) && alerts
+                .filter((alert: any) => alert && alert.id && alert.name)
+                .map((alert: any) => (
+                <div key={`alert-${alert.id}`} className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200">
                   <div className="p-6">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
@@ -306,7 +308,14 @@ export default function RescanAlerts() {
                         <Button 
                           variant="outline" 
                           size="sm"
-                          onClick={() => deleteAlert(alert.id)}
+                          onClick={() => {
+                            console.log('🗑️ Deleting alert with ID:', alert.id);
+                            if (alert.id && typeof alert.id === 'number') {
+                              deleteAlert(alert.id);
+                            } else {
+                              console.error('Invalid alert ID:', alert.id);
+                            }
+                          }}
                           className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
                         >
                           Delete
