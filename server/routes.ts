@@ -1065,9 +1065,13 @@ Generate only the final reply text that would be posted.`;
   app.get("/api/alerts", async (req, res) => {
     try {
       const alerts = await storage.getAlerts();
-      res.json(alerts);
+      res.json(alerts || []);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch alerts" });
+      console.error('Error fetching alerts:', error);
+      res.status(500).json({ 
+        message: "Failed to fetch alerts",
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 
@@ -1174,9 +1178,13 @@ Generate only the final reply text that would be posted.`;
   app.get("/api/replies", async (req, res) => {
     try {
       const replies = await storage.getGeneratedReplies();
-      res.json(replies);
+      res.json(replies || []);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch replies" });
+      console.error('Error fetching replies:', error);
+      res.status(500).json({ 
+        message: "Failed to fetch replies",
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 
