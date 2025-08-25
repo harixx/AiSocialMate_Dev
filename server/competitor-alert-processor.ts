@@ -109,17 +109,30 @@ export class CompetitorAlertProcessor {
 
           console.log(`📝 Found ${matches.length} matches for ${competitor.canonicalName} on ${platform}`);
 
+          // Cache presence records once per competitor to avoid repeated database calls
+          const cachedPresenceRecords = await storage.getPresenceRecords();
+          const cutoffTime = new Date(Date.now() - alert.dedupeWindow * 24 * 60 * 60 * 1000);
+
           for (const match of matches) {
             const dedupeKey = this.generateDedupeKey(match.title, match.link);
-            const isDuplicate = await storage.checkDuplicatePresence(
-              dedupeKey,
-              competitor.canonicalName,
-              alert.dedupeWindow
-            );
+            
+            // Check for duplicates using cached data
+            const duplicate = cachedPresenceRecords.find(record => {
+              if (record.dedupeKey === dedupeKey && record.competitorName === competitor.canonicalName) {
+                if (record.createdAt) {
+                  const recordDate = record.createdAt instanceof Date ? record.createdAt : new Date(record.createdAt);
+                  return recordDate > cutoffTime;
+                }
+              }
+              return false;
+            });
+
+            const isDuplicate = !!duplicate;
+            console.log(`🔍 Duplicate check for ${competitor.canonicalName}: ${isDuplicate ? 'DUPLICATE' : 'NEW'} (dedupeKey: ${dedupeKey.substring(0, 8)}...)`);
 
             if (!isDuplicate) {
               // Store presence record
-              await storage.createPresenceRecord({
+              const newRecord = await storage.createPresenceRecord({
                 alertId: alert.id,
                 runId: alertRun.id,
                 competitorName: competitor.canonicalName,
@@ -131,6 +144,9 @@ export class CompetitorAlertProcessor {
                 dedupeKey: dedupeKey,
                 detectionMethod: match.detectionMethod || 'exact'
               });
+              
+              // Add to cache for subsequent checks within this run
+              cachedPresenceRecords.push(newRecord);
               newPresencesFound++;
             }
           }
