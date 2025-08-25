@@ -33,44 +33,111 @@ export default function APISettings() {
     },
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
-    // Store API keys in localStorage for this demo
-    // In production, these should be handled more securely
-    localStorage.setItem('customApiKeys', JSON.stringify(values));
     
-    setTimeout(() => {
-      setIsLoading(false);
-      toast({
-        title: "API Settings Saved",
-        description: "Your custom API keys have been configured.",
+    try {
+      const response = await fetch('/api/settings/keys', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(values),
       });
-    }, 1000);
+
+      const result = await response.json();
+      
+      if (result.success) {
+        toast({
+          title: "API Settings Saved",
+          description: "Your API keys have been configured and are active.",
+        });
+        // Also save to localStorage as backup
+        localStorage.setItem('customApiKeys', JSON.stringify(values));
+      } else {
+        throw new Error(result.error || 'Failed to save API keys');
+      }
+    } catch (error) {
+      console.error('Failed to save API keys:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save API keys. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const loadSavedSettings = () => {
+  const loadSavedSettings = async () => {
     try {
+      // First try to load from server
+      const response = await fetch('/api/settings/keys');
+      const result = await response.json();
+      
+      if (result.success) {
+        // Load current status and update form
+        const saved = localStorage.getItem('customApiKeys');
+        if (saved) {
+          const settings = JSON.parse(saved);
+          form.reset(settings);
+        }
+        toast({
+          title: "Settings Loaded",
+          description: `API Status: OpenAI ${result.keys.openai ? '✓' : '✗'}, Gemini ${result.keys.gemini ? '✓' : '✗'}, Serper ${result.keys.serper ? '✓' : '✗'}`,
+        });
+      } else {
+        // Fallback to localStorage
+        const saved = localStorage.getItem('customApiKeys');
+        if (saved) {
+          const settings = JSON.parse(saved);
+          form.reset(settings);
+          toast({
+            title: "Settings Loaded",
+            description: "Your saved API settings have been loaded from local storage.",
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load saved settings:', error);
+      // Fallback to localStorage
       const saved = localStorage.getItem('customApiKeys');
       if (saved) {
         const settings = JSON.parse(saved);
         form.reset(settings);
-        toast({
-          title: "Settings Loaded",
-          description: "Your saved API settings have been loaded.",
-        });
       }
-    } catch (error) {
-      console.error('Failed to load saved settings:', error);
     }
   };
 
-  const clearSettings = () => {
-    localStorage.removeItem('customApiKeys');
-    form.reset();
-    toast({
-      title: "Settings Cleared",
-      description: "All custom API keys have been removed.",
-    });
+  const clearSettings = async () => {
+    try {
+      const response = await fetch('/api/settings/keys', {
+        method: 'DELETE',
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        localStorage.removeItem('customApiKeys');
+        form.reset();
+        toast({
+          title: "Settings Cleared",
+          description: "All API keys have been cleared from the server.",
+        });
+      } else {
+        throw new Error(result.error || 'Failed to clear API keys');
+      }
+    } catch (error) {
+      console.error('Failed to clear API keys:', error);
+      // Still clear localStorage as fallback
+      localStorage.removeItem('customApiKeys');
+      form.reset();
+      toast({
+        title: "Warning",
+        description: "API keys cleared locally, but server update failed.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

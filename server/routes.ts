@@ -5,6 +5,7 @@ import { insertAlertSchema, insertSearchResultSchema, insertGeneratedReplySchema
 import OpenAI from "openai";
 import { GoogleGenAI } from "@google/genai";
 import { config } from "./config";
+import { runtimeConfig, createOpenAIClient, createGeminiClient, getSerperAPIKey } from "./runtime-config";
 import { redditOAuth } from "./reddit-oauth";
 import { healthChecker } from "./health-check";
 
@@ -21,17 +22,72 @@ const initializeProcessor = async () => {
 // Initialize processor when routes are registered
 initializeProcessor();
 
-// Initialize OpenAI client with validated configuration
-const openai = new OpenAI({ 
-  apiKey: config.openai.apiKey 
-});
-
-// Initialize Gemini client with validated configuration
-const gemini = new GoogleGenAI({ 
-  apiKey: config.gemini.apiKey 
-});
+// API clients are now created dynamically using runtime configuration
+// This allows for hot-swapping of API keys without restart
 
 export async function registerRoutes(app: Express): Promise<Server> {
+
+  // API Key Management Endpoints
+  app.get("/api/settings/keys", (req, res) => {
+    try {
+      const keyStatus = runtimeConfig.getAPIKeyStatus();
+      res.json({
+        success: true,
+        keys: keyStatus
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: 'Failed to get API key status'
+      });
+    }
+  });
+
+  app.post("/api/settings/keys", (req, res) => {
+    try {
+      const { openaiApiKey, geminiApiKey, serperApiKey } = req.body;
+      
+      const updates: any = {};
+      if (openaiApiKey && openaiApiKey.trim()) {
+        updates.openai = openaiApiKey.trim();
+      }
+      if (geminiApiKey && geminiApiKey.trim()) {
+        updates.gemini = geminiApiKey.trim();
+      }
+      if (serperApiKey && serperApiKey.trim()) {
+        updates.serper = serperApiKey.trim();
+      }
+
+      runtimeConfig.updateAPIKeys(updates);
+      
+      res.json({
+        success: true,
+        message: 'API keys updated successfully',
+        keys: runtimeConfig.getAPIKeyStatus()
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: 'Failed to update API keys'
+      });
+    }
+  });
+
+  app.delete("/api/settings/keys", (req, res) => {
+    try {
+      runtimeConfig.clearAllAPIKeys();
+      res.json({
+        success: true,
+        message: 'All API keys cleared',
+        keys: runtimeConfig.getAPIKeyStatus()
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: 'Failed to clear API keys'
+      });
+    }
+  });
 
   // Health check and root endpoints
   app.get("/health", async (req, res) => {
@@ -82,6 +138,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`🔍 Checking source for: "${title}" on platform: ${platform}`);
 
       // First ChatGPT query with exact title
+      const openai = createOpenAIClient();
       const firstResponse = await openai.chat.completions.create({
         model: 'gpt-4o',
         messages: [
@@ -164,7 +221,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               const searchResponse = await fetch('https://google.serper.dev/search', {
                 method: 'POST',
                 headers: {
-                  'X-API-KEY': config.serper.apiKey,
+                  'X-API-KEY': getSerperAPIKey(),
                   'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
@@ -274,8 +331,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Construct search query
       const searchQuery = `${competitorName} ${keywords ? keywords : ''} -${brandName} ${excludeKeywords ? excludeKeywords.split(',').map((k: string) => `-${k.trim()}`).join(' ') : ''}`.trim();
 
-      // Use provided API key or default from config
-      const apiKey = serperApiKey || config.serper.apiKey;
+      // Use provided API key or runtime config
+      const apiKey = serperApiKey || getSerperAPIKey();
 
       // Search each platform
       const searchPromises = platforms.map(async (platform: string) => {
@@ -324,6 +381,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Use GPT-4o for advanced sentiment analysis when sentiment filtering is requested
           if (sentiment && sentiment !== 'all') {
             try {
+              const openai = createOpenAIClient();
               const sentimentResponse = await openai.chat.completions.create({
                 model: 'gpt-4o',
                 messages: [
@@ -417,7 +475,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Keywords are required" });
       }
 
-      const apiKey = serperApiKey || config.serper.apiKey;
+      const apiKey = serperApiKey || getSerperAPIKey();
 
       // Search each platform
       const searchPromises = platforms.map(async (platform: string) => {
@@ -467,6 +525,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           // Use GPT-4o for advanced sentiment analysis
           try {
+            const openai = createOpenAIClient();
             const sentimentResponse = await openai.chat.completions.create({
               model: 'gpt-4o',
               messages: [
@@ -951,6 +1010,7 @@ Generate only the final reply text that would be posted.`;
       
       if (aiProvider === "gemini") {
         try {
+          const gemini = createGeminiClient();
           const response = await gemini.models.generateContent({
             model: model,
             contents: `${systemPrompt}\n\n${userPrompt}`,
@@ -969,8 +1029,7 @@ Generate only the final reply text that would be posted.`;
       } else {
         try {
           // Use OpenAI API (default)
-          const apiKey = customApiKey || config.openai.apiKey;
-          const client = customApiKey ? new OpenAI({ apiKey: customApiKey }) : openai;
+          const client = createOpenAIClient(customApiKey);
 
           const response = await client.chat.completions.create({
             model: model,
@@ -994,7 +1053,7 @@ Generate only the final reply text that would be posted.`;
         throw new Error('AI generated empty response. Please try again.');
       }
 
-      // Store generated reply with timestamp-based unique identifier
+      // Store generated reply
       const reply = await storage.createGeneratedReply({
         threadUrl,
         replyType,
@@ -1005,8 +1064,7 @@ Generate only the final reply text that would be posted.`;
         generatedText,
         creativity,
         aiProvider,
-        model,
-        uniqueId: `${threadUrl}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}` // Unique identifier per generation
+        model
       });
 
       console.log('💾 Storing reply in database');
@@ -1221,7 +1279,7 @@ Generate only the final reply text that would be posted.`;
         return res.status(400).json({ message: "Keyword is required" });
       }
 
-      const apiKey = config.serper.apiKey;
+      const apiKey = getSerperAPIKey();
 
       const searchPromises = platforms.map(async (platform: string) => {
         try {
@@ -1309,7 +1367,7 @@ Generate only the final reply text that would be posted.`;
           const response = await fetch('https://google.serper.dev/search', {
             method: 'POST',
             headers: {
-              'X-API-KEY': config.serper.apiKey,
+              'X-API-KEY': getSerperAPIKey(),
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
@@ -1340,6 +1398,7 @@ Search results: ${JSON.stringify(allResults.slice(0, 20))}
 
 Generate a JSON object with an array called "faqs" containing objects with "question" and "answer" fields. Focus on questions that would be most valuable for the brand's website or customer support.`;
 
+      const openai = createOpenAIClient();
       const response = await openai.chat.completions.create({
         model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
         messages: [{ role: "user", content: prompt }],
