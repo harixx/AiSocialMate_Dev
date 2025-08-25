@@ -85,7 +85,7 @@ export default function RescanAlerts() {
           newSet.delete(alertId);
           return newSet;
         });
-      }, 3000);
+      }, 30000); // 30 seconds to allow alert processing to complete
     }
   };
 
