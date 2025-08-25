@@ -20,11 +20,9 @@ class RuntimeConfigManager {
   private apiKeys: RuntimeAPIKeys = {};
   private defaultKeys: RuntimeAPIKeys = {};
   private db: any = null;
+  private dbInitialized: boolean = false;
 
   constructor() {
-    // Initialize Replit Database
-    this.initializeDatabase();
-
     // Load any environment variables as defaults but don't require them
     this.defaultKeys = {
       openai: process.env.OPENAI_API_KEY || process.env.CHATGPT_API_KEY || process.env.OPENAI_TOKEN,
@@ -35,22 +33,27 @@ class RuntimeConfigManager {
     // Initialize runtime keys with defaults if available
     this.apiKeys = { ...this.defaultKeys };
 
-    // Load persisted keys from database
-    this.loadPersistedKeys();
+    // Initialize database and load persisted keys
+    this.initializeDatabase();
   }
 
   private async initializeDatabase() {
     try {
       const Database = await import('@replit/database');
-      this.db = Database.default;
+      this.db = new Database.default();
+      this.dbInitialized = true;
       console.log('✅ Runtime Config: Replit Database initialized');
+      
+      // Load persisted keys from database after initialization
+      await this.loadPersistedKeys();
     } catch (error) {
       console.log('⚠️ Runtime Config: Database not available, using memory only');
+      this.dbInitialized = false;
     }
   }
 
   private async loadPersistedKeys() {
-    if (!this.db) return;
+    if (!this.db || !this.dbInitialized) return;
 
     try {
       const persistedKeys = await this.db.get('runtime_api_keys');
@@ -65,7 +68,7 @@ class RuntimeConfigManager {
   }
 
   private async saveToDatabase() {
-    if (!this.db) return;
+    if (!this.db || !this.dbInitialized) return;
 
     try {
       // Only save non-default keys to database
