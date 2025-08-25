@@ -127,6 +127,10 @@ export async function logConfigStatus() {
   log(`OpenAI API: ${config.openai.apiKey ? '✓ Configured' : '✗ Missing'}`);
   log(`Gemini API: ${config.gemini.apiKey ? '✓ Configured' : '✗ Missing'}`);
   log(`Serper API: ${config.serper.apiKey ? '✓ Configured' : '✗ Missing'}`);
-  log(`Database: ${config.database.url ? '✓ Configured' : '✗ Not set'}`);
+  // Check if we're using Replit Database or PostgreSQL
+  const usingReplitDB = process.env.REPLIT_DB_URL || process.env.REPL_ID;
+  const databaseStatus = config.database.url ? '✓ PostgreSQL' : 
+                        usingReplitDB ? '✓ Replit Database' : '✗ Not set';
+  log(`Database: ${databaseStatus}`);
   log(`Reddit OAuth: ${config.reddit.enabled ? '✓ Configured' : '✗ Not configured (UI required)'}`);
 }
