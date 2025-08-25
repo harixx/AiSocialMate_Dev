@@ -70,7 +70,7 @@ export default function ReplyGeneratorForm() {
   React.useEffect(() => {
     const defaultModels = {
       openai: "gpt-4o",
-      gemini: "gemini-1.5-flash", 
+      gemini: "gemini-1.5-flash",
       claude: "claude-3-5-sonnet-20241022"
     };
 
@@ -105,15 +105,15 @@ export default function ReplyGeneratorForm() {
     try {
       // Enhanced URL validation for all social platforms
       const socialPlatforms = [
-        'reddit.com', 'twitter.com', 'x.com', 'facebook.com', 'linkedin.com', 
+        'reddit.com', 'twitter.com', 'x.com', 'facebook.com', 'linkedin.com',
         'youtube.com', 'instagram.com', 'tiktok.com', 'quora.com', 'medium.com',
         'discord.com', 'telegram.org', 'whatsapp.com', 'snapchat.com'
       ];
-      
-      const isValidSocialUrl = socialPlatforms.some(platform => 
+
+      const isValidSocialUrl = socialPlatforms.some(platform =>
         values.threadUrl.toLowerCase().includes(platform)
       );
-      
+
       if (!isValidSocialUrl) {
         throw new Error('Please provide a valid social media thread URL (Reddit, Twitter/X, Facebook, LinkedIn, YouTube, etc.)');
       }
@@ -138,6 +138,13 @@ export default function ReplyGeneratorForm() {
         creativity: values.creativity[0].toString(),
         customApiKey: customApiKey,
       };
+
+      // Mask API key in logs
+      console.log('Sending reply generation request:', {
+        ...submitData,
+        customApiKey: submitData.customApiKey ? '***MASKED***' : undefined
+      });
+
       generateReply(submitData);
     } catch (error) {
       console.error('Form submission error:', error);
@@ -161,10 +168,10 @@ export default function ReplyGeneratorForm() {
                   <FormLabel>Thread URL</FormLabel>
                   <div className="flex">
                     <FormControl>
-                      <Input 
-                        placeholder="https://reddit.com/r/example/comments/..." 
+                      <Input
+                        placeholder="https://reddit.com/r/example/comments/..."
                         className="rounded-r-none border-r-0"
-                        {...field} 
+                        {...field}
                       />
                     </FormControl>
                     {field.value && (
@@ -251,10 +258,10 @@ export default function ReplyGeneratorForm() {
                 <FormItem>
                   <FormLabel>Brand Context (Optional)</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      placeholder="Optional: Add specific details about your product..." 
+                    <Textarea
+                      placeholder="Optional: Add specific details about your product..."
                       className="resize-none h-24"
-                      {...field} 
+                      {...field}
                     />
                   </FormControl>
                 </FormItem>
@@ -268,9 +275,9 @@ export default function ReplyGeneratorForm() {
                 <FormItem>
                   <FormLabel>Brand URL (Optional)</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="https://yourbrand.com" 
-                      {...field} 
+                    <Input
+                      placeholder="https://yourbrand.com"
+                      {...field}
                     />
                   </FormControl>
                   <FormDescription>

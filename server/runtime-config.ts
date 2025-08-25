@@ -72,7 +72,16 @@ class RuntimeConfigManager {
   }
 
   private async saveToDatabase() {
-    if (!this.db || !this.dbInitialized) return;
+    if (!this.db || !this.dbInitialized) {
+      console.log('⚠️ Database not ready, skipping save');
+      return;
+    }
+    
+    // Double-check db methods exist
+    if (typeof this.db.set !== 'function') {
+      console.error('❌ Database set method not available');
+      return;
+    }
 
     try {
       // Only save non-default keys to database

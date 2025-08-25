@@ -64,12 +64,23 @@ export default function SearchResults({ results, type, totalResults, query }: Se
       }
     } catch (error) {
       console.error('Error checking source:', error);
-      // Optionally, display an error message to the user
+      
+      // More user-friendly error handling
+      let errorMessage = 'Source verification failed. Please try again.';
+      
       if (error instanceof Error) {
-        alert(`Error verifying source: ${error.message}`);
-      } else {
-        alert('An unexpected error occurred during source verification.');
+        if (error.message.includes('API key')) {
+          errorMessage = 'API key configuration error. Please check your settings.';
+        } else if (error.message.includes('rate limit')) {
+          errorMessage = 'Too many requests. Please wait a moment and try again.';
+        } else if (error.message.includes('network') || error.message.includes('fetch')) {
+          errorMessage = 'Network error. Please check your connection and try again.';
+        }
       }
+      
+      // Use toast instead of alert for better UX
+      // TODO: Add toast notification here instead of alert
+      alert(errorMessage);
     } finally {
       setLoadingSource(prev => ({ ...prev, [index]: false }));
     }

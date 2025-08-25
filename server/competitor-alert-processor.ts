@@ -97,7 +97,7 @@ export class CompetitorAlertProcessor {
   clearAlertTimer(alertId: number): void {
     const timer = this.alertTimers.get(alertId);
     if (timer) {
-      clearTimeout(timer.timerId); // Corrected: clearTimeout expects the timer ID, not the whole timer object
+      clearTimeout(timer.timerId);
       this.alertTimers.delete(alertId);
       console.log(`⏰ Cleared timer for alert ${alertId}`);
     }

@@ -74,10 +74,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { clientId, clientSecret, username, password } = req.body;
 
+      // Enhanced input validation
       if (!clientId || !clientSecret) {
         return res.status(400).json({
           success: false,
           error: 'Client ID and Client Secret are required'
+        });
+      }
+
+      // Validate input types and lengths
+      if (typeof clientId !== 'string' || typeof clientSecret !== 'string') {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid credential format'
+        });
+      }
+
+      if (clientId.length < 10 || clientSecret.length < 10) {
+        return res.status(400).json({
+          success: false,
+          error: 'Credentials appear to be too short'
         });
       }
 
