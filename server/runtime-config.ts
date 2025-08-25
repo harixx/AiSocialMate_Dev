@@ -243,7 +243,7 @@ export function setRedditCredentials(clientId: string, clientSecret: string, use
 }
 
 /**
- * Get Reddit credentials
+ * Get Reddit credentials (for external use)
  */
 export function getRedditCredentials(): { clientId?: string; clientSecret?: string; username?: string; password?: string } {
   return {
@@ -253,3 +253,29 @@ export function getRedditCredentials(): { clientId?: string; clientSecret?: stri
     password: runtimeConfig.getAPIKey('redditPassword')
   };
 }
+
+// Add methods to RuntimeConfigManager class
+declare module "./runtime-config" {
+  interface RuntimeConfigManager {
+    getRedditCredentials(): { clientId?: string; clientSecret?: string; username?: string; password?: string };
+    clearRedditCredentials(): void;
+  }
+}
+
+// Extend the RuntimeConfigManager class
+RuntimeConfigManager.prototype.getRedditCredentials = function() {
+  return {
+    clientId: this.getAPIKey('redditClientId'),
+    clientSecret: this.getAPIKey('redditClientSecret'),
+    username: this.getAPIKey('redditUsername'),
+    password: this.getAPIKey('redditPassword')
+  };
+};
+
+RuntimeConfigManager.prototype.clearRedditCredentials = function() {
+  this.removeAPIKey('redditClientId');
+  this.removeAPIKey('redditClientSecret');
+  this.removeAPIKey('redditUsername');
+  this.removeAPIKey('redditPassword');
+  console.log('🗑️ Reddit credentials cleared');
+};

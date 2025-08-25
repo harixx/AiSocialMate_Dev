@@ -27,6 +27,68 @@ initializeProcessor();
 
 export async function registerRoutes(app: Express): Promise<Server> {
 
+  // Reddit Credentials Management Endpoints
+  app.get("/api/settings/reddit-credentials", (req, res) => {
+    try {
+      const credentials = runtimeConfig.getRedditCredentials();
+      res.json({
+        success: true,
+        credentials: {
+          clientId: credentials.clientId,
+          clientSecret: credentials.clientSecret ? '***masked***' : undefined,
+          username: credentials.username,
+          password: credentials.password ? '***masked***' : undefined
+        },
+        hasCredentials: !!(credentials.clientId && credentials.clientSecret)
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: 'Failed to get Reddit credentials'
+      });
+    }
+  });
+
+  app.post("/api/settings/reddit-credentials", (req, res) => {
+    try {
+      const { clientId, clientSecret, username, password } = req.body;
+
+      if (!clientId || !clientSecret) {
+        return res.status(400).json({
+          success: false,
+          error: 'Client ID and Client Secret are required'
+        });
+      }
+
+      runtimeConfig.setRedditCredentials(clientId, clientSecret, username, password);
+
+      res.json({
+        success: true,
+        message: 'Reddit credentials saved successfully'
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: 'Failed to save Reddit credentials'
+      });
+    }
+  });
+
+  app.delete("/api/settings/reddit-credentials", (req, res) => {
+    try {
+      runtimeConfig.clearRedditCredentials();
+      res.json({
+        success: true,
+        message: 'Reddit credentials cleared'
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: 'Failed to clear Reddit credentials'
+      });
+    }
+  });
+
   // API Key Management Endpoints
   app.get("/api/settings/keys", (req, res) => {
     try {
@@ -667,22 +729,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // First, try runtime authentication if provided
-      if (runtimeClientId && runtimeClientSecret) {
-        console.log(`🔑 Using runtime Reddit API authentication`);
-        console.log(`🔑 Client ID: ${runtimeClientId.substring(0, 4)}...`);
+      // Get persistent Reddit credentials from runtime config
+      const persistentCredentials = runtimeConfig.getRedditCredentials();
+      
+      // Use provided runtime credentials or fall back to persistent ones
+      const finalClientId = runtimeClientId || persistentCredentials.clientId;
+      const finalClientSecret = runtimeClientSecret || persistentCredentials.clientSecret;
+      const finalUsername = runtimeUsername || persistentCredentials.username;
+      const finalPassword = runtimePassword || persistentCredentials.password;
+
+      // First, try authentication if credentials are available
+      if (finalClientId && finalClientSecret) {
+        console.log(`🔑 Using Reddit API authentication`);
+        console.log(`🔑 Client ID: ${finalClientId.substring(0, 4)}...`);
+        console.log(`🔑 Source: ${runtimeClientId ? 'runtime' : 'persistent'}`);
 
         try {
-          // Get access token using runtime credentials
+          // Get access token using available credentials
           const tokenResponse = await fetch('https://www.reddit.com/api/v1/access_token', {
             method: 'POST',
             headers: {
-              'Authorization': `Basic ${Buffer.from(`${runtimeClientId}:${runtimeClientSecret}`).toString('base64')}`,
+              'Authorization': `Basic ${Buffer.from(`${finalClientId}:${finalClientSecret}`).toString('base64')}`,
               'Content-Type': 'application/x-www-form-urlencoded',
               'User-Agent': 'SocialMonitor:1.0 (by /u/runtime_user)'
             },
-            body: runtimeUsername && runtimePassword 
-              ? `grant_type=password&username=${runtimeUsername}&password=${runtimePassword}`
+            body: finalUsername && finalPassword 
+              ? `grant_type=password&username=${finalUsername}&password=${finalPassword}`
               : 'grant_type=client_credentials'
           });
 
