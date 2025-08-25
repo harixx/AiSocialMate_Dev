@@ -97,14 +97,14 @@ export default function RedditAuth({ onAuthChange }: RedditAuthProps) {
         } else {
           toast({
             title: "No Values Saved",
-            description: "No values have been saved on the server.",
+            description: "No values have been saved on Server.",
             variant: "destructive"
           });
         }
       } else {
         toast({
           title: "No Values Saved",
-          description: "No values have been saved on the server.",
+          description: "No values have been saved on Server.",
           variant: "destructive"
         });
       }
@@ -166,6 +166,20 @@ export default function RedditAuth({ onAuthChange }: RedditAuthProps) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const clearFrontendOnly = () => {
+    setRuntimeCredentials({
+      clientId: '',
+      clientSecret: '',
+      username: '',
+      password: ''
+    });
+    toast({
+      title: "Credentials Cleared",
+      description: "Reddit credentials have been cleared from the frontend only. Server credentials remain saved.",
+      variant: "default"
+    });
   };
 
   const clearRuntimeAuth = async () => {
@@ -278,10 +292,10 @@ export default function RedditAuth({ onAuthChange }: RedditAuthProps) {
                   </div>
                   <Button 
                     variant="outline" 
-                    onClick={clearRuntimeAuth}
+                    onClick={clearFrontendOnly}
                     disabled={loading}
                   >
-                    {loading ? 'Clearing...' : 'Clear Credentials'}
+                    Clear Credentials
                   </Button>
                 </div>
                 <div className="text-sm text-gray-600">
@@ -354,6 +368,13 @@ export default function RedditAuth({ onAuthChange }: RedditAuthProps) {
                     variant="outline"
                   >
                     Load Saved
+                  </Button>
+                  <Button 
+                    onClick={clearFrontendOnly} 
+                    disabled={loading}
+                    variant="outline"
+                  >
+                    Clear Credentials
                   </Button>
                   <Button 
                     onClick={clearAllCredentials} 
