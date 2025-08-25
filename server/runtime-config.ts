@@ -258,6 +258,7 @@ export function getRedditCredentials(): { clientId?: string; clientSecret?: stri
 declare module "./runtime-config" {
   interface RuntimeConfigManager {
     getRedditCredentials(): { clientId?: string; clientSecret?: string; username?: string; password?: string };
+    setRedditCredentials(clientId: string, clientSecret: string, username?: string, password?: string): void;
     clearRedditCredentials(): void;
   }
 }
@@ -270,6 +271,16 @@ RuntimeConfigManager.prototype.getRedditCredentials = function() {
     username: this.getAPIKey('redditUsername'),
     password: this.getAPIKey('redditPassword')
   };
+};
+
+RuntimeConfigManager.prototype.setRedditCredentials = function(clientId, clientSecret, username, password) {
+  this.updateAPIKeys({
+    redditClientId: clientId,
+    redditClientSecret: clientSecret,
+    redditUsername: username,
+    redditPassword: password
+  });
+  console.log('✅ Reddit credentials saved successfully');
 };
 
 RuntimeConfigManager.prototype.clearRedditCredentials = function() {
