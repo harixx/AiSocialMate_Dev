@@ -87,7 +87,6 @@ export class ReplitStorage implements IStorage {
     }
 
     const alerts: Alert[] = [];
-    const validKeys: string[] = [];
     const invalidKeys: string[] = [];
 
     for (const key of keys.value) {
@@ -113,7 +112,7 @@ export class ReplitStorage implements IStorage {
           // Additional validation for data integrity
           if (alert.competitors && Array.isArray(alert.competitors) && 
               alert.platforms && Array.isArray(alert.platforms)) {
-            
+
             // Ensure dates are properly converted from strings to Date objects
             if (alert.nextRunTime && typeof alert.nextRunTime === 'string') {
               alert.nextRunTime = new Date(alert.nextRunTime);
@@ -124,9 +123,8 @@ export class ReplitStorage implements IStorage {
             if (alert.createdAt && typeof alert.createdAt === 'string') {
               alert.createdAt = new Date(alert.createdAt);
             }
-            
+
             alerts.push(alert);
-            validKeys.push(key);
             console.log(`✅ Valid alert loaded: ${alert.name} (ID: ${alert.id}) - Next run: ${alert.nextRunTime}`);
           } else {
             console.log(`❌ Alert missing required arrays, marking for cleanup: ${key}`);
@@ -378,16 +376,26 @@ export class ReplitStorage implements IStorage {
     return filtered.sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
   }
 
-  async checkDuplicatePresence(dedupeKey: string, competitorName: string, windowDays: number): Promise<boolean> {
-    const cutoffDate = new Date();
-    cutoffDate.setDate(cutoffDate.getDate() - windowDays);
+  async checkDuplicatePresence(dedupeKey: string, competitorName: string, dedupeWindow: number): Promise<boolean> {
+    try {
+      const presenceRecords = await this.getPresenceRecords();
+      const cutoffTime = new Date(Date.now() - dedupeWindow * 24 * 60 * 60 * 1000);
 
-    const records = await this.getAllByType<PresenceRecord>('presenceRecord');
-    return records.some(record =>
-      record.dedupeKey === dedupeKey &&
-      record.competitorName === competitorName &&
-      record.createdAt && record.createdAt > cutoffDate
-    );
+      // Check for duplicates based on dedupeKey and within the dedupe window
+      const duplicate = presenceRecords.find(record => 
+        record.dedupeKey === dedupeKey &&
+        record.competitorName === competitorName &&
+        new Date(record.createdAt) > cutoffTime
+      );
+
+      const isDuplicate = !!duplicate;
+      console.log(`🔍 Duplicate check for ${competitorName}: ${isDuplicate ? 'DUPLICATE' : 'NEW'} (dedupeKey: ${dedupeKey.substring(0, 8)}...)`);
+
+      return isDuplicate;
+    } catch (error) {
+      console.error('Error checking duplicate presence:', error);
+      return false; // If error, don't block creation
+    }
   }
 
   // Quota Usage
