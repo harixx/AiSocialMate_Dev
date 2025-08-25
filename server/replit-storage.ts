@@ -113,9 +113,21 @@ export class ReplitStorage implements IStorage {
           // Additional validation for data integrity
           if (alert.competitors && Array.isArray(alert.competitors) && 
               alert.platforms && Array.isArray(alert.platforms)) {
+            
+            // Ensure dates are properly converted from strings to Date objects
+            if (alert.nextRunTime && typeof alert.nextRunTime === 'string') {
+              alert.nextRunTime = new Date(alert.nextRunTime);
+            }
+            if (alert.lastRun && typeof alert.lastRun === 'string') {
+              alert.lastRun = new Date(alert.lastRun);
+            }
+            if (alert.createdAt && typeof alert.createdAt === 'string') {
+              alert.createdAt = new Date(alert.createdAt);
+            }
+            
             alerts.push(alert);
             validKeys.push(key);
-            console.log(`✅ Valid alert loaded: ${alert.name} (ID: ${alert.id})`);
+            console.log(`✅ Valid alert loaded: ${alert.name} (ID: ${alert.id}) - Next run: ${alert.nextRunTime}`);
           } else {
             console.log(`❌ Alert missing required arrays, marking for cleanup: ${key}`);
             invalidKeys.push(key);
@@ -148,7 +160,22 @@ export class ReplitStorage implements IStorage {
   }
 
   async getAlert(id: number): Promise<Alert | undefined> {
-    return await this.db.get(`alert:${id}`);
+    const result = await this.db.get(`alert:${id}`);
+    if (result.ok && result.value) {
+      const alert = result.value as Alert;
+      // Ensure dates are properly converted
+      if (alert.nextRunTime && typeof alert.nextRunTime === 'string') {
+        alert.nextRunTime = new Date(alert.nextRunTime);
+      }
+      if (alert.lastRun && typeof alert.lastRun === 'string') {
+        alert.lastRun = new Date(alert.lastRun);
+      }
+      if (alert.createdAt && typeof alert.createdAt === 'string') {
+        alert.createdAt = new Date(alert.createdAt);
+      }
+      return alert;
+    }
+    return undefined;
   }
 
   // Create Alert

@@ -16,8 +16,18 @@ export default function RescanAlerts() {
   const [editingAlert, setEditingAlert] = useState<any | null>(null);
   const [runningAlerts, setRunningAlerts] = useState<Set<number>>(new Set());
   const [activeTab, setActiveTab] = useState("alerts");
+  const [currentTime, setCurrentTime] = useState(new Date());
   const { alerts, deleteAlert } = useAlerts();
   const { toast } = useToast();
+
+  // Update current time every minute for real-time "Next Run" display
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000); // Update every minute
+
+    return () => clearInterval(interval);
+  }, []);
 
   const triggerAlert = async (alertId: number) => {
     try {
@@ -63,15 +73,43 @@ export default function RescanAlerts() {
 
   const formatNextRun = (nextRunTime: string | Date | null) => {
     if (!nextRunTime) return 'Not scheduled';
+    
     const nextRun = new Date(nextRunTime);
     const now = new Date();
+    
+    // Check if the date is valid
+    if (isNaN(nextRun.getTime())) return 'Invalid date';
+    
     const diffMs = nextRun.getTime() - now.getTime();
-    if (diffMs < 0) return 'Due now';
+    
+    // If overdue
+    if (diffMs < 0) {
+      const overdueMins = Math.floor(Math.abs(diffMs) / (1000 * 60));
+      if (overdueMins < 60) return `Overdue by ${overdueMins}m`;
+      const overdueHours = Math.floor(overdueMins / 60);
+      return `Overdue by ${overdueHours}h`;
+    }
+    
+    // Calculate precise time remaining
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffDays = Math.floor(diffHours / 24);
-    if (diffDays > 0) return `In ${diffDays} day${diffDays > 1 ? 's' : ''}`;
-    if (diffHours > 0) return `In ${diffHours} hour${diffHours > 1 ? 's' : ''}`;
-    return 'Within 1 hour';
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    
+    if (diffDays > 0) {
+      const remainingHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      return `In ${diffDays}d ${remainingHours}h`;
+    }
+    
+    if (diffHours > 0) {
+      const remainingMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+      return `In ${diffHours}h ${remainingMins}m`;
+    }
+    
+    if (diffMinutes > 0) {
+      return `In ${diffMinutes}m`;
+    }
+    
+    return 'Due now';
   };
 
   const getCompetitorCount = (alert: any) => {
@@ -239,7 +277,15 @@ export default function RescanAlerts() {
                             </div>
                             <div>
                               <div className="font-semibold text-gray-900">{formatNextRun(alert.nextRunTime)}</div>
-                              <div className="text-sm text-gray-600">Next Run</div>
+                              <div className="text-sm text-gray-600">
+                                {alert.nextRunTime ? (
+                                  <>
+                                    Next Run: {new Date(alert.nextRunTime).toLocaleString()}
+                                  </>
+                                ) : (
+                                  'Next Run: Not scheduled'
+                                )}
+                              </div>
                             </div>
                           </div>
                         </div>
