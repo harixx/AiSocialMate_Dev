@@ -208,33 +208,7 @@ export default function RedditAuth({ onAuthChange }: RedditAuthProps) {
   const clearAllCredentials = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/settings/reddit-credentials', {
-        method: 'DELETE'
-      });
-
-      if (response.ok) {
-        setIsRuntimeAuth(false);
-        // Clear both server and frontend form values
-        setRuntimeCredentials({
-          clientId: '',
-          clientSecret: '',
-          username: '',
-          password: ''
-        });
-        toast({
-          title: "Settings Cleared", 
-          description: "All Reddit credentials have been cleared from both server and frontend.",
-          variant: "default"
-        });
-        if (onAuthChange) {
-          onAuthChange(false);
-        }
-      } else {
-        throw new Error('Failed to clear credentials');
-      }
-    } catch (error) {
-      // Still clear frontend form as fallback
-      setIsRuntimeAuth(false);
+      // Only clear the frontend form, keep server values intact
       setRuntimeCredentials({
         clientId: '',
         clientSecret: '',
@@ -242,8 +216,14 @@ export default function RedditAuth({ onAuthChange }: RedditAuthProps) {
         password: ''
       });
       toast({
-        title: "Warning",
-        description: "Reddit credentials cleared locally, but server update failed.",
+        title: "Form Cleared", 
+        description: "Form fields cleared. Server values remain saved for loading later.",
+        variant: "default"
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to clear form fields.",
         variant: "destructive"
       });
     } finally {
