@@ -1,0 +1,515 @@
+🔍 Getting all items of type: alert
+📋 Found keys for alert: { ok: true, value: [ 'alert:1' ] }
+✅ Valid alert loaded: ResimpliMon (ID: 1) - Next run: Mon Aug 25 2025 08:02:35 GMT+0000 (Coordinated Universal Time)
+✅ Returning 1 valid alerts (cleaned 0 invalid entries)
+7:05:39 AM [express] GET /api/alerts 200 in 707ms :: [{"name":"ResimpliMon","competitors":[{"canonic…
+🚀 Manually triggering alert with ID: 1
+🔍 Getting all items of type: alert
+📋 Found keys for alert: { ok: true, value: [ 'alert:1' ] }
+✅ Valid alert loaded: ResimpliMon (ID: 1) - Next run: Mon Aug 25 2025 08:02:35 GMT+0000 (Coordinated Universal Time)
+✅ Returning 1 valid alerts (cleaned 0 invalid entries)
+🚀 Manually triggering alert: ResimpliMon
+🎯 [2025-08-25T07:05:45.015Z] Processing alert: ResimpliMon (ID: 1)
+🔢 Generated ID for alertRun: 2 (previous: 1)
+📊 Processing 1 competitors across 1 platforms
+🔍 Searching for Resimpli on Reddit
+🔍 [Attempt 1] Searching: ("Resimpli") site:reddit.com...
+✅ Search successful: 10 results
+📝 Found 10 matches for Resimpli on Reddit
+🔍 Getting all items of type: presenceRecord
+📋 Found keys for presenceRecord: { ok: true, value: [ 'presenceRecord:1' ] }
+📊 Key array length: 1 [ 'presenceRecord:1' ]
+📄 Retrieved item for key presenceRecord:1: Found
+📄 Raw data structure for presenceRecord:1: {"ok":true,"value":{"alertId":1,"runId":1,"competitorName":"Resimpli","platform":"Reddit","title":"Inbound lead automation : r/WholesalingHouses - Reddit","url":"https://www.reddit.com/r/WholesalingHo
+📄 Unwrapping nested response for presenceRecord:1 (level 1)
+📄 Final unwrapped item for presenceRecord:1: {"alertId":1,"runId":1,"competitorName":"Resimpli","platform":"Reddit","title":"Inbound lead automation : r/WholesalingHouses - Reddit","url":"https://www.reddit.com/r/WholesalingHouses/comments/1je1y
+✅ Returning 1 items for type presenceRecord
+🔍 Duplicate check for Resimpli: NEW (dedupeKey: 4bcb6f74...)
+🔢 Generated ID for presenceRecord: 2 (previous: 1)
+🔍 Getting all items of type: presenceRecord
+📋 Found keys for presenceRecord: { ok: true, value: [ 'presenceRecord:1', 'presenceRecord:2' ] }
+📊 Key array length: 2 [ 'presenceRecord:1', 'presenceRecord:2' ]
+📄 Retrieved item for key presenceRecord:1: Found
+📄 Raw data structure for presenceRecord:1: {"ok":true,"value":{"alertId":1,"runId":1,"competitorName":"Resimpli","platform":"Reddit","title":"Inbound lead automation : r/WholesalingHouses - Reddit","url":"https://www.reddit.com/r/WholesalingHo
+📄 Unwrapping nested response for presenceRecord:1 (level 1)
+📄 Final unwrapped item for presenceRecord:1: {"alertId":1,"runId":1,"competitorName":"Resimpli","platform":"Reddit","title":"Inbound lead automation : r/WholesalingHouses - Reddit","url":"https://www.reddit.com/r/WholesalingHouses/comments/1je1y
+📄 Retrieved item for key presenceRecord:2: Found
+📄 Raw data structure for presenceRecord:2: {"ok":true,"value":{"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"What crm are most wholesalers using RESimpli?","url":"https://www.reddit.com/r/WholesalingHouses/comm
+📄 Unwrapping nested response for presenceRecord:2 (level 1)
+📄 Final unwrapped item for presenceRecord:2: {"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"What crm are most wholesalers using RESimpli?","url":"https://www.reddit.com/r/WholesalingHouses/comments/1jl6fs3/what_c
+✅ Returning 2 items for type presenceRecord
+Error checking duplicate presence: TypeError: b.createdAt?.getTime is not a function
+    at <anonymous> (/home/runner/workspace/server/replit-storage.ts:412:50)
+    at Array.sort (<anonymous>)
+    at ReplitStorage.getPresenceRecords (/home/runner/workspace/server/replit-storage.ts:412:21)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async ReplitStorage.checkDuplicatePresence (/home/runner/workspace/server/replit-storage.ts:417:31)
+    at async CompetitorAlertProcessor.processAlert (/home/runner/workspace/server/competitor-alert-processor.ts:114:33)
+    at async CompetitorAlertProcessor.triggerAlert (/home/runner/workspace/server/competitor-alert-processor.ts:457:5)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:1253:7)
+🔢 Generated ID for presenceRecord: 3 (previous: 2)
+🔍 Getting all items of type: presenceRecord
+📋 Found keys for presenceRecord: {
+  ok: true,
+  value: [ 'presenceRecord:1', 'presenceRecord:2', 'presenceRecord:3' ]
+}
+📊 Key array length: 3 [ 'presenceRecord:1', 'presenceRecord:2', 'presenceRecord:3' ]
+📄 Retrieved item for key presenceRecord:1: Found
+📄 Raw data structure for presenceRecord:1: {"ok":true,"value":{"alertId":1,"runId":1,"competitorName":"Resimpli","platform":"Reddit","title":"Inbound lead automation : r/WholesalingHouses - Reddit","url":"https://www.reddit.com/r/WholesalingHo
+📄 Unwrapping nested response for presenceRecord:1 (level 1)
+📄 Final unwrapped item for presenceRecord:1: {"alertId":1,"runId":1,"competitorName":"Resimpli","platform":"Reddit","title":"Inbound lead automation : r/WholesalingHouses - Reddit","url":"https://www.reddit.com/r/WholesalingHouses/comments/1je1y
+📄 Retrieved item for key presenceRecord:2: Found
+📄 Raw data structure for presenceRecord:2: {"ok":true,"value":{"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"What crm are most wholesalers using RESimpli?","url":"https://www.reddit.com/r/WholesalingHouses/comm
+📄 Unwrapping nested response for presenceRecord:2 (level 1)
+📄 Final unwrapped item for presenceRecord:2: {"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"What crm are most wholesalers using RESimpli?","url":"https://www.reddit.com/r/WholesalingHouses/comments/1jl6fs3/what_c
+📄 Retrieved item for key presenceRecord:3: Found
+📄 Raw data structure for presenceRecord:3: {"ok":true,"value":{"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"Is REsimpli good? : r/WholesalingHouses - Reddit","url":"https://www.reddit.com/r/WholesalingHouses/c
+📄 Unwrapping nested response for presenceRecord:3 (level 1)
+📄 Final unwrapped item for presenceRecord:3: {"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"Is REsimpli good? : r/WholesalingHouses - Reddit","url":"https://www.reddit.com/r/WholesalingHouses/comments/1lin176/is_
+✅ Returning 3 items for type presenceRecord
+Error checking duplicate presence: TypeError: b.createdAt?.getTime is not a function
+    at <anonymous> (/home/runner/workspace/server/replit-storage.ts:412:50)
+    at Array.sort (<anonymous>)
+    at ReplitStorage.getPresenceRecords (/home/runner/workspace/server/replit-storage.ts:412:21)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async ReplitStorage.checkDuplicatePresence (/home/runner/workspace/server/replit-storage.ts:417:31)
+    at async CompetitorAlertProcessor.processAlert (/home/runner/workspace/server/competitor-alert-processor.ts:114:33)
+    at async CompetitorAlertProcessor.triggerAlert (/home/runner/workspace/server/competitor-alert-processor.ts:457:5)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:1253:7)
+🔢 Generated ID for presenceRecord: 4 (previous: 3)
+🔍 Getting all items of type: presenceRecord
+📋 Found keys for presenceRecord: {
+  ok: true,
+  value: [
+    'presenceRecord:1',
+    'presenceRecord:2',
+    'presenceRecord:3',
+    'presenceRecord:4'
+  ]
+}
+📊 Key array length: 4 [
+  'presenceRecord:1',
+  'presenceRecord:2',
+  'presenceRecord:3',
+  'presenceRecord:4'
+]
+📄 Retrieved item for key presenceRecord:1: Found
+📄 Raw data structure for presenceRecord:1: {"ok":true,"value":{"alertId":1,"runId":1,"competitorName":"Resimpli","platform":"Reddit","title":"Inbound lead automation : r/WholesalingHouses - Reddit","url":"https://www.reddit.com/r/WholesalingHo
+📄 Unwrapping nested response for presenceRecord:1 (level 1)
+📄 Final unwrapped item for presenceRecord:1: {"alertId":1,"runId":1,"competitorName":"Resimpli","platform":"Reddit","title":"Inbound lead automation : r/WholesalingHouses - Reddit","url":"https://www.reddit.com/r/WholesalingHouses/comments/1je1y
+📄 Retrieved item for key presenceRecord:2: Found
+📄 Raw data structure for presenceRecord:2: {"ok":true,"value":{"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"What crm are most wholesalers using RESimpli?","url":"https://www.reddit.com/r/WholesalingHouses/comm
+📄 Unwrapping nested response for presenceRecord:2 (level 1)
+📄 Final unwrapped item for presenceRecord:2: {"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"What crm are most wholesalers using RESimpli?","url":"https://www.reddit.com/r/WholesalingHouses/comments/1jl6fs3/what_c
+📄 Retrieved item for key presenceRecord:3: Found
+📄 Raw data structure for presenceRecord:3: {"ok":true,"value":{"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"Is REsimpli good? : r/WholesalingHouses - Reddit","url":"https://www.reddit.com/r/WholesalingHouses/c
+📄 Unwrapping nested response for presenceRecord:3 (level 1)
+📄 Final unwrapped item for presenceRecord:3: {"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"Is REsimpli good? : r/WholesalingHouses - Reddit","url":"https://www.reddit.com/r/WholesalingHouses/comments/1lin176/is_
+📄 Retrieved item for key presenceRecord:4: Found
+📄 Raw data structure for presenceRecord:4: {"ok":true,"value":{"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"REsimpli - Reddit","url":"https://www.reddit.com/user/REsimpli/","snippet":"At REsimpli, we've helped
+📄 Unwrapping nested response for presenceRecord:4 (level 1)
+📄 Final unwrapped item for presenceRecord:4: {"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"REsimpli - Reddit","url":"https://www.reddit.com/user/REsimpli/","snippet":"At REsimpli, we've helped real estate invest
+✅ Returning 4 items for type presenceRecord
+Error checking duplicate presence: TypeError: b.createdAt?.getTime is not a function
+    at <anonymous> (/home/runner/workspace/server/replit-storage.ts:412:50)
+    at Array.sort (<anonymous>)
+    at ReplitStorage.getPresenceRecords (/home/runner/workspace/server/replit-storage.ts:412:21)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async ReplitStorage.checkDuplicatePresence (/home/runner/workspace/server/replit-storage.ts:417:31)
+    at async CompetitorAlertProcessor.processAlert (/home/runner/workspace/server/competitor-alert-processor.ts:114:33)
+    at async CompetitorAlertProcessor.triggerAlert (/home/runner/workspace/server/competitor-alert-processor.ts:457:5)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:1253:7)
+🔢 Generated ID for presenceRecord: 5 (previous: 4)
+🔍 Getting all items of type: presenceRecord
+📋 Found keys for presenceRecord: {
+  ok: true,
+  value: [
+    'presenceRecord:1',
+    'presenceRecord:2',
+    'presenceRecord:3',
+    'presenceRecord:4',
+    'presenceRecord:5'
+  ]
+}
+📊 Key array length: 5 [
+  'presenceRecord:1',
+  'presenceRecord:2',
+  'presenceRecord:3',
+  'presenceRecord:4',
+  'presenceRecord:5'
+]
+📄 Retrieved item for key presenceRecord:1: Found
+📄 Raw data structure for presenceRecord:1: {"ok":true,"value":{"alertId":1,"runId":1,"competitorName":"Resimpli","platform":"Reddit","title":"Inbound lead automation : r/WholesalingHouses - Reddit","url":"https://www.reddit.com/r/WholesalingHo
+📄 Unwrapping nested response for presenceRecord:1 (level 1)
+📄 Final unwrapped item for presenceRecord:1: {"alertId":1,"runId":1,"competitorName":"Resimpli","platform":"Reddit","title":"Inbound lead automation : r/WholesalingHouses - Reddit","url":"https://www.reddit.com/r/WholesalingHouses/comments/1je1y
+📄 Retrieved item for key presenceRecord:2: Found
+📄 Raw data structure for presenceRecord:2: {"ok":true,"value":{"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"What crm are most wholesalers using RESimpli?","url":"https://www.reddit.com/r/WholesalingHouses/comm
+📄 Unwrapping nested response for presenceRecord:2 (level 1)
+📄 Final unwrapped item for presenceRecord:2: {"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"What crm are most wholesalers using RESimpli?","url":"https://www.reddit.com/r/WholesalingHouses/comments/1jl6fs3/what_c
+📄 Retrieved item for key presenceRecord:3: Found
+📄 Raw data structure for presenceRecord:3: {"ok":true,"value":{"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"Is REsimpli good? : r/WholesalingHouses - Reddit","url":"https://www.reddit.com/r/WholesalingHouses/c
+📄 Unwrapping nested response for presenceRecord:3 (level 1)
+📄 Final unwrapped item for presenceRecord:3: {"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"Is REsimpli good? : r/WholesalingHouses - Reddit","url":"https://www.reddit.com/r/WholesalingHouses/comments/1lin176/is_
+📄 Retrieved item for key presenceRecord:4: Found
+📄 Raw data structure for presenceRecord:4: {"ok":true,"value":{"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"REsimpli - Reddit","url":"https://www.reddit.com/user/REsimpli/","snippet":"At REsimpli, we've helped
+📄 Unwrapping nested response for presenceRecord:4 (level 1)
+📄 Final unwrapped item for presenceRecord:4: {"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"REsimpli - Reddit","url":"https://www.reddit.com/user/REsimpli/","snippet":"At REsimpli, we've helped real estate invest
+📄 Retrieved item for key presenceRecord:5: Found
+📄 Raw data structure for presenceRecord:5: {"ok":true,"value":{"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"How do I bulk upload leads to RESimpli from csv? - Reddit","url":"https://www.reddit.com/r/WholesaleR
+📄 Unwrapping nested response for presenceRecord:5 (level 1)
+📄 Final unwrapped item for presenceRecord:5: {"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"How do I bulk upload leads to RESimpli from csv? - Reddit","url":"https://www.reddit.com/r/WholesaleRealestate/comments/
+✅ Returning 5 items for type presenceRecord
+Error checking duplicate presence: TypeError: b.createdAt?.getTime is not a function
+    at <anonymous> (/home/runner/workspace/server/replit-storage.ts:412:50)
+    at Array.sort (<anonymous>)
+    at ReplitStorage.getPresenceRecords (/home/runner/workspace/server/replit-storage.ts:412:21)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async ReplitStorage.checkDuplicatePresence (/home/runner/workspace/server/replit-storage.ts:417:31)
+    at async CompetitorAlertProcessor.processAlert (/home/runner/workspace/server/competitor-alert-processor.ts:114:33)
+    at async CompetitorAlertProcessor.triggerAlert (/home/runner/workspace/server/competitor-alert-processor.ts:457:5)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:1253:7)
+🔢 Generated ID for presenceRecord: 6 (previous: 5)
+🔍 Getting all items of type: presenceRecord
+📋 Found keys for presenceRecord: {
+  ok: true,
+  value: [
+    'presenceRecord:1',
+    'presenceRecord:2',
+    'presenceRecord:3',
+    'presenceRecord:4',
+    'presenceRecord:5',
+    'presenceRecord:6'
+  ]
+}
+📊 Key array length: 6 [
+  'presenceRecord:1',
+  'presenceRecord:2',
+  'presenceRecord:3',
+  'presenceRecord:4',
+  'presenceRecord:5',
+  'presenceRecord:6'
+]
+📄 Retrieved item for key presenceRecord:1: Found
+📄 Raw data structure for presenceRecord:1: {"ok":true,"value":{"alertId":1,"runId":1,"competitorName":"Resimpli","platform":"Reddit","title":"Inbound lead automation : r/WholesalingHouses - Reddit","url":"https://www.reddit.com/r/WholesalingHo
+📄 Unwrapping nested response for presenceRecord:1 (level 1)
+📄 Final unwrapped item for presenceRecord:1: {"alertId":1,"runId":1,"competitorName":"Resimpli","platform":"Reddit","title":"Inbound lead automation : r/WholesalingHouses - Reddit","url":"https://www.reddit.com/r/WholesalingHouses/comments/1je1y
+📄 Retrieved item for key presenceRecord:2: Found
+📄 Raw data structure for presenceRecord:2: {"ok":true,"value":{"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"What crm are most wholesalers using RESimpli?","url":"https://www.reddit.com/r/WholesalingHouses/comm
+📄 Unwrapping nested response for presenceRecord:2 (level 1)
+📄 Final unwrapped item for presenceRecord:2: {"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"What crm are most wholesalers using RESimpli?","url":"https://www.reddit.com/r/WholesalingHouses/comments/1jl6fs3/what_c
+📄 Retrieved item for key presenceRecord:3: Found
+📄 Raw data structure for presenceRecord:3: {"ok":true,"value":{"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"Is REsimpli good? : r/WholesalingHouses - Reddit","url":"https://www.reddit.com/r/WholesalingHouses/c
+📄 Unwrapping nested response for presenceRecord:3 (level 1)
+📄 Final unwrapped item for presenceRecord:3: {"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"Is REsimpli good? : r/WholesalingHouses - Reddit","url":"https://www.reddit.com/r/WholesalingHouses/comments/1lin176/is_
+📄 Retrieved item for key presenceRecord:4: Found
+📄 Raw data structure for presenceRecord:4: {"ok":true,"value":{"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"REsimpli - Reddit","url":"https://www.reddit.com/user/REsimpli/","snippet":"At REsimpli, we've helped
+📄 Unwrapping nested response for presenceRecord:4 (level 1)
+📄 Final unwrapped item for presenceRecord:4: {"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"REsimpli - Reddit","url":"https://www.reddit.com/user/REsimpli/","snippet":"At REsimpli, we've helped real estate invest
+📄 Retrieved item for key presenceRecord:5: Found
+📄 Raw data structure for presenceRecord:5: {"ok":true,"value":{"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"How do I bulk upload leads to RESimpli from csv? - Reddit","url":"https://www.reddit.com/r/WholesaleR
+📄 Unwrapping nested response for presenceRecord:5 (level 1)
+📄 Final unwrapped item for presenceRecord:5: {"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"How do I bulk upload leads to RESimpli from csv? - Reddit","url":"https://www.reddit.com/r/WholesaleRealestate/comments/
+📄 Retrieved item for key presenceRecord:6: Found
+📄 Raw data structure for presenceRecord:6: {"ok":true,"value":{"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"Best CRM's for wholesale real estate : r/WholesaleRealestate - Reddit","url":"https://www.reddit.com/
+📄 Unwrapping nested response for presenceRecord:6 (level 1)
+📄 Final unwrapped item for presenceRecord:6: {"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"Best CRM's for wholesale real estate : r/WholesaleRealestate - Reddit","url":"https://www.reddit.com/r/WholesaleRealesta
+✅ Returning 6 items for type presenceRecord
+Error checking duplicate presence: TypeError: b.createdAt?.getTime is not a function
+    at <anonymous> (/home/runner/workspace/server/replit-storage.ts:412:50)
+    at Array.sort (<anonymous>)
+    at ReplitStorage.getPresenceRecords (/home/runner/workspace/server/replit-storage.ts:412:21)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async ReplitStorage.checkDuplicatePresence (/home/runner/workspace/server/replit-storage.ts:417:31)
+    at async CompetitorAlertProcessor.processAlert (/home/runner/workspace/server/competitor-alert-processor.ts:114:33)
+    at async CompetitorAlertProcessor.triggerAlert (/home/runner/workspace/server/competitor-alert-processor.ts:457:5)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:1253:7)
+🔢 Generated ID for presenceRecord: 7 (previous: 6)
+🔍 Getting all items of type: presenceRecord
+📋 Found keys for presenceRecord: {
+  ok: true,
+  value: [
+    'presenceRecord:1',
+    'presenceRecord:2',
+    'presenceRecord:3',
+    'presenceRecord:4',
+    'presenceRecord:5',
+    'presenceRecord:6',
+    'presenceRecord:7'
+  ]
+}
+📊 Key array length: 7 [
+  'presenceRecord:1',
+  'presenceRecord:2',
+  'presenceRecord:3',
+  'presenceRecord:4',
+  'presenceRecord:5',
+  'presenceRecord:6',
+  'presenceRecord:7'
+]
+📄 Retrieved item for key presenceRecord:1: Found
+📄 Raw data structure for presenceRecord:1: {"ok":true,"value":{"alertId":1,"runId":1,"competitorName":"Resimpli","platform":"Reddit","title":"Inbound lead automation : r/WholesalingHouses - Reddit","url":"https://www.reddit.com/r/WholesalingHo
+📄 Unwrapping nested response for presenceRecord:1 (level 1)
+📄 Final unwrapped item for presenceRecord:1: {"alertId":1,"runId":1,"competitorName":"Resimpli","platform":"Reddit","title":"Inbound lead automation : r/WholesalingHouses - Reddit","url":"https://www.reddit.com/r/WholesalingHouses/comments/1je1y
+📄 Retrieved item for key presenceRecord:2: Found
+📄 Raw data structure for presenceRecord:2: {"ok":true,"value":{"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"What crm are most wholesalers using RESimpli?","url":"https://www.reddit.com/r/WholesalingHouses/comm
+📄 Unwrapping nested response for presenceRecord:2 (level 1)
+📄 Final unwrapped item for presenceRecord:2: {"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"What crm are most wholesalers using RESimpli?","url":"https://www.reddit.com/r/WholesalingHouses/comments/1jl6fs3/what_c
+📄 Retrieved item for key presenceRecord:3: Found
+📄 Raw data structure for presenceRecord:3: {"ok":true,"value":{"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"Is REsimpli good? : r/WholesalingHouses - Reddit","url":"https://www.reddit.com/r/WholesalingHouses/c
+📄 Unwrapping nested response for presenceRecord:3 (level 1)
+📄 Final unwrapped item for presenceRecord:3: {"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"Is REsimpli good? : r/WholesalingHouses - Reddit","url":"https://www.reddit.com/r/WholesalingHouses/comments/1lin176/is_
+📄 Retrieved item for key presenceRecord:4: Found
+📄 Raw data structure for presenceRecord:4: {"ok":true,"value":{"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"REsimpli - Reddit","url":"https://www.reddit.com/user/REsimpli/","snippet":"At REsimpli, we've helped
+📄 Unwrapping nested response for presenceRecord:4 (level 1)
+📄 Final unwrapped item for presenceRecord:4: {"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"REsimpli - Reddit","url":"https://www.reddit.com/user/REsimpli/","snippet":"At REsimpli, we've helped real estate invest
+📄 Retrieved item for key presenceRecord:5: Found
+📄 Raw data structure for presenceRecord:5: {"ok":true,"value":{"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"How do I bulk upload leads to RESimpli from csv? - Reddit","url":"https://www.reddit.com/r/WholesaleR
+📄 Unwrapping nested response for presenceRecord:5 (level 1)
+📄 Final unwrapped item for presenceRecord:5: {"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"How do I bulk upload leads to RESimpli from csv? - Reddit","url":"https://www.reddit.com/r/WholesaleRealestate/comments/
+📄 Retrieved item for key presenceRecord:6: Found
+📄 Raw data structure for presenceRecord:6: {"ok":true,"value":{"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"Best CRM's for wholesale real estate : r/WholesaleRealestate - Reddit","url":"https://www.reddit.com/
+📄 Unwrapping nested response for presenceRecord:6 (level 1)
+📄 Final unwrapped item for presenceRecord:6: {"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"Best CRM's for wholesale real estate : r/WholesaleRealestate - Reddit","url":"https://www.reddit.com/r/WholesaleRealesta
+📄 Retrieved item for key presenceRecord:7: Found
+📄 Raw data structure for presenceRecord:7: {"ok":true,"value":{"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"Wholesale Real Estate: What it is and how to do it - REsimpli : r ...","url":"https://www.reddit.com/
+📄 Unwrapping nested response for presenceRecord:7 (level 1)
+📄 Final unwrapped item for presenceRecord:7: {"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"Wholesale Real Estate: What it is and how to do it - REsimpli : r ...","url":"https://www.reddit.com/r/QualityArticles/c
+✅ Returning 7 items for type presenceRecord
+Error checking duplicate presence: TypeError: b.createdAt?.getTime is not a function
+    at <anonymous> (/home/runner/workspace/server/replit-storage.ts:412:50)
+    at Array.sort (<anonymous>)
+    at ReplitStorage.getPresenceRecords (/home/runner/workspace/server/replit-storage.ts:412:21)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async ReplitStorage.checkDuplicatePresence (/home/runner/workspace/server/replit-storage.ts:417:31)
+    at async CompetitorAlertProcessor.processAlert (/home/runner/workspace/server/competitor-alert-processor.ts:114:33)
+    at async CompetitorAlertProcessor.triggerAlert (/home/runner/workspace/server/competitor-alert-processor.ts:457:5)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:1253:7)
+🔢 Generated ID for presenceRecord: 8 (previous: 7)
+🔍 Getting all items of type: presenceRecord
+📋 Found keys for presenceRecord: {
+  ok: true,
+  value: [
+    'presenceRecord:1',
+    'presenceRecord:2',
+    'presenceRecord:3',
+    'presenceRecord:4',
+    'presenceRecord:5',
+    'presenceRecord:6',
+    'presenceRecord:7',
+    'presenceRecord:8'
+  ]
+}
+📊 Key array length: 8 [
+  'presenceRecord:1',
+  'presenceRecord:2',
+  'presenceRecord:3',
+  'presenceRecord:4',
+  'presenceRecord:5',
+  'presenceRecord:6',
+  'presenceRecord:7',
+  'presenceRecord:8'
+]
+📄 Retrieved item for key presenceRecord:1: Found
+📄 Raw data structure for presenceRecord:1: {"ok":true,"value":{"alertId":1,"runId":1,"competitorName":"Resimpli","platform":"Reddit","title":"Inbound lead automation : r/WholesalingHouses - Reddit","url":"https://www.reddit.com/r/WholesalingHo
+📄 Unwrapping nested response for presenceRecord:1 (level 1)
+📄 Final unwrapped item for presenceRecord:1: {"alertId":1,"runId":1,"competitorName":"Resimpli","platform":"Reddit","title":"Inbound lead automation : r/WholesalingHouses - Reddit","url":"https://www.reddit.com/r/WholesalingHouses/comments/1je1y
+📄 Retrieved item for key presenceRecord:2: Found
+📄 Raw data structure for presenceRecord:2: {"ok":true,"value":{"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"What crm are most wholesalers using RESimpli?","url":"https://www.reddit.com/r/WholesalingHouses/comm
+📄 Unwrapping nested response for presenceRecord:2 (level 1)
+📄 Final unwrapped item for presenceRecord:2: {"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"What crm are most wholesalers using RESimpli?","url":"https://www.reddit.com/r/WholesalingHouses/comments/1jl6fs3/what_c
+📄 Retrieved item for key presenceRecord:3: Found
+📄 Raw data structure for presenceRecord:3: {"ok":true,"value":{"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"Is REsimpli good? : r/WholesalingHouses - Reddit","url":"https://www.reddit.com/r/WholesalingHouses/c
+📄 Unwrapping nested response for presenceRecord:3 (level 1)
+📄 Final unwrapped item for presenceRecord:3: {"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"Is REsimpli good? : r/WholesalingHouses - Reddit","url":"https://www.reddit.com/r/WholesalingHouses/comments/1lin176/is_
+📄 Retrieved item for key presenceRecord:4: Found
+📄 Raw data structure for presenceRecord:4: {"ok":true,"value":{"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"REsimpli - Reddit","url":"https://www.reddit.com/user/REsimpli/","snippet":"At REsimpli, we've helped
+📄 Unwrapping nested response for presenceRecord:4 (level 1)
+📄 Final unwrapped item for presenceRecord:4: {"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"REsimpli - Reddit","url":"https://www.reddit.com/user/REsimpli/","snippet":"At REsimpli, we've helped real estate invest
+📄 Retrieved item for key presenceRecord:5: Found
+📄 Raw data structure for presenceRecord:5: {"ok":true,"value":{"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"How do I bulk upload leads to RESimpli from csv? - Reddit","url":"https://www.reddit.com/r/WholesaleR
+📄 Unwrapping nested response for presenceRecord:5 (level 1)
+📄 Final unwrapped item for presenceRecord:5: {"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"How do I bulk upload leads to RESimpli from csv? - Reddit","url":"https://www.reddit.com/r/WholesaleRealestate/comments/
+📄 Retrieved item for key presenceRecord:6: Found
+📄 Raw data structure for presenceRecord:6: {"ok":true,"value":{"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"Best CRM's for wholesale real estate : r/WholesaleRealestate - Reddit","url":"https://www.reddit.com/
+📄 Unwrapping nested response for presenceRecord:6 (level 1)
+📄 Final unwrapped item for presenceRecord:6: {"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"Best CRM's for wholesale real estate : r/WholesaleRealestate - Reddit","url":"https://www.reddit.com/r/WholesaleRealesta
+📄 Retrieved item for key presenceRecord:7: Found
+📄 Raw data structure for presenceRecord:7: {"ok":true,"value":{"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"Wholesale Real Estate: What it is and how to do it - REsimpli : r ...","url":"https://www.reddit.com/
+📄 Unwrapping nested response for presenceRecord:7 (level 1)
+📄 Final unwrapped item for presenceRecord:7: {"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"Wholesale Real Estate: What it is and how to do it - REsimpli : r ...","url":"https://www.reddit.com/r/QualityArticles/c
+📄 Retrieved item for key presenceRecord:8: Found
+📄 Raw data structure for presenceRecord:8: {"ok":true,"value":{"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"Has anyone had issues with RESimply's Phone? - Reddit","url":"https://www.reddit.com/r/WholesaleReale
+📄 Unwrapping nested response for presenceRecord:8 (level 1)
+📄 Final unwrapped item for presenceRecord:8: {"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"Has anyone had issues with RESimply's Phone? - Reddit","url":"https://www.reddit.com/r/WholesaleRealestate/comments/1jhp
+✅ Returning 8 items for type presenceRecord
+Error checking duplicate presence: TypeError: b.createdAt?.getTime is not a function
+    at <anonymous> (/home/runner/workspace/server/replit-storage.ts:412:50)
+    at Array.sort (<anonymous>)
+    at ReplitStorage.getPresenceRecords (/home/runner/workspace/server/replit-storage.ts:412:21)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async ReplitStorage.checkDuplicatePresence (/home/runner/workspace/server/replit-storage.ts:417:31)
+    at async CompetitorAlertProcessor.processAlert (/home/runner/workspace/server/competitor-alert-processor.ts:114:33)
+    at async CompetitorAlertProcessor.triggerAlert (/home/runner/workspace/server/competitor-alert-processor.ts:457:5)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:1253:7)
+🔢 Generated ID for presenceRecord: 9 (previous: 8)
+🔍 Getting all items of type: presenceRecord
+📋 Found keys for presenceRecord: {
+  ok: true,
+  value: [
+    'presenceRecord:1',
+    'presenceRecord:2',
+    'presenceRecord:3',
+    'presenceRecord:4',
+    'presenceRecord:5',
+    'presenceRecord:6',
+    'presenceRecord:7',
+    'presenceRecord:8',
+    'presenceRecord:9'
+  ]
+}
+📊 Key array length: 9 [
+  'presenceRecord:1',
+  'presenceRecord:2',
+  'presenceRecord:3',
+  'presenceRecord:4',
+  'presenceRecord:5',
+  'presenceRecord:6',
+  'presenceRecord:7',
+  'presenceRecord:8',
+  'presenceRecord:9'
+]
+📄 Retrieved item for key presenceRecord:1: Found
+📄 Raw data structure for presenceRecord:1: {"ok":true,"value":{"alertId":1,"runId":1,"competitorName":"Resimpli","platform":"Reddit","title":"Inbound lead automation : r/WholesalingHouses - Reddit","url":"https://www.reddit.com/r/WholesalingHo
+📄 Unwrapping nested response for presenceRecord:1 (level 1)
+📄 Final unwrapped item for presenceRecord:1: {"alertId":1,"runId":1,"competitorName":"Resimpli","platform":"Reddit","title":"Inbound lead automation : r/WholesalingHouses - Reddit","url":"https://www.reddit.com/r/WholesalingHouses/comments/1je1y
+📄 Retrieved item for key presenceRecord:2: Found
+📄 Raw data structure for presenceRecord:2: {"ok":true,"value":{"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"What crm are most wholesalers using RESimpli?","url":"https://www.reddit.com/r/WholesalingHouses/comm
+📄 Unwrapping nested response for presenceRecord:2 (level 1)
+📄 Final unwrapped item for presenceRecord:2: {"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"What crm are most wholesalers using RESimpli?","url":"https://www.reddit.com/r/WholesalingHouses/comments/1jl6fs3/what_c
+📄 Retrieved item for key presenceRecord:3: Found
+📄 Raw data structure for presenceRecord:3: {"ok":true,"value":{"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"Is REsimpli good? : r/WholesalingHouses - Reddit","url":"https://www.reddit.com/r/WholesalingHouses/c
+📄 Unwrapping nested response for presenceRecord:3 (level 1)
+📄 Final unwrapped item for presenceRecord:3: {"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"Is REsimpli good? : r/WholesalingHouses - Reddit","url":"https://www.reddit.com/r/WholesalingHouses/comments/1lin176/is_
+📄 Retrieved item for key presenceRecord:4: Found
+📄 Raw data structure for presenceRecord:4: {"ok":true,"value":{"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"REsimpli - Reddit","url":"https://www.reddit.com/user/REsimpli/","snippet":"At REsimpli, we've helped
+📄 Unwrapping nested response for presenceRecord:4 (level 1)
+📄 Final unwrapped item for presenceRecord:4: {"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"REsimpli - Reddit","url":"https://www.reddit.com/user/REsimpli/","snippet":"At REsimpli, we've helped real estate invest
+📄 Retrieved item for key presenceRecord:5: Found
+📄 Raw data structure for presenceRecord:5: {"ok":true,"value":{"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"How do I bulk upload leads to RESimpli from csv? - Reddit","url":"https://www.reddit.com/r/WholesaleR
+📄 Unwrapping nested response for presenceRecord:5 (level 1)
+📄 Final unwrapped item for presenceRecord:5: {"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"How do I bulk upload leads to RESimpli from csv? - Reddit","url":"https://www.reddit.com/r/WholesaleRealestate/comments/
+📄 Retrieved item for key presenceRecord:6: Found
+📄 Raw data structure for presenceRecord:6: {"ok":true,"value":{"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"Best CRM's for wholesale real estate : r/WholesaleRealestate - Reddit","url":"https://www.reddit.com/
+📄 Unwrapping nested response for presenceRecord:6 (level 1)
+📄 Final unwrapped item for presenceRecord:6: {"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"Best CRM's for wholesale real estate : r/WholesaleRealestate - Reddit","url":"https://www.reddit.com/r/WholesaleRealesta
+📄 Retrieved item for key presenceRecord:7: Found
+📄 Raw data structure for presenceRecord:7: {"ok":true,"value":{"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"Wholesale Real Estate: What it is and how to do it - REsimpli : r ...","url":"https://www.reddit.com/
+📄 Unwrapping nested response for presenceRecord:7 (level 1)
+📄 Final unwrapped item for presenceRecord:7: {"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"Wholesale Real Estate: What it is and how to do it - REsimpli : r ...","url":"https://www.reddit.com/r/QualityArticles/c
+📄 Retrieved item for key presenceRecord:8: Found
+📄 Raw data structure for presenceRecord:8: {"ok":true,"value":{"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"Has anyone had issues with RESimply's Phone? - Reddit","url":"https://www.reddit.com/r/WholesaleReale
+📄 Unwrapping nested response for presenceRecord:8 (level 1)
+📄 Final unwrapped item for presenceRecord:8: {"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"Has anyone had issues with RESimply's Phone? - Reddit","url":"https://www.reddit.com/r/WholesaleRealestate/comments/1jhp
+📄 Retrieved item for key presenceRecord:9: Found
+📄 Raw data structure for presenceRecord:9: {"ok":true,"value":{"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"CRM for wholesaling : r/WholesaleRealestate - Reddit","url":"https://www.reddit.com/r/WholesaleReales
+📄 Unwrapping nested response for presenceRecord:9 (level 1)
+📄 Final unwrapped item for presenceRecord:9: {"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"CRM for wholesaling : r/WholesaleRealestate - Reddit","url":"https://www.reddit.com/r/WholesaleRealestate/comments/1cd1i
+✅ Returning 9 items for type presenceRecord
+Error checking duplicate presence: TypeError: b.createdAt?.getTime is not a function
+    at <anonymous> (/home/runner/workspace/server/replit-storage.ts:412:50)
+    at Array.sort (<anonymous>)
+    at ReplitStorage.getPresenceRecords (/home/runner/workspace/server/replit-storage.ts:412:21)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async ReplitStorage.checkDuplicatePresence (/home/runner/workspace/server/replit-storage.ts:417:31)
+    at async CompetitorAlertProcessor.processAlert (/home/runner/workspace/server/competitor-alert-processor.ts:114:33)
+    at async CompetitorAlertProcessor.triggerAlert (/home/runner/workspace/server/competitor-alert-processor.ts:457:5)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:1253:7)
+🔢 Generated ID for presenceRecord: 10 (previous: 9)
+🔍 Getting all items of type: presenceRecord
+📋 Found keys for presenceRecord: {
+  ok: true,
+  value: [
+    'presenceRecord:1',
+    'presenceRecord:10',
+    'presenceRecord:2',
+    'presenceRecord:3',
+    'presenceRecord:4',
+    'presenceRecord:5',
+    'presenceRecord:6',
+    'presenceRecord:7',
+    'presenceRecord:8',
+    'presenceRecord:9'
+  ]
+}
+📊 Key array length: 10 [
+  'presenceRecord:1',
+  'presenceRecord:10',
+  'presenceRecord:2',
+  'presenceRecord:3',
+  'presenceRecord:4',
+  'presenceRecord:5',
+  'presenceRecord:6',
+  'presenceRecord:7',
+  'presenceRecord:8',
+  'presenceRecord:9'
+]
+📄 Retrieved item for key presenceRecord:1: Found
+📄 Raw data structure for presenceRecord:1: {"ok":true,"value":{"alertId":1,"runId":1,"competitorName":"Resimpli","platform":"Reddit","title":"Inbound lead automation : r/WholesalingHouses - Reddit","url":"https://www.reddit.com/r/WholesalingHo
+📄 Unwrapping nested response for presenceRecord:1 (level 1)
+📄 Final unwrapped item for presenceRecord:1: {"alertId":1,"runId":1,"competitorName":"Resimpli","platform":"Reddit","title":"Inbound lead automation : r/WholesalingHouses - Reddit","url":"https://www.reddit.com/r/WholesalingHouses/comments/1je1y
+📄 Retrieved item for key presenceRecord:10: Found
+📄 Raw data structure for presenceRecord:10: {"ok":true,"value":{"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"Inbound lead automation : r/WholesalingHouses - Reddit","url":"https://www.reddit.com/r/WholesalingHo
+📄 Unwrapping nested response for presenceRecord:10 (level 1)
+📄 Final unwrapped item for presenceRecord:10: {"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"Inbound lead automation : r/WholesalingHouses - Reddit","url":"https://www.reddit.com/r/WholesalingHouses/comments/1je1y
+📄 Retrieved item for key presenceRecord:2: Found
+📄 Raw data structure for presenceRecord:2: {"ok":true,"value":{"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"What crm are most wholesalers using RESimpli?","url":"https://www.reddit.com/r/WholesalingHouses/comm
+📄 Unwrapping nested response for presenceRecord:2 (level 1)
+📄 Final unwrapped item for presenceRecord:2: {"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"What crm are most wholesalers using RESimpli?","url":"https://www.reddit.com/r/WholesalingHouses/comments/1jl6fs3/what_c
+📄 Retrieved item for key presenceRecord:3: Found
+📄 Raw data structure for presenceRecord:3: {"ok":true,"value":{"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"Is REsimpli good? : r/WholesalingHouses - Reddit","url":"https://www.reddit.com/r/WholesalingHouses/c
+📄 Unwrapping nested response for presenceRecord:3 (level 1)
+📄 Final unwrapped item for presenceRecord:3: {"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"Is REsimpli good? : r/WholesalingHouses - Reddit","url":"https://www.reddit.com/r/WholesalingHouses/comments/1lin176/is_
+📄 Retrieved item for key presenceRecord:4: Found
+📄 Raw data structure for presenceRecord:4: {"ok":true,"value":{"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"REsimpli - Reddit","url":"https://www.reddit.com/user/REsimpli/","snippet":"At REsimpli, we've helped
+📄 Unwrapping nested response for presenceRecord:4 (level 1)
+📄 Final unwrapped item for presenceRecord:4: {"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"REsimpli - Reddit","url":"https://www.reddit.com/user/REsimpli/","snippet":"At REsimpli, we've helped real estate invest
+📄 Retrieved item for key presenceRecord:5: Found
+📄 Raw data structure for presenceRecord:5: {"ok":true,"value":{"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"How do I bulk upload leads to RESimpli from csv? - Reddit","url":"https://www.reddit.com/r/WholesaleR
+📄 Unwrapping nested response for presenceRecord:5 (level 1)
+📄 Final unwrapped item for presenceRecord:5: {"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"How do I bulk upload leads to RESimpli from csv? - Reddit","url":"https://www.reddit.com/r/WholesaleRealestate/comments/
+📄 Retrieved item for key presenceRecord:6: Found
+📄 Raw data structure for presenceRecord:6: {"ok":true,"value":{"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"Best CRM's for wholesale real estate : r/WholesaleRealestate - Reddit","url":"https://www.reddit.com/
+📄 Unwrapping nested response for presenceRecord:6 (level 1)
+📄 Final unwrapped item for presenceRecord:6: {"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"Best CRM's for wholesale real estate : r/WholesaleRealestate - Reddit","url":"https://www.reddit.com/r/WholesaleRealesta
+📄 Retrieved item for key presenceRecord:7: Found
+📄 Raw data structure for presenceRecord:7: {"ok":true,"value":{"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"Wholesale Real Estate: What it is and how to do it - REsimpli : r ...","url":"https://www.reddit.com/
+📄 Unwrapping nested response for presenceRecord:7 (level 1)
+📄 Final unwrapped item for presenceRecord:7: {"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"Wholesale Real Estate: What it is and how to do it - REsimpli : r ...","url":"https://www.reddit.com/r/QualityArticles/c
+📄 Retrieved item for key presenceRecord:8: Found
+📄 Raw data structure for presenceRecord:8: {"ok":true,"value":{"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"Has anyone had issues with RESimply's Phone? - Reddit","url":"https://www.reddit.com/r/WholesaleReale
+📄 Unwrapping nested response for presenceRecord:8 (level 1)
+📄 Final unwrapped item for presenceRecord:8: {"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"Has anyone had issues with RESimply's Phone? - Reddit","url":"https://www.reddit.com/r/WholesaleRealestate/comments/1jhp
+📄 Retrieved item for key presenceRecord:9: Found
+📄 Raw data structure for presenceRecord:9: {"ok":true,"value":{"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"CRM for wholesaling : r/WholesaleRealestate - Reddit","url":"https://www.reddit.com/r/WholesaleReales
+📄 Unwrapping nested response for presenceRecord:9 (level 1)
+📄 Final unwrapped item for presenceRecord:9: {"alertId":1,"runId":2,"competitorName":"Resimpli","platform":"Reddit","title":"CRM for wholesaling : r/WholesaleRealestate - Reddit","url":"https://www.reddit.com/r/WholesaleRealestate/comments/1cd1i
+✅ Returning 10 items for type presenceRecord
+Error checking duplicate presence: TypeError: b.createdAt?.getTime is not a function
+    at <anonymous> (/home/runner/workspace/server/replit-storage.ts:412:50)
+    at Array.sort (<anonymous>)
+    at ReplitStorage.getPresenceRecords (/home/runner/workspace/server/replit-storage.ts:412:21)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async ReplitStorage.checkDuplicatePresence (/home/runner/workspace/server/replit-storage.ts:417:31)
+    at async CompetitorAlertProcessor.processAlert (/home/runner/workspace/server/competitor-alert-processor.ts:114:33)
+    at async CompetitorAlertProcessor.triggerAlert (/home/runner/workspace/server/competitor-alert-processor.ts:457:5)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:1253:7)
+🔢 Generated ID for presenceRecord: 11 (previous: 10)
+📧 Sending notifications for alert ResimpliMon: 10 new presences
+🔍 Getting all items of type: alert
+📋 Found keys for alert: { ok: true, value: [ 'alert:1' ] }
+✅ Valid alert loaded: ResimpliMon (ID: 1) - Next run: Mon Aug 25 2025 08:02:35 GMT+0000 (Coordinated Universal Time)
+✅ Returning 1 valid alerts (cleaned 0 invalid entries)
+🔍 Found 0 due alerts to process
+✅ Email sent successfully to muhammadharissalman@gmail.com
+✅ [2025-08-25T07:06:20.451Z] Alert ResimpliMon completed: 10 new presences, 1 API calls, 35436ms processing time
+7:06:20 AM [express] POST /api/alerts/1/trigger 200 in 36073ms :: {"success":true,"message":"Alert t…

@@ -409,7 +409,11 @@ export class ReplitStorage implements IStorage {
       filtered = filtered.filter(record => record.competitorName === competitorName);
     }
 
-    return filtered.sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+    return filtered.sort((a, b) => {
+      const aTime = a.createdAt ? (a.createdAt instanceof Date ? a.createdAt.getTime() : new Date(a.createdAt).getTime()) : 0;
+      const bTime = b.createdAt ? (b.createdAt instanceof Date ? b.createdAt.getTime() : new Date(b.createdAt).getTime()) : 0;
+      return bTime - aTime;
+    });
   }
 
   async checkDuplicatePresence(dedupeKey: string, competitorName: string, dedupeWindow: number): Promise<boolean> {
@@ -418,11 +422,13 @@ export class ReplitStorage implements IStorage {
       const cutoffTime = new Date(Date.now() - dedupeWindow * 24 * 60 * 60 * 1000);
 
       // Check for duplicates based on dedupeKey and within the dedupe window
-      const duplicate = presenceRecords.find(record => 
-        record.dedupeKey === dedupeKey &&
-        record.competitorName === competitorName &&
-        new Date(record.createdAt) > cutoffTime
-      );
+      const duplicate = presenceRecords.find(record => {
+        if (record.dedupeKey === dedupeKey && record.competitorName === competitorName) {
+          const recordDate = record.createdAt instanceof Date ? record.createdAt : new Date(record.createdAt);
+          return recordDate > cutoffTime;
+        }
+        return false;
+      });
 
       const isDuplicate = !!duplicate;
       console.log(`🔍 Duplicate check for ${competitorName}: ${isDuplicate ? 'DUPLICATE' : 'NEW'} (dedupeKey: ${dedupeKey.substring(0, 8)}...)`);
