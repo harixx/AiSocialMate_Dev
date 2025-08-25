@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -21,6 +21,7 @@ const formSchema = z.object({
 
 export default function APISettings() {
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingKeys, setIsLoadingKeys] = useState(true);
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -32,6 +33,40 @@ export default function APISettings() {
       useCustomKeys: false,
     },
   });
+
+  // Auto-load saved settings on component mount
+  React.useEffect(() => {
+    const autoLoadSettings = async () => {
+      setIsLoadingKeys(true);
+      try {
+        // Check if keys are already configured
+        const response = await fetch('/api/settings/keys');
+        const result = await response.json();
+        
+        if (result.success && (result.keys.openai || result.keys.gemini || result.keys.serper)) {
+          // Keys are configured, enable custom keys mode
+          const saved = localStorage.getItem('customApiKeys');
+          if (saved) {
+            const settings = JSON.parse(saved);
+            form.reset({ ...settings, useCustomKeys: true });
+          } else {
+            form.setValue('useCustomKeys', true);
+          }
+          
+          toast({
+            title: "API Keys Loaded",
+            description: `Your saved API keys are active: OpenAI ${result.keys.openai ? '✓' : '✗'}, Gemini ${result.keys.gemini ? '✓' : '✗'}, Serper ${result.keys.serper ? '✓' : '✗'}`,
+          });
+        }
+      } catch (error) {
+        console.error('Failed to auto-load API settings:', error);
+      } finally {
+        setIsLoadingKeys(false);
+      }
+    };
+
+    autoLoadSettings();
+  }, [form, toast]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
@@ -161,8 +196,14 @@ export default function APISettings() {
             </p>
           </CardHeader>
           <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            {isLoadingKeys ? (
+              <div className="flex items-center justify-center p-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <span className="ml-3">Loading saved API keys...</span>
+              </div>
+            ) : (
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <FormField
                   control={form.control}
                   name="useCustomKeys"
@@ -308,8 +349,9 @@ export default function APISettings() {
                     Clear All
                   </Button>
                 </div>
-              </form>
-            </Form>
+                </form>
+              </Form>
+            )}
           </CardContent>
         </Card>
 
