@@ -855,7 +855,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     selftext: post.selftext,
                     created_utc: post.created_utc
                   },
-                  comments: formattedResults,
+                  comments: formattedComments, // Corrected to use formattedComments
                   total_comments: formattedComments.length,
                   source: 'runtime_api',
                   authenticated: true
@@ -1256,41 +1256,61 @@ Generate only the final reply text that would be posted.`;
     }
   });
 
+  // Create Alert
   app.post("/api/alerts", async (req, res) => {
     try {
-      const validatedData = insertAlertSchema.parse(req.body);
-      const alert = await storage.createAlert(validatedData);
+      console.log('📝 Creating new alert:', req.body);
+      const alert = await storage.createAlert(req.body);
+      console.log('✅ Alert created successfully:', alert.id);
+
+      // Schedule the new alert
+      if (competitorAlertProcessor) {
+        await competitorAlertProcessor.refreshAlertTimer(alert.id);
+      }
+
       res.json(alert);
     } catch (error) {
-      res.status(400).json({ message: "Invalid alert data", error });
+      console.error('❌ Error creating alert:', error);
+      res.status(500).json({ message: "Failed to create alert" });
     }
   });
 
+  // Update Alert
   app.put("/api/alerts/:id", async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
-      const validatedData = insertAlertSchema.parse(req.body);
-      const alert = await storage.updateAlert(id, validatedData);
-      if (alert) {
-        res.json(alert);
-      } else {
-        res.status(404).json({ message: "Alert not found" });
+      const alertId = parseInt(req.params.id);
+      console.log(`📝 Updating alert ${alertId}:`, req.body);
+      const alert = await storage.updateAlert(alertId, req.body);
+      console.log('✅ Alert updated successfully');
+
+      // Refresh the alert timer with new settings
+      if (competitorAlertProcessor) {
+        await competitorAlertProcessor.refreshAlertTimer(alertId);
       }
+
+      res.json(alert);
     } catch (error) {
-      res.status(400).json({ message: "Invalid alert data", error });
+      console.error('❌ Error updating alert:', error);
+      res.status(500).json({ message: "Failed to update alert" });
     }
   });
 
+  // Delete Alert
   app.delete("/api/alerts/:id", async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
-      const deleted = await storage.deleteAlert(id);
-      if (deleted) {
-        res.json({ success: true });
-      } else {
-        res.status(404).json({ message: "Alert not found" });
+      const alertId = parseInt(req.params.id);
+      console.log(`🗑️ Deleting alert ${alertId}`);
+
+      // Clear the alert timer first
+      if (competitorAlertProcessor) {
+        competitorAlertProcessor.clearAlertTimer(alertId);
       }
+
+      await storage.deleteAlert(alertId);
+      console.log('✅ Alert deleted successfully');
+      res.json({ message: "Alert deleted successfully" });
     } catch (error) {
+      console.error('❌ Error deleting alert:', error);
       res.status(500).json({ message: "Failed to delete alert" });
     }
   });

@@ -1,3 +1,4 @@
+
 import { storage } from "./storage";
 import { getSerperAPIKey } from "./runtime-config";
 import crypto from "crypto";
@@ -16,47 +17,147 @@ interface SearchResult {
   position?: number;
 }
 
+interface AlertTimer {
+  alertId: number;
+  timerId: NodeJS.Timeout;
+  nextRunTime: Date;
+}
+
 export class CompetitorAlertProcessor {
   private isProcessing = false;
-  private intervalId: NodeJS.Timeout | null = null;
+  private alertTimers: Map<number, AlertTimer> = new Map();
 
   constructor() {
-    this.startScheduler();
+    this.initializeAlertTimers();
   }
 
-  startScheduler() {
-    // Check for due alerts every minute
-    this.intervalId = setInterval(async () => {
-      if (!this.isProcessing) {
-        await this.processDueAlerts();
+  async initializeAlertTimers() {
+    try {
+      console.log('🚀 Initializing individual alert timers...');
+      const alerts = await storage.getAlerts();
+      
+      for (const alert of alerts) {
+        if (alert.isActive) {
+          this.scheduleAlert(alert);
+        }
       }
-    }, 60 * 1000); // 1 minute
-
-    console.log('📅 Competitor alert scheduler started');
-  }
-
-  stopScheduler() {
-    if (this.intervalId) {
-      clearInterval(this.intervalId);
-      this.intervalId = null;
+      
+      console.log(`✅ Initialized ${this.alertTimers.size} alert timers`);
+    } catch (error) {
+      console.error('❌ Failed to initialize alert timers:', error);
     }
   }
 
-  private async processDueAlerts() {
-    try {
-      this.isProcessing = true;
-      const dueAlerts = await storage.getDueAlerts();
+  scheduleAlert(alert: any) {
+    // Clear existing timer if any
+    this.clearAlertTimer(alert.id);
 
-      console.log(`🔍 Found ${dueAlerts.length} due alerts to process`);
+    if (!alert.isActive) {
+      console.log(`⏸️ Alert ${alert.name} is inactive, skipping scheduling`);
+      return;
+    }
 
-      for (const alert of dueAlerts) {
+    // Calculate next run time
+    const nextRunTime = alert.nextRunTime ? new Date(alert.nextRunTime) : this.calculateNextRunTime(alert.frequency);
+    const now = new Date();
+    const delay = Math.max(0, nextRunTime.getTime() - now.getTime());
+
+    console.log(`⏰ Scheduling alert "${alert.name}" to run in ${Math.round(delay / 1000)} seconds (${nextRunTime.toLocaleString()})`);
+
+    // Schedule the alert
+    const timerId = setTimeout(async () => {
+      try {
         await this.processAlert(alert);
+        
+        // Reschedule for next run
+        const updatedAlert = {
+          ...alert,
+          nextRunTime: this.calculateNextRunTime(alert.frequency)
+        };
+        this.scheduleAlert(updatedAlert);
+      } catch (error) {
+        console.error(`❌ Error processing scheduled alert ${alert.name}:`, error);
+        
+        // Still reschedule to avoid getting stuck
+        const updatedAlert = {
+          ...alert,
+          nextRunTime: this.calculateNextRunTime(alert.frequency)
+        };
+        this.scheduleAlert(updatedAlert);
+      }
+    }, delay);
+
+    // Store timer reference
+    this.alertTimers.set(alert.id, {
+      alertId: alert.id,
+      timerId,
+      nextRunTime
+    });
+  }
+
+  clearAlertTimer(alertId: number) {
+    const existingTimer = this.alertTimers.get(alertId);
+    if (existingTimer) {
+      clearTimeout(existingTimer.timerId);
+      this.alertTimers.delete(alertId);
+      console.log(`🗑️ Cleared timer for alert ID: ${alertId}`);
+    }
+  }
+
+  // Called when alerts are created/updated/deleted
+  async refreshAlertTimer(alertId: number) {
+    try {
+      const alerts = await storage.getAlerts();
+      const alert = alerts.find(a => a.id === alertId);
+      
+      if (alert) {
+        this.scheduleAlert(alert);
+        console.log(`🔄 Refreshed timer for alert: ${alert.name}`);
+      } else {
+        this.clearAlertTimer(alertId);
+        console.log(`🗑️ Alert ${alertId} not found, clearing timer`);
       }
     } catch (error) {
-      console.error('Error processing due alerts:', error);
-    } finally {
-      this.isProcessing = false;
+      console.error(`❌ Failed to refresh timer for alert ${alertId}:`, error);
     }
+  }
+
+  // Called when all alerts need to be refreshed
+  async refreshAllAlertTimers() {
+    try {
+      console.log('🔄 Refreshing all alert timers...');
+      
+      // Clear all existing timers
+      for (const [alertId] of this.alertTimers) {
+        this.clearAlertTimer(alertId);
+      }
+      
+      // Reinitialize all timers
+      await this.initializeAlertTimers();
+    } catch (error) {
+      console.error('❌ Failed to refresh all alert timers:', error);
+    }
+  }
+
+  stopAllTimers() {
+    console.log('🛑 Stopping all alert timers...');
+    for (const [alertId] of this.alertTimers) {
+      this.clearAlertTimer(alertId);
+    }
+    console.log('✅ All alert timers stopped');
+  }
+
+  // Get status of all scheduled alerts
+  getScheduledAlerts() {
+    const scheduled = [];
+    for (const [alertId, timer] of this.alertTimers) {
+      scheduled.push({
+        alertId,
+        nextRunTime: timer.nextRunTime,
+        timeUntilRun: timer.nextRunTime.getTime() - Date.now()
+      });
+    }
+    return scheduled.sort((a, b) => a.nextRunTime.getTime() - b.nextRunTime.getTime());
   }
 
   private async processAlert(alert: any) {
@@ -404,7 +505,7 @@ export class CompetitorAlertProcessor {
 
       // Import nodemailer dynamically to avoid requiring it if not used
       const nodemailer = await import('nodemailer');
-      const transporter = nodemailer.createTransport(smtpConfig);
+      const transporter = nodemailer.createTransporter(smtpConfig);
 
       const emailHtml = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -471,6 +572,9 @@ export class CompetitorAlertProcessor {
 
     console.log(`🚀 Manually triggering alert: ${alert.name}`);
     await this.processAlert(alert);
+    
+    // Reschedule the alert after manual trigger
+    this.scheduleAlert(alert);
   }
 }
 
