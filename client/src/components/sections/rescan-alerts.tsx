@@ -37,19 +37,37 @@ export default function RescanAlerts() {
         method: 'POST'
       });
 
+      // Helper function to safely parse JSON response
+      const parseResponseSafely = async (response: Response) => {
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          try {
+            return await response.json();
+          } catch (e) {
+            console.warn('Failed to parse JSON response:', e);
+            return null;
+          }
+        } else {
+          // Response is not JSON, get text for debugging
+          const text = await response.text();
+          console.warn('Received non-JSON response:', text.substring(0, 200));
+          return null;
+        }
+      };
+
       if (response.ok) {
-        const result = await response.json();
+        const result = await parseResponseSafely(response);
         console.log('Alert triggered successfully:', result);
         toast({
           title: "Alert Triggered Successfully!",
           description: "The alert is now running. Check the Presence Dashboard for results.",
         });
       } else {
-        const error = await response.json();
+        const error = await parseResponseSafely(response);
         console.error('Alert trigger failed:', error);
         toast({
           title: "Failed to Trigger Alert",
-          description: error.message || 'Unknown error occurred',
+          description: error?.message || `Server error (${response.status})`,
           variant: "destructive"
         });
       }
