@@ -1,0 +1,30 @@
+ Manually triggering alert: ResimpliMon
+🎯 [2025-08-25T06:44:41.628Z] Processing alert: ResimpliMon (ID: 1)
+🔢 Generated ID for alertRun: 1 (previous: [object Object])
+📊 Processing 1 competitors across 1 platforms
+🔍 Searching for Resimpli on Reddit
+🔍 [Attempt 1] Searching: ("Resimpli") site:reddit.com...
+❌ Search attempt 1 failed: TypeError: Cannot read properties of undefined (reading 'apiKey')
+    at CompetitorAlertProcessor.performSearch (/home/runner/workspace/server/competitor-alert-processor.ts:219:40)
+    at CompetitorAlertProcessor.processAlert (/home/runner/workspace/server/competitor-alert-processor.ts:101:44)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async CompetitorAlertProcessor.triggerAlert (/home/runner/workspace/server/competitor-alert-processor.ts:457:5)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:1247:7)
+⏳ Waiting 2000ms before retry...
+🔍 [Attempt 2] Searching: ("Resimpli") site:reddit.com...
+❌ Search attempt 2 failed: TypeError: Cannot read properties of undefined (reading 'apiKey')
+    at CompetitorAlertProcessor.performSearch (/home/runner/workspace/server/competitor-alert-processor.ts:219:40)
+    at async CompetitorAlertProcessor.processAlert (/home/runner/workspace/server/competitor-alert-processor.ts:101:33)
+    at async CompetitorAlertProcessor.triggerAlert (/home/runner/workspace/server/competitor-alert-processor.ts:457:5)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:1247:7)
+⏳ Waiting 4000ms before retry...
+🔍 [Attempt 3] Searching: ("Resimpli") site:reddit.com...
+❌ Search attempt 3 failed: TypeError: Cannot read properties of undefined (reading 'apiKey')
+    at CompetitorAlertProcessor.performSearch (/home/runner/workspace/server/competitor-alert-processor.ts:219:40)
+    at async CompetitorAlertProcessor.processAlert (/home/runner/workspace/server/competitor-alert-processor.ts:101:33)
+    at async CompetitorAlertProcessor.triggerAlert (/home/runner/workspace/server/competitor-alert-processor.ts:457:5)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:1247:7)
+💥 Search failed after 3 attempts for query: ("Resimpli") site:reddit.com
+📝 Found 0 matches for Resimpli on Reddit
+✅ [2025-08-25T06:44:50.625Z] Alert ResimpliMon completed: 0 new presences, 1 API calls, 8997ms processing time
+6:44:50 AM [express] POST /api/alerts/1/trigger 200 in 10150ms :: {"success":true,"message":"Alert t…
