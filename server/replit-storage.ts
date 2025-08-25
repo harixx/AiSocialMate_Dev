@@ -85,7 +85,11 @@ export class ReplitStorage implements IStorage {
 
   // Users
   async getUser(id: number): Promise<User | undefined> {
-    return await this.db.get(`user:${id}`);
+    const result = await this.db.get(`user:${id}`);
+    if (result && typeof result === 'object' && 'ok' in result && result.ok && 'value' in result) {
+      return result.value as User;
+    }
+    return undefined;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
@@ -247,8 +251,8 @@ export class ReplitStorage implements IStorage {
     console.log(`💾 Storing alert with key: ${key}`);
     console.log(`📋 Alert data:`, { 
       name: alert.name, 
-      competitors: alert.competitors.length, 
-      platforms: alert.platforms.length 
+      competitors: Array.isArray(alert.competitors) ? alert.competitors.length : 0, 
+      platforms: Array.isArray(alert.platforms) ? alert.platforms.length : 0 
     });
 
     const result = await this.db.set(key, alert);
@@ -269,24 +273,74 @@ export class ReplitStorage implements IStorage {
     return updatedAlert;
   }
 
-  // Delete Alert
+  // Delete Alert with cascade deletion
   async deleteAlert(id: number): Promise<boolean> {
     if (!id || isNaN(id)) {
       console.log(`❌ Invalid alert ID for deletion: ${id}`);
       return false;
     }
 
-    const key = `alert:${id}`;
-    console.log(`🗑️ Deleting alert with key: ${key}`);
+    console.log(`🗑️ Starting cascade deletion for alert ID: ${id}`);
 
-    const result = await this.db.delete(key);
-    if (result.ok) {
-      console.log(`✅ Alert ${id} deleted successfully`);
-    } else {
-      console.log(`❌ Failed to delete alert ${id}`);
+    try {
+      // Step 1: Delete all related presence records
+      console.log(`🔍 Finding presence records for alert ${id}...`);
+      const presenceKeys = await this.db.list('presenceRecord:');
+      let deletedPresenceRecords = 0;
+      
+      if (presenceKeys.ok && presenceKeys.value) {
+        for (const presenceKey of presenceKeys.value) {
+          const presenceRecord = await this.db.get(presenceKey);
+          if (presenceRecord && presenceRecord.ok && presenceRecord.value) {
+            const record = presenceRecord.value as PresenceRecord;
+            if (Number(record.alertId) === Number(id)) {
+              await this.db.delete(presenceKey);
+              deletedPresenceRecords++;
+              console.log(`🗑️ Deleted presence record: ${presenceKey}`);
+            }
+          }
+        }
+      }
+      console.log(`✅ Deleted ${deletedPresenceRecords} presence records for alert ${id}`);
+
+      // Step 2: Delete all related alert runs
+      console.log(`🔍 Finding alert runs for alert ${id}...`);
+      const alertRunKeys = await this.db.list('alertRun:');
+      let deletedAlertRuns = 0;
+      
+      if (alertRunKeys.ok && alertRunKeys.value) {
+        for (const runKey of alertRunKeys.value) {
+          const alertRun = await this.db.get(runKey);
+          if (alertRun && alertRun.ok && alertRun.value) {
+            const run = alertRun.value as AlertRun;
+            if (Number(run.alertId) === Number(id)) {
+              await this.db.delete(runKey);
+              deletedAlertRuns++;
+              console.log(`🗑️ Deleted alert run: ${runKey}`);
+            }
+          }
+        }
+      }
+      console.log(`✅ Deleted ${deletedAlertRuns} alert runs for alert ${id}`);
+
+      // Step 3: Delete the alert itself
+      const alertKey = `alert:${id}`;
+      console.log(`🗑️ Deleting main alert with key: ${alertKey}`);
+      
+      const result = await this.db.delete(alertKey);
+      if (result.ok) {
+        console.log(`✅ Alert ${id} and all related data deleted successfully`);
+        console.log(`📊 Cleanup summary: Alert deleted, ${deletedAlertRuns} runs deleted, ${deletedPresenceRecords} presence records deleted`);
+        return true;
+      } else {
+        console.log(`❌ Failed to delete main alert ${id}`);
+        return false;
+      }
+
+    } catch (error) {
+      console.error(`❌ Error during cascade deletion of alert ${id}:`, error);
+      return false;
     }
-
-    return result.ok;
   }
 
   // Search Results
@@ -340,6 +394,8 @@ export class ReplitStorage implements IStorage {
     const now = new Date();
     const faq: Faq = {
       ...insertFaq,
+      brandWebsite: insertFaq.brandWebsite ?? null,
+      brandDescription: insertFaq.brandDescription ?? null,
       id,
       createdAt: now
     };
@@ -353,6 +409,11 @@ export class ReplitStorage implements IStorage {
     const now = new Date();
     const alertRun: AlertRun = {
       ...insertAlertRun,
+      alertId: insertAlertRun.alertId ?? null,
+      endTime: insertAlertRun.endTime ?? null,
+      apiCallsUsed: insertAlertRun.apiCallsUsed ?? null,
+      newPresencesFound: insertAlertRun.newPresencesFound ?? null,
+      errorMessage: insertAlertRun.errorMessage ?? null,
       id,
       startTime: now
     };
@@ -381,9 +442,9 @@ export class ReplitStorage implements IStorage {
         return undefined;
       }
 
-      console.log(`📄 Current alert run ${id} before update:`, { status: alertRun.status, endTime: alertRun.endTime });
+      console.log(`📄 Current alert run ${id} before update:`, { status: (alertRun as any).status, endTime: (alertRun as any).endTime });
       
-      const updatedAlertRun = { ...alertRun, ...updates };
+      const updatedAlertRun = { ...(alertRun as AlertRun), ...updates };
       await this.db.set(`alertRun:${id}`, updatedAlertRun);
       
       console.log(`✅ Successfully updated alert run ${id}: status=${updates.status}, endTime=${updates.endTime}, apiCalls=${updates.apiCallsUsed}, newPresences=${updates.newPresencesFound}`);
@@ -412,6 +473,10 @@ export class ReplitStorage implements IStorage {
     const now = new Date();
     const presenceRecord: PresenceRecord = {
       ...insertPresenceRecord,
+      alertId: insertPresenceRecord.alertId ?? null,
+      runId: insertPresenceRecord.runId ?? null,
+      snippet: insertPresenceRecord.snippet ?? null,
+      publishedAt: insertPresenceRecord.publishedAt ?? null,
       id,
       createdAt: now
     };
@@ -455,7 +520,7 @@ export class ReplitStorage implements IStorage {
       // Check for duplicates based on dedupeKey and within the dedupe window
       const duplicate = presenceRecords.find(record => {
         if (record.dedupeKey === dedupeKey && record.competitorName === competitorName) {
-          const recordDate = record.createdAt instanceof Date ? record.createdAt : new Date(record.createdAt);
+          const recordDate = record.createdAt instanceof Date ? record.createdAt : (record.createdAt ? new Date(record.createdAt) : new Date());
           return recordDate > cutoffTime;
         }
         return false;
@@ -488,7 +553,7 @@ export class ReplitStorage implements IStorage {
     }
     
     // Check if we have valid quota data
-    if (data && typeof data === 'object' && 'month' in data) {
+    if (data && typeof data === 'object' && 'month' in data && 'id' in data) {
       return data as QuotaUsage;
     }
     
@@ -500,8 +565,8 @@ export class ReplitStorage implements IStorage {
     const now = new Date();
 
     if (existing) {
-      existing.totalApiCalls += apiCalls;
-      existing.remainingCalls = Math.max(0, existing.remainingCalls - apiCalls);
+      existing.totalApiCalls = (existing.totalApiCalls || 0) + apiCalls;
+      existing.remainingCalls = Math.max(0, (existing.remainingCalls || 1000) - apiCalls);
       existing.lastUpdated = now;
       await this.db.set(`quotaUsage:${month}`, existing);
     } else {
