@@ -480,38 +480,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const timeParam = getTimeRangeParam(timeRange);
 
-      // Search each platform
+      // Search each platform with proper result limiting
       const searchPromises = platforms.map(async (platform: string) => {
         try {
-          const searchParams: any = {
-            q: `${searchQuery} site:${getPlatformDomain(platform)}`,
-            num: maxResults,
-            hl: 'en',
-            gl: 'us'
-          };
+          // Serper API has limitations, so we'll use multiple requests if needed
+          const maxPerRequest = 10; // Serper API limit
+          const targetResults = Math.min(maxResults, 100); // Cap at 100 to avoid too many requests
+          const allResults = [];
+          
+          // Calculate how many requests we need
+          const numRequests = Math.ceil(targetResults / maxPerRequest);
+          
+          for (let i = 0; i < numRequests; i++) {
+            const currentStart = i * maxPerRequest;
+            const currentNum = Math.min(maxPerRequest, targetResults - currentStart);
+            
+            if (currentNum <= 0) break;
+            
+            const searchParams: any = {
+              q: `${searchQuery} site:${getPlatformDomain(platform)}`,
+              num: currentNum,
+              start: currentStart,
+              hl: 'en',
+              gl: 'us'
+            };
 
-          // Add time range if specified
-          if (timeParam) {
-            searchParams.tbs = `qdr:${timeParam}`;
+            // Add time range if specified
+            if (timeParam) {
+              searchParams.tbs = `qdr:${timeParam}`;
+            }
+
+            const response = await fetch('https://google.serper.dev/search', {
+              method: 'POST',
+              headers: {
+                'X-API-KEY': apiKey,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(searchParams),
+            });
+
+            if (!response.ok) {
+              throw new Error(`Serper API error: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            const results = data.organic || [];
+            allResults.push(...results);
+            
+            // If we got fewer results than requested, no point making more requests
+            if (results.length < currentNum) {
+              break;
+            }
           }
 
-          const response = await fetch('https://google.serper.dev/search', {
-            method: 'POST',
-            headers: {
-              'X-API-KEY': apiKey,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(searchParams),
-          });
-
-          if (!response.ok) {
-            throw new Error(`Serper API error: ${response.statusText}`);
-          }
-
-          const data = await response.json();
           return {
             platform,
-            results: data.organic || []
+            results: allResults
           };
         } catch (error) {
           console.error(`Error searching ${platform}:`, error);
@@ -659,40 +683,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const timeParam = getTimeRangeParam(timeRange);
 
-      // Search each platform
+      // Search each platform with proper result limiting
       const searchPromises = platforms.map(async (platform: string) => {
         try {
-          const searchParams: any = {
-            q: platform === 'Reddit' 
-              ? `${keywords} site:reddit.com/r/ "comments"` // Focus on actual Reddit posts with comments
-              : `${keywords} site:${getPlatformDomain(platform)}`,
-            num: maxResults,
-            hl: 'en',
-            gl: 'us'
-          };
+          // Serper API has limitations, so we'll use multiple requests if needed
+          const maxPerRequest = 10; // Serper API limit
+          const targetResults = Math.min(maxResults, 100); // Cap at 100 to avoid too many requests
+          const allResults = [];
+          
+          // Calculate how many requests we need
+          const numRequests = Math.ceil(targetResults / maxPerRequest);
+          
+          for (let i = 0; i < numRequests; i++) {
+            const currentStart = i * maxPerRequest;
+            const currentNum = Math.min(maxPerRequest, targetResults - currentStart);
+            
+            if (currentNum <= 0) break;
+            
+            const searchParams: any = {
+              q: platform === 'Reddit' 
+                ? `${keywords} site:reddit.com/r/ "comments"` // Focus on actual Reddit posts with comments
+                : `${keywords} site:${getPlatformDomain(platform)}`,
+              num: currentNum,
+              start: currentStart,
+              hl: 'en',
+              gl: 'us'
+            };
 
-          // Add time range if specified
-          if (timeParam) {
-            searchParams.tbs = `qdr:${timeParam}`;
+            // Add time range if specified
+            if (timeParam) {
+              searchParams.tbs = `qdr:${timeParam}`;
+            }
+
+            const response = await fetch('https://google.serper.dev/search', {
+              method: 'POST',
+              headers: {
+                'X-API-KEY': apiKey,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(searchParams),
+            });
+
+            if (!response.ok) {
+              throw new Error(`Serper API error: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            const results = data.organic || [];
+            allResults.push(...results);
+            
+            // If we got fewer results than requested, no point making more requests
+            if (results.length < currentNum) {
+              break;
+            }
           }
 
-          const response = await fetch('https://google.serper.dev/search', {
-            method: 'POST',
-            headers: {
-              'X-API-KEY': apiKey,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(searchParams),
-          });
-
-          if (!response.ok) {
-            throw new Error(`Serper API error: ${response.statusText}`);
-          }
-
-          const data = await response.json();
           return {
             platform,
-            results: data.organic || []
+            results: allResults
           };
         } catch (error) {
           console.error(`Error searching ${platform}:`, error);
