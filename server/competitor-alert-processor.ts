@@ -494,8 +494,13 @@ export class CompetitorAlertProcessor {
 
   private async sendEmailNotification(alert: any, newPresencesCount: number): Promise<void> {
     try {
-      // For production use, you'll need to set up these environment variables:
-      // SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS
+      // Debug: Log all SMTP-related environment variables
+      console.log('🔍 SMTP Environment Check:');
+      console.log(`   SMTP_HOST: ${process.env.SMTP_HOST ? '✓ Set' : '✗ Missing'}`);
+      console.log(`   SMTP_PORT: ${process.env.SMTP_PORT ? '✓ Set' : '✗ Missing'}`);
+      console.log(`   SMTP_USER: ${process.env.SMTP_USER ? '✓ Set' : '✗ Missing'}`);
+      console.log(`   SMTP_PASS: ${process.env.SMTP_PASS ? '✓ Set' : '✗ Missing'}`);
+
       const smtpConfig = {
         host: process.env.SMTP_HOST || 'smtp.gmail.com',
         port: parseInt(process.env.SMTP_PORT || '587'),
@@ -509,9 +514,16 @@ export class CompetitorAlertProcessor {
       // Check if SMTP is configured
       if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
         console.log(`📧 SMTP not configured. Would send email to ${alert.email}: ${newPresencesCount} new competitor mentions found`);
-        console.log(`📧 To enable email sending, configure SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS in your environment variables`);
+        console.log(`📧 Required environment variables:`);
+        console.log(`   - SMTP_USER: ${process.env.SMTP_USER ? 'Set' : 'Missing'}`);
+        console.log(`   - SMTP_PASS: ${process.env.SMTP_PASS ? 'Set' : 'Missing'}`);
+        console.log(`   - SMTP_HOST: ${process.env.SMTP_HOST || 'Using default: smtp.gmail.com'}`);
+        console.log(`   - SMTP_PORT: ${process.env.SMTP_PORT || 'Using default: 587'}`);
         return;
       }
+
+      console.log(`📧 SMTP Configuration validated, attempting to send email...`);
+      console.log(`📧 Email will be sent to: ${alert.email}`);
 
       // Import nodemailer dynamically to avoid requiring it if not used
       const nodemailer = await import('nodemailer');
