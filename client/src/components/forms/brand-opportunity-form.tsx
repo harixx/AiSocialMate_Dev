@@ -271,7 +271,6 @@ export default function BrandOpportunityForm({ onSearch, isLoading, activeTab }:
                         <SelectItem value="all">All sentiments</SelectItem>
                         <SelectItem value="positive">Positive only</SelectItem>
                         <SelectItem value="negative">Negative only</SelectItem>
-                        <SelectItem value="neutral">Neutral only</SelectItem>
                       </SelectContent>
                     </Select>
                   </FormItem>
