@@ -485,7 +485,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         try {
           const searchParams: any = {
             q: `${searchQuery} site:${getPlatformDomain(platform)}`,
-            num: Math.min(maxResults, 10),
+            num: maxResults,
             hl: 'en',
             gl: 'us'
           };
@@ -663,7 +663,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             q: platform === 'Reddit' 
               ? `${keywords} site:reddit.com/r/ "comments"` // Focus on actual Reddit posts with comments
               : `${keywords} site:${getPlatformDomain(platform)}`,
-            num: Math.min(maxResults, 10),
+            num: maxResults,
             hl: 'en',
             gl: 'us'
           };
