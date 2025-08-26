@@ -457,21 +457,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Use provided API key or runtime config
       const apiKey = serperApiKey || getSerperAPIKey();
 
+      // Convert time range to search parameter
+      const getTimeRangeParam = (timeRange: string) => {
+        switch (timeRange) {
+          case 'day': return 'd1';
+          case 'week': return 'w1';
+          case 'month': return 'm1';
+          case 'year': return 'y1';
+          default: return undefined;
+        }
+      };
+
+      const timeParam = getTimeRangeParam(timeRange);
+
       // Search each platform
       const searchPromises = platforms.map(async (platform: string) => {
         try {
+          const searchParams: any = {
+            q: `${searchQuery} site:${getPlatformDomain(platform)}`,
+            num: Math.min(maxResults, 10),
+            hl: 'en',
+            gl: 'us'
+          };
+
+          // Add time range if specified
+          if (timeParam) {
+            searchParams.tbs = `qdr:${timeParam}`;
+          }
+
           const response = await fetch('https://google.serper.dev/search', {
             method: 'POST',
             headers: {
               'X-API-KEY': apiKey,
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-              q: `${searchQuery} site:${getPlatformDomain(platform)}`,
-              num: Math.min(maxResults, 10),
-              hl: 'en',
-              gl: 'us'
-            }),
+            body: JSON.stringify(searchParams),
           });
 
           if (!response.ok) {
@@ -602,6 +622,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         keywords, 
         platforms, 
         maxResults = 10,
+        timeRange,
         serperApiKey
       } = req.body;
 
@@ -611,23 +632,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const apiKey = serperApiKey || getSerperAPIKey();
 
+      // Convert time range to search parameter
+      const getTimeRangeParam = (timeRange: string) => {
+        switch (timeRange) {
+          case 'day': return 'd1';
+          case 'week': return 'w1';
+          case 'month': return 'm1';
+          case 'year': return 'y1';
+          default: return undefined;
+        }
+      };
+
+      const timeParam = getTimeRangeParam(timeRange);
+
       // Search each platform
       const searchPromises = platforms.map(async (platform: string) => {
         try {
+          const searchParams: any = {
+            q: platform === 'Reddit' 
+              ? `${keywords} site:reddit.com/r/ "comments"` // Focus on actual Reddit posts with comments
+              : `${keywords} site:${getPlatformDomain(platform)}`,
+            num: Math.min(maxResults, 10),
+            hl: 'en',
+            gl: 'us'
+          };
+
+          // Add time range if specified
+          if (timeParam) {
+            searchParams.tbs = `qdr:${timeParam}`;
+          }
+
           const response = await fetch('https://google.serper.dev/search', {
             method: 'POST',
             headers: {
               'X-API-KEY': apiKey,
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-              q: platform === 'Reddit' 
-                ? `${keywords} site:reddit.com/r/ "comments"` // Focus on actual Reddit posts with comments
-                : `${keywords} site:${getPlatformDomain(platform)}`,
-              num: Math.min(maxResults, 10),
-              hl: 'en',
-              gl: 'us'
-            }),
+            body: JSON.stringify(searchParams),
           });
 
           if (!response.ok) {
