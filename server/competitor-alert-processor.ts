@@ -529,10 +529,17 @@ export class CompetitorAlertProcessor {
       const nodemailer = await import('nodemailer');
       const transporter = nodemailer.createTransport(smtpConfig);
 
+      const isManualTrigger = newPresencesCount === 0;
       const emailHtml = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #1f2937;">🎯 Competitor Alert: ${alert.name}</h2>
-          <p>We've detected <strong>${newPresencesCount} new competitor mentions</strong> across your monitored platforms.</p>
+          ${isManualTrigger 
+            ? `<p><strong>Manual alert triggered!</strong> This alert was run manually and found <strong>${newPresencesCount} new competitor mentions</strong> since the last check.</p>
+               <div style="background: #f0f9ff; padding: 15px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #0ea5e9;">
+                 <p style="margin: 0; color: #0369a1;"><strong>Note:</strong> This email was sent because you manually triggered the alert. Automatic emails are only sent when new mentions are found.</p>
+               </div>`
+            : `<p>We've detected <strong>${newPresencesCount} new competitor mentions</strong> across your monitored platforms.</p>`
+          }
 
           <div style="background: #f9fafb; padding: 20px; border-radius: 8px; margin: 20px 0;">
             <h3 style="margin-top: 0;">Alert Details:</h3>
@@ -540,6 +547,7 @@ export class CompetitorAlertProcessor {
               <li><strong>Alert Name:</strong> ${alert.name}</li>
               <li><strong>Platforms:</strong> ${alert.platforms.join(', ')}</li>
               <li><strong>New Mentions:</strong> ${newPresencesCount}</li>
+              <li><strong>Trigger Type:</strong> ${isManualTrigger ? 'Manual' : 'Automatic'}</li>
               <li><strong>Time:</strong> ${new Date().toLocaleString()}</li>
             </ul>
           </div>
@@ -553,16 +561,19 @@ export class CompetitorAlertProcessor {
           </p>
 
           <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
-            This email was sent by SocialMonitor AI. To stop receiving these notifications,
-            edit your alert settings in the dashboard.
+            This email was sent by SocialMonitor AI. ${isManualTrigger ? 'Manual trigger emails are always sent.' : 'To stop receiving these notifications, edit your alert settings in the dashboard.'}
           </p>
         </div>
       `;
 
+      const subject = isManualTrigger 
+        ? `🔄 Manual Alert Triggered - ${alert.name} (${newPresencesCount} mentions found)`
+        : `🎯 ${newPresencesCount} New Competitor Mentions - ${alert.name}`;
+
       await transporter.sendMail({
         from: process.env.FROM_EMAIL || process.env.SMTP_USER,
         to: alert.email,
-        subject: `🎯 ${newPresencesCount} New Competitor Mentions - ${alert.name}`,
+        subject: subject,
         html: emailHtml
       });
 
@@ -595,10 +606,10 @@ export class CompetitorAlertProcessor {
     console.log(`🚀 Manually triggering alert: ${alert.name}`);
     await this.processAlert(alert);
 
-    // For manual triggers, also send a test email notification regardless of new presences found
+    // For manual triggers, always send an email notification regardless of new presences found
     if (alert.emailNotifications && alert.email) {
-      console.log(`📧 Manual trigger: Sending test email notification for alert ${alert.name}`);
-      await this.sendTestEmailNotification(alert);
+      console.log(`📧 Manual trigger: Sending email notification for alert ${alert.name} (always sent for manual triggers)`);
+      await this.sendEmailNotification(alert, 0); // Send with 0 new presences but indicate it's a manual trigger
     }
 
     // Reschedule the alert after manual trigger
