@@ -506,6 +506,19 @@ export class CompetitorAlertProcessor {
         auth: {
           user: process.env.SMTP_USER,
           pass: process.env.SMTP_PASS
+        },
+        // Production-optimized settings for Railway and other hosting platforms
+        connectionTimeout: 60000, // 60 seconds
+        greetingTimeout: 30000,   // 30 seconds
+        socketTimeout: 60000,     // 60 seconds
+        pool: true,               // Use connection pooling
+        maxConnections: 1,        // Limit concurrent connections
+        maxMessages: 3,           // Limit messages per connection
+        rateDelta: 20000,         // 20 seconds between connections
+        rateLimit: 5,             // Max 5 emails per rateDelta period
+        // Additional Railway/production optimizations
+        tls: {
+          rejectUnauthorized: false // Allow self-signed certificates in some hosting environments
         }
       };
 
@@ -575,14 +588,37 @@ export class CompetitorAlertProcessor {
           ? `🎯 ${newPresencesCount} New Competitor Mentions - ${alert.name}`
           : `📊 Scheduled Alert Completed - ${alert.name} (${newPresencesCount} mentions found)`;
 
-      await transporter.sendMail({
-        from: process.env.FROM_EMAIL || process.env.SMTP_USER,
-        to: alert.email,
-        subject: subject,
-        html: emailHtml
-      });
+      // Add retry logic for email sending
+      const maxRetries = 3;
+      let lastError;
+      
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+          console.log(`📧 Sending email (attempt ${attempt}/${maxRetries})...`);
+          
+          await transporter.sendMail({
+            from: process.env.FROM_EMAIL || process.env.SMTP_USER,
+            to: alert.email,
+            subject: subject,
+            html: emailHtml
+          });
 
-      console.log(`✅ Email sent successfully to ${alert.email}`);
+          console.log(`✅ Email sent successfully to ${alert.email} on attempt ${attempt}`);
+          return; // Success, exit the function
+        } catch (error: any) {
+          lastError = error;
+          console.warn(`⚠️ Email sending attempt ${attempt} failed:`, error.message);
+          
+          if (attempt < maxRetries) {
+            const delay = attempt * 5000; // Exponential backoff: 5s, 10s, 15s
+            console.log(`🔄 Retrying in ${delay/1000} seconds...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+          }
+        }
+      }
+      
+      // If we get here, all retries failed
+      throw lastError;
     } catch (error) {
       console.error(`❌ Failed to send email notification:`, error);
     }
