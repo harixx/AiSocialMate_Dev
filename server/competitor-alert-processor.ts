@@ -526,8 +526,8 @@ export class CompetitorAlertProcessor {
       console.log(`📧 Email will be sent to: ${alert.email}`);
 
       // Import nodemailer dynamically to avoid requiring it if not used
-      const nodemailer = await import('nodemailer');
-      const transporter = nodemailer.default.createTransporter(smtpConfig);
+      const { default: nodemailer } = await import('nodemailer');
+      const transporter = nodemailer.createTransporter(smtpConfig);
 
       const emailHtml = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
