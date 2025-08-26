@@ -52,17 +52,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/settings/reddit-credentials-raw", (req, res) => {
     try {
       const credentials = runtimeConfig.getRedditCredentials();
+      
+      // Only return raw credentials if they exist
+      if (!credentials.clientId && !credentials.clientSecret) {
+        return res.status(404).json({
+          success: false,
+          error: 'No saved credentials found'
+        });
+      }
+      
       res.json({
         success: true,
         credentials: {
-          clientId: credentials.clientId,
-          clientSecret: credentials.clientSecret,
-          username: credentials.username,
-          password: credentials.password
+          clientId: credentials.clientId || '',
+          clientSecret: credentials.clientSecret || '',
+          username: credentials.username || '',
+          password: credentials.password || ''
         },
         hasCredentials: !!(credentials.clientId && credentials.clientSecret)
       });
     } catch (error) {
+      console.error('Error fetching raw Reddit credentials:', error);
       res.status(500).json({
         success: false,
         error: 'Failed to get Reddit credentials'

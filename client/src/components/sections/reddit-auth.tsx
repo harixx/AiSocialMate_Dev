@@ -56,62 +56,79 @@ export default function RedditAuth({ onAuthChange }: RedditAuthProps) {
   const loadSavedCredentials = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/settings/reddit-credentials');
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.credentials && (data.credentials.clientId || data.credentials.clientSecret || data.credentials.username || data.credentials.password)) {
-          const { clientId, clientSecret, username, password } = data.credentials;
+      // First check if any credentials exist
+      const checkResponse = await fetch('/api/settings/reddit-credentials');
+      if (!checkResponse.ok) {
+        toast({
+          title: "Server Error",
+          description: "Failed to connect to server. Please try again.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const checkData = await checkResponse.json();
+      if (!checkData.success || !checkData.hasCredentials) {
+        toast({
+          title: "No Saved Credentials",
+          description: "No Reddit credentials have been saved on the server yet.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Try to load raw credentials
+      const rawResponse = await fetch('/api/settings/reddit-credentials-raw');
+      if (rawResponse.ok) {
+        const rawData = await rawResponse.json();
+        if (rawData.success && rawData.credentials) {
+          setRuntimeCredentials({
+            clientId: rawData.credentials.clientId || '',
+            clientSecret: rawData.credentials.clientSecret || '',
+            username: rawData.credentials.username || '',
+            password: rawData.credentials.password || ''
+          });
           
-          // Load the actual saved values (not masked)
-          const actualResponse = await fetch('/api/settings/reddit-credentials-raw');
-          if (actualResponse.ok) {
-            const actualData = await actualResponse.json();
-            if (actualData.success && actualData.credentials) {
-              setRuntimeCredentials({
-                clientId: actualData.credentials.clientId || '',
-                clientSecret: actualData.credentials.clientSecret || '',
-                username: actualData.credentials.username || '',
-                password: actualData.credentials.password || ''
-              });
-              
-              toast({
-                title: "Credentials Loaded",
-                description: "Saved Reddit credentials have been loaded into the form fields.",
-                variant: "default"
-              });
-            }
-          } else {
-            // Fallback to loading what we can (clientId and username)
-            setRuntimeCredentials(prev => ({
-              ...prev,
-              clientId: clientId || '',
-              username: username || ''
-            }));
-            
-            toast({
-              title: "Partial Load",
-              description: "Client ID and username loaded. You'll need to re-enter the client secret and password.",
-              variant: "default"
-            });
-          }
+          toast({
+            title: "Credentials Loaded",
+            description: "Saved Reddit credentials have been loaded into the form fields.",
+            variant: "default"
+          });
         } else {
           toast({
-            title: "No Values Saved",
-            description: "No values have been saved on Server.",
+            title: "Load Failed",
+            description: "Credentials exist but couldn't be loaded properly.",
             variant: "destructive"
           });
         }
-      } else {
+      } else if (rawResponse.status === 404) {
         toast({
-          title: "No Values Saved",
-          description: "No values have been saved on Server.",
+          title: "No Saved Credentials",
+          description: "No Reddit credentials have been saved on the server yet.",
           variant: "destructive"
+        });
+      } else {
+        // Fallback to loading masked data (clientId and username only)
+        const { clientId, username } = checkData.credentials;
+        setRuntimeCredentials(prev => ({
+          ...prev,
+          clientId: clientId || '',
+          username: username || '',
+          clientSecret: '',
+          password: ''
+        }));
+        
+        toast({
+          title: "Partial Load",
+          description: "Client ID and username loaded. You'll need to re-enter the client secret and password for security.",
+          variant: "default"
         });
       }
     } catch (error) {
+      console.error('Load credentials error:', error);
       toast({
         title: "Load Failed",
-        description: "Failed to load saved credentials. Please try again.",
+        description: "Failed to load saved credentials. Please check your connection and try again.",
         variant: "destructive"
       });
     } finally {
