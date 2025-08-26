@@ -26,7 +26,6 @@ const formSchema = z.object({
   maxResults: z.number().default(10),
   searchDepth: z.string().default("standard"),
   language: z.string().default("en"),
-  enableInDepthSearch: z.boolean().default(false),
 });
 
 const platformOptions = [
@@ -59,7 +58,6 @@ export default function BrandOpportunityForm({ onSearch, isLoading, activeTab }:
       maxResults: 10,
       searchDepth: "standard",
       language: "en",
-      enableInDepthSearch: false,
     },
   });
 
@@ -356,30 +354,6 @@ export default function BrandOpportunityForm({ onSearch, isLoading, activeTab }:
               />
             </div>
 
-            {/* Enable In-Depth Search Feature */}
-            <FormField
-              control={form.control}
-              name="enableInDepthSearch"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base flex items-center">
-                      <Zap className="mr-2 h-4 w-4 text-orange-500" />
-                      Enable In-Depth Search
-                    </FormLabel>
-                    <FormDescription>
-                      Trigger deeper crawling with broader keyword expansion for more comprehensive results
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
 
             <Button type="submit" disabled={isLoading} className="w-full">
               <Search className="h-4 w-4 mr-2" />
