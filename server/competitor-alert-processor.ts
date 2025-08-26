@@ -525,9 +525,9 @@ export class CompetitorAlertProcessor {
       console.log(`📧 SMTP Configuration validated, attempting to send email...`);
       console.log(`📧 Email will be sent to: ${alert.email}`);
 
-      // Import nodemailer using require since dynamic imports are causing issues
-      const nodemailer = require('nodemailer');
-      const transporter = nodemailer.createTransporter(smtpConfig);
+      // Import nodemailer using dynamic import for ES modules
+      const nodemailer = await import('nodemailer');
+      const transporter = nodemailer.createTransport(smtpConfig);
 
       const emailHtml = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -597,6 +597,26 @@ export class CompetitorAlertProcessor {
 
     // Reschedule the alert after manual trigger
     this.scheduleAlert(alert);
+  }
+
+  // Test email notification function
+  async testEmailNotification(alertId: number): Promise<void> {
+    const alerts = await storage.getAlerts();
+    const alert = alerts.find(a => a.id === alertId);
+
+    if (!alert) {
+      throw new Error(`Alert ${alertId} not found`);
+    }
+
+    if (!alert.email) {
+      throw new Error(`Alert ${alertId} has no email configured`);
+    }
+
+    console.log(`📧 Testing email notification for alert: ${alert.name}`);
+    console.log(`📧 Sending test email to: ${alert.email}`);
+    
+    // Force send a test email with 1 new presence
+    await this.sendEmailNotification(alert, 1);
   }
 }
 

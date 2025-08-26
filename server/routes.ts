@@ -1488,6 +1488,32 @@ Generate only the final reply text that would be posted.`;
     }
   });
 
+  // Test email notification endpoint
+  app.post("/api/alerts/:id/test-email", async (req, res) => {
+    try {
+      const alertId = parseInt(req.params.id);
+      console.log(`📧 Testing email notification for alert ID: ${alertId}`);
+
+      // Ensure processor is initialized
+      await initializeProcessor();
+
+      if (!competitorAlertProcessor) {
+        return res.status(500).json({ error: 'Alert processor not available' });
+      }
+
+      // Test email notification
+      await competitorAlertProcessor.testEmailNotification(alertId);
+
+      res.json({ success: true, message: 'Test email sent successfully' });
+    } catch (error) {
+      console.error('Failed to send test email:', error);
+      res.status(500).json({ 
+        error: 'Failed to send test email',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   // Quota Usage
   app.get("/api/quota-usage", async (req, res) => {
     try {
