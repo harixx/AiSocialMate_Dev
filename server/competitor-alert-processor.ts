@@ -595,6 +595,12 @@ export class CompetitorAlertProcessor {
     console.log(`🚀 Manually triggering alert: ${alert.name}`);
     await this.processAlert(alert);
 
+    // For manual triggers, also send a test email notification regardless of new presences found
+    if (alert.emailNotifications && alert.email) {
+      console.log(`📧 Manual trigger: Sending test email notification for alert ${alert.name}`);
+      await this.sendTestEmailNotification(alert);
+    }
+
     // Reschedule the alert after manual trigger
     this.scheduleAlert(alert);
   }
