@@ -589,16 +589,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
               }
             }
 
-            formattedResults.push({
-              title: processedResult.title,
-              snippet: processedResult.snippet,
-              url: processedResult.link,
-              platform: pr.platform,
-              displayLink: processedResult.displayLink,
-              position: processedResult.position,
-              sentiment: detectedSentiment,
-              ...realStats // Include real Reddit statistics
-            });
+            // Only add result if we haven't reached the maxResults limit
+            if (formattedResults.length < maxResults) {
+              formattedResults.push({
+                title: processedResult.title,
+                snippet: processedResult.snippet,
+                url: processedResult.link,
+                platform: pr.platform,
+                displayLink: processedResult.displayLink,
+                position: processedResult.position,
+                sentiment: detectedSentiment,
+                ...realStats // Include real Reddit statistics
+              });
+            }
           }
         }
       }
@@ -763,16 +766,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           }
 
-          formattedResults.push({
-            title: processedResult.title,
-            snippet: processedResult.snippet,
-            url: processedResult.link,
-            platform: pr.platform,
-            displayLink: processedResult.displayLink,
-            position: processedResult.position,
-            sentiment: detectedSentiment,
-            ...realStats // Include real Reddit statistics
-          });
+          // Only add result if we haven't reached the maxResults limit
+          if (formattedResults.length < maxResults) {
+            formattedResults.push({
+              title: processedResult.title,
+              snippet: processedResult.snippet,
+              url: processedResult.link,
+              platform: pr.platform,
+              displayLink: processedResult.displayLink,
+              position: processedResult.position,
+              sentiment: detectedSentiment,
+              ...realStats // Include real Reddit statistics
+            });
+          }
         }
       }
 
