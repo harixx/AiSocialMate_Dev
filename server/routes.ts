@@ -1514,6 +1514,32 @@ Generate only the final reply text that would be posted.`;
     }
   });
 
+  // Trigger alert with force email option
+  app.post("/api/alerts/:id/trigger-with-email", async (req, res) => {
+    try {
+      const alertId = parseInt(req.params.id);
+      console.log(`🚀 Manually triggering alert with ID: ${alertId} (force email enabled)`);
+
+      // Ensure processor is initialized
+      await initializeProcessor();
+
+      if (!competitorAlertProcessor) {
+        return res.status(500).json({ error: 'Alert processor not available' });
+      }
+
+      // Use the singleton instance to trigger the alert with force email
+      await competitorAlertProcessor.triggerAlert(alertId, true);
+
+      res.json({ success: true, message: 'Alert triggered successfully with email notification' });
+    } catch (error) {
+      console.error('Failed to trigger alert with email:', error);
+      res.status(500).json({ 
+        error: 'Failed to trigger alert with email',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   // Quota Usage
   app.get("/api/quota-usage", async (req, res) => {
     try {

@@ -25,6 +25,7 @@ interface AlertTimer {
 export class CompetitorAlertProcessor {
   private isProcessing = false;
   private alertTimers: Map<number, AlertTimer> = new Map();
+  private tempForceEmail: boolean = false;
 
   constructor() {
     this.initializeAlertTimers();
@@ -584,7 +585,7 @@ export class CompetitorAlertProcessor {
   }
 
   // Manual trigger for testing
-  async triggerAlert(alertId: number): Promise<void> {
+  async triggerAlert(alertId: number, forceEmail: boolean = false): Promise<void> {
     const alerts = await storage.getAlerts();
     const alert = alerts.find(a => a.id === alertId);
 
@@ -592,8 +593,20 @@ export class CompetitorAlertProcessor {
       throw new Error(`Alert ${alertId} not found`);
     }
 
-    console.log(`🚀 Manually triggering alert: ${alert.name}`);
+    console.log(`🚀 Manually triggering alert: ${alert.name}${forceEmail ? ' (force email enabled)' : ''}`);
+    
+    if (forceEmail) {
+      // Clear some recent duplicate entries to allow new presences to be detected
+      console.log(`🧹 Force email mode: Clearing recent duplicates to ensure new presences are detected`);
+      // This will make the system treat recent duplicates as new for this run
+      this.tempForceEmail = true;
+    }
+    
     await this.processAlert(alert);
+    
+    if (forceEmail) {
+      this.tempForceEmail = false;
+    }
 
     // Reschedule the alert after manual trigger
     this.scheduleAlert(alert);
