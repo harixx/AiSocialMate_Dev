@@ -556,7 +556,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 detectedSentiment = analyzedSentiment || 'neutral';
               }
             } catch (error) {
-              console.log('Sentiment analysis failed, using neutral');
+              console.error('❌ Sentiment analysis failed:', error instanceof Error ? error.message : error);
+              console.log('🔄 Falling back to neutral sentiment');
             }
           }
 
@@ -732,7 +733,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               detectedSentiment = analyzedSentiment || 'neutral';
             }
           } catch (error) {
-            console.log('Sentiment analysis failed, using neutral');
+            console.error('❌ Sentiment analysis failed:', error instanceof Error ? error.message : error);
+            console.log('🔄 Falling back to neutral sentiment');
           }
 
           // Extract real Reddit statistics if this is a Reddit URL

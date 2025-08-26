@@ -202,7 +202,7 @@ export function getAPIKey(service: keyof RuntimeAPIKeys, override?: string): str
  * Create OpenAI client with runtime key
  */
 export async function createOpenAIClient(customApiKey?: string): Promise<OpenAI> {
-  const apiKey = customApiKey || (await getAPIKey('openai')); // Changed to use getAPIKey directly
+  const apiKey = customApiKey || runtimeConfig.getAPIKey('openai');
 
   if (!apiKey) {
     throw new Error('OpenAI API key not available. Please set it in the API Settings.');
