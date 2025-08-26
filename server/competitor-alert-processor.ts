@@ -525,8 +525,8 @@ export class CompetitorAlertProcessor {
       console.log(`📧 SMTP Configuration validated, attempting to send email...`);
       console.log(`📧 Email will be sent to: ${alert.email}`);
 
-      // Import nodemailer dynamically to avoid requiring it if not used
-      const { default: nodemailer } = await import('nodemailer');
+      // Import nodemailer using require since dynamic imports are causing issues
+      const nodemailer = require('nodemailer');
       const transporter = nodemailer.createTransporter(smtpConfig);
 
       const emailHtml = `
