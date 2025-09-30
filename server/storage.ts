@@ -48,31 +48,8 @@ export interface IStorage {
   getDueAlerts(): Promise<Alert[]>;
 }
 
-import { ReplitStorage } from "./replit-storage";
+import { PostgresStorage } from "./postgres-storage";
 
-// Use Replit Database for storage with fallback handling
-let storage: ReplitStorage;
-
-try {
-  storage = new ReplitStorage();
-} catch (error) {
-  console.log('⚠️ Replit Database not available in deployment, using fallback storage');
-  // Create a mock storage that gracefully handles the deployment environment
-  storage = {
-    async getAlerts() { return []; },
-    async saveAlert(alert) { console.log('Mock storage: Alert saved', alert.name); return alert; },
-    async deleteAlert(id) { console.log('Mock storage: Alert deleted', id); },
-    async getPresenceRecords() { return []; },
-    async savePresenceRecord(record) { console.log('Mock storage: Presence saved'); return record; },
-    async deletePresenceRecord(id) { console.log('Mock storage: Presence deleted', id); },
-    async getAlertRuns() { return []; },
-    async saveAlertRun(run) { console.log('Mock storage: Alert run saved'); return run; },
-    async updateAlertRun(id, updates) { console.log('Mock storage: Alert run updated'); },
-    async deleteAlertRun(id) { console.log('Mock storage: Alert run deleted', id); },
-    async clearAllAlerts() { console.log('Mock storage: All alerts cleared'); },
-    async clearAllPresenceRecords() { console.log('Mock storage: All presence records cleared'); },
-    storage: { db: null }
-  } as any;
-}
-
-export { storage };
+// Use PostgreSQL for storage
+export const storage = new PostgresStorage();
+console.log('✅ PostgreSQL storage initialized');
