@@ -1,0 +1,74 @@
+You reached the start of the range
+Oct 2, 2025, 3:42 PM
+Starting Container
+✅ PostgreSQL storage initialized
+✅ PostgreSQL database configured
+📊 DATABASE_URL available: Yes
+🚀 Initializing individual alert timers...
+🤖 Competitor Alert Processor initialized
+10:44:12 AM [express] 🚀 SocialMonitor AI serving on 0.0.0.0:8080
+⚠️ Runtime Config: Database not available, using memory only
+❌ Failed to initialize alert timers: Error: getaddrinfo ENOTFOUND helium
+    at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:122:26) {
+  errno: -3008,
+  code: 'ENOTFOUND',
+  syscall: 'getaddrinfo',
+  hostname: 'helium'
+}
+10:44:17 AM [express] GET /api/settings/reddit-credentials 200 in 6ms :: {"success":true,"credentials…
+10:44:17 AM [express] GET /api/settings/keys 304 in 1ms :: {"success":true,"keys":{"openai":false,"ge…
+10:44:30 AM [express] GET /api/settings/keys 304 in 1ms :: {"success":true,"keys":{"openai":false,"ge…
+10:44:46 AM [express] GET /api/settings/reddit-credentials 200 in 1ms :: {"success":true,"credentials…
+Brand opportunities search error: Error: Serper API key not available. Please set it in the API Settings.
+    at getSerperAPIKey (file:///app/dist/index.js:395:11)
+    at file:///app/dist/index.js:1678:38
+    at Layer.handle [as handle_request] (/app/node_modules/express/lib/router/layer.js:95:5)
+    at next (/app/node_modules/express/lib/router/route.js:149:13)
+    at Route.dispatch (/app/node_modules/express/lib/router/route.js:119:3)
+    at Layer.handle [as handle_request] (/app/node_modules/express/lib/router/layer.js:95:5)
+    at /app/node_modules/express/lib/router/index.js:284:15
+    at Function.process_params (/app/node_modules/express/lib/router/index.js:346:12)
+    at next (/app/node_modules/express/lib/router/index.js:280:10)
+    at file:///app/dist/index.js:2912:3
+10:45:05 AM [express] POST /api/search/brand-opportunities 500 in 2ms :: {"message":"Failed to search…
+✅ Multiple runtime API keys updated
+⚠️ Database not ready, skipping save
+✅ Reddit credentials saved successfully
+10:45:07 AM [express] POST /api/settings/reddit-credentials 200 in 2ms :: {"success":true,"message":"…
+Brand opportunities search error: Error: Serper API key not available. Please set it in the API Settings.
+    at getSerperAPIKey (file:///app/dist/index.js:395:11)
+    at file:///app/dist/index.js:1678:38
+    at Layer.handle [as handle_request] (/app/node_modules/express/lib/router/layer.js:95:5)
+    at next (/app/node_modules/express/lib/router/route.js:149:13)
+    at Route.dispatch (/app/node_modules/express/lib/router/route.js:119:3)
+    at Layer.handle [as handle_request] (/app/node_modules/express/lib/router/layer.js:95:5)
+    at /app/node_modules/express/lib/router/index.js:284:15
+    at Function.process_params (/app/node_modules/express/lib/router/index.js:346:12)
+    at next (/app/node_modules/express/lib/router/index.js:280:10)
+    at file:///app/dist/index.js:2912:3
+10:45:12 AM [express] POST /api/search/brand-opportunities 500 in 1ms :: {"message":"Failed to search…
+10:45:16 AM [express] GET /api/settings/reddit-credentials 200 in 1ms :: {"success":true,"credentials…
+10:45:16 AM [express] GET /api/settings/keys 200 in 1ms :: {"success":true,"keys":{"openai":false,"ge…
+✅ Multiple runtime API keys updated
+⚠️ Database not ready, skipping save
+10:45:40 AM [express] POST /api/settings/keys 200 in 0ms :: {"success":true,"message":"API keys updat…
+✅ Multiple runtime API keys updated
+⚠️ Database not ready, skipping save
+10:45:42 AM [express] POST /api/settings/keys 200 in 1ms :: {"success":true,"message":"API keys updat…
+10:45:44 AM [express] GET /api/settings/reddit-credentials 200 in 1ms :: {"success":true,"credentials…
+🔍 Extracting real Reddit stats from: https://www.reddit.com/r/Borderlands/comments/1nv9lx9/what_are_your_thoughts_about_the_game_going_open/
+✅ Real Reddit stats extracted: 191 upvotes, 284 comments
+🔍 Extracting real Reddit stats from: https://www.reddit.com/r/glasgow/comments/1nv9pvv/glasgow_discord_group/
+✅ Real Reddit stats extracted: 74 upvotes, 58 comments
+🔍 Extracting real Reddit stats from: https://www.reddit.com/r/moderatelygranolamoms/comments/1nv9f5q/is_there_anything_called_baby_safe_makeup_for_mom/
+✅ Real Reddit stats extracted: 7 upvotes, 11 comments
+🔍 Extracting real Reddit stats from: https://www.reddit.com/r/AskMeAnythingIAnswer/
+❌ Could not parse Reddit URL: https://www.reddit.com/r/AskMeAnythingIAnswer/
+Brand opportunities search error: Error: getaddrinfo ENOTFOUND helium
+    at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:122:26) {
+  errno: -3008,
+  code: 'ENOTFOUND',
+  syscall: 'getaddrinfo',
+  hostname: 'helium'
+}
+10:46:16 AM [express] POST /api/search/brand-opportunities 500 in 3125ms :: {"message":"Failed to sea…
