@@ -1,0 +1,111 @@
+Starting Container
+✅ PostgreSQL storage initialized
+✅ PostgreSQL database configured
+📊 DATABASE_URL available: Yes
+🚀 Initializing individual alert timers...
+🤖 Competitor Alert Processor initialized
+11:55:02 AM [express] 🚀 SocialMonitor AI serving on 0.0.0.0:8080
+⚠️ Runtime Config: Database not available, using memory only
+❌ Failed to initialize alert timers: PostgresError: relation "alerts" does not exist
+    at ErrorResponse (file:///app/node_modules/postgres/src/connection.js:794:26)
+    at handle (file:///app/node_modules/postgres/src/connection.js:480:6)
+    at Socket.data (file:///app/node_modules/postgres/src/connection.js:315:9)
+    at Socket.emit (node:events:524:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+    at Readable.push (node:internal/streams/readable:392:5)
+    at TCP.onStreamRead (node:internal/stream_base_commons:191:23) {
+  severity_local: 'ERROR',
+  severity: 'ERROR',
+  code: '42P01',
+  position: '308',
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+11:55:44 AM [express] GET /api/settings/reddit-credentials 200 in 2ms :: {"success":true,"credentials…
+11:55:46 AM [express] GET /api/settings/reddit-credentials 304 in 1ms :: {"success":true,"credentials…
+11:55:46 AM [express] GET /api/settings/keys 200 in 0ms :: {"success":true,"keys":{"openai":false,"ge…
+11:55:51 AM [express] GET /api/settings/keys 304 in 1ms :: {"success":true,"keys":{"openai":false,"ge…
+✅ Multiple runtime API keys updated
+⚠️ Database not ready, skipping save
+11:55:53 AM [express] POST /api/settings/keys 200 in 1ms :: {"success":true,"message":"API keys updat…
+✅ Multiple runtime API keys updated
+⚠️ Database not ready, skipping save
+✅ Reddit credentials saved successfully
+11:56:29 AM [express] POST /api/settings/reddit-credentials 200 in 1ms :: {"success":true,"message":"…
+11:56:31 AM [express] GET /api/settings/reddit-credentials 200 in 1ms :: {"success":true,"credentials…
+🔍 Extracting real Reddit stats from: https://www.reddit.com/r/bangalore/comments/1nvcows/canva_pro/
+✅ Real Reddit stats extracted: 1 upvotes, 9 comments
+🔍 Extracting real Reddit stats from: https://www.reddit.com/r/Affinity/comments/1nvg33z/the_affinity_and_canva_pledge/
+✅ Real Reddit stats extracted: 54 upvotes, 26 comments
+🔍 Extracting real Reddit stats from: https://www.reddit.com/r/canva/comments/1nv6f3q/birthday_poster_design_editing_tutorial_in_canva/
+✅ Real Reddit stats extracted: 1 upvotes, 1 comments
+🔍 Extracting real Reddit stats from: https://www.reddit.com/r/technology/comments/1nvb6sk/affinity_a_graphics_editing_software_company_has/
+✅ Real Reddit stats extracted: 596 upvotes, 136 comments
+🔍 Extracting real Reddit stats from: https://www.reddit.com/r/smallbusiness/comments/1nvdvsj/how_do_you_create_visual_content_for_your/
+✅ Real Reddit stats extracted: 0 upvotes, 4 comments
+🔍 Extracting real Reddit stats from: https://www.reddit.com/r/andhra_pradesh/comments/1nvwowp/canva_pro_at_rs77/
+✅ Real Reddit stats extracted: 1 upvotes, 0 comments
+🔍 Extracting real Reddit stats from: https://www.reddit.com/r/ObsidianMD/comments/1nvf8dj/is_there_a_plugin_to_automatically_create_a/
+✅ Real Reddit stats extracted: 1 upvotes, 5 comments
+🔍 Extracting real Reddit stats from: https://www.reddit.com/r/graphic_design/comments/1nvbv10/affinity_a_graphics_editing_software_company_has/
+✅ Real Reddit stats extracted: 274 upvotes, 188 comments
+🔍 Extracting real Reddit stats from: https://www.reddit.com/r/canva/comments/1nvcrur/mulitculturality_in_canva/
+✅ Real Reddit stats extracted: 1 upvotes, 4 comments
+Brand opportunities search error: PostgresError: relation "search_results" does not exist
+    at ErrorResponse (file:///app/node_modules/postgres/src/connection.js:794:26)
+    at handle (file:///app/node_modules/postgres/src/connection.js:480:6)
+    at Socket.data (file:///app/node_modules/postgres/src/connection.js:315:9)
+    at Socket.emit (node:events:524:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+    at Readable.push (node:internal/streams/readable:392:5)
+    at TCP.onStreamRead (node:internal/stream_base_commons:191:23) {
+  severity_local: 'ERROR',
+  severity: 'ERROR',
+  code: '42P01',
+  position: '13',
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+11:56:56 AM [express] POST /api/search/brand-opportunities 500 in 7758ms :: {"message":"Failed to sea…
+🔍 Extracting real Reddit stats from: https://www.reddit.com/r/bangalore/comments/1nvcows/canva_pro/
+✅ Real Reddit stats extracted: 1 upvotes, 9 comments
+🔍 Extracting real Reddit stats from: https://www.reddit.com/r/Affinity/comments/1nvg33z/the_affinity_and_canva_pledge/
+✅ Real Reddit stats extracted: 57 upvotes, 26 comments
+🔍 Extracting real Reddit stats from: https://www.reddit.com/r/technology/comments/1nvb6sk/affinity_a_graphics_editing_software_company_has/
+✅ Real Reddit stats extracted: 598 upvotes, 136 comments
+🔍 Extracting real Reddit stats from: https://www.reddit.com/r/canva/comments/1nv6f3q/birthday_poster_design_editing_tutorial_in_canva/
+✅ Real Reddit stats extracted: 1 upvotes, 1 comments
+🔍 Extracting real Reddit stats from: https://www.reddit.com/r/andhra_pradesh/comments/1nvwowp/canva_pro_at_rs77/
+✅ Real Reddit stats extracted: 1 upvotes, 0 comments
+🔍 Extracting real Reddit stats from: https://www.reddit.com/r/smallbusiness/comments/1nvdvsj/how_do_you_create_visual_content_for_your/
+✅ Real Reddit stats extracted: 0 upvotes, 4 comments
+🔍 Extracting real Reddit stats from: https://www.reddit.com/r/vadodara/comments/1nv6hrj/help_need_to_earn_10002000month_offering_basic/
+✅ Real Reddit stats extracted: 3 upvotes, 4 comments
+11:57:24 AM [express] POST /api/search/brand-opportunities 500 in 8234ms :: {"message":"Failed to sea…
+🔍 Extracting real Reddit stats from: https://www.reddit.com/r/ObsidianMD/comments/1nvf8dj/is_there_a_plugin_to_automatically_create_a/
+✅ Real Reddit stats extracted: 1 upvotes, 5 comments
+🔍 Extracting real Reddit stats from: https://www.reddit.com/r/graphic_design/comments/1nvbv10/affinity_a_graphics_editing_software_company_has/
+✅ Real Reddit stats extracted: 272 upvotes, 189 comments
+🔍 Extracting real Reddit stats from: https://www.reddit.com/r/Affinity/comments/1nv97ds/shoutout_to_the_people_who_bought_the_affinity/
+Brand opportunities search error: PostgresError: relation "search_results" does not exist
+✅ Real Reddit stats extracted: 169 upvotes, 160 comments
+    at ErrorResponse (file:///app/node_modules/postgres/src/connection.js:794:26)
+    at handle (file:///app/node_modules/postgres/src/connection.js:480:6)
+    at Socket.data (file:///app/node_modules/postgres/src/connection.js:315:9)
+    at Socket.emit (node:events:524:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+    at Readable.push (node:internal/streams/readable:392:5)
+    at TCP.onStreamRead (node:internal/stream_base_commons:191:23) {
+  severity_local: 'ERROR',
+  severity: 'ERROR',
+  code: '42P01',
+  position: '13',
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}

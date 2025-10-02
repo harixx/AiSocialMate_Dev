@@ -1,0 +1,106 @@
+Starting Container
+npm warn exec The following package was not found and will be installed: vite@7.1.8
+vite v7.1.8 building for production...
+✓ 0 modules transformed.
+✗ Build failed in 14ms
+error during build:
+Could not resolve entry module "index.html".
+    at getRollupError (file:///home/nextjs/.npm/_npx/9ed06546b0653f96/node_modules/rollup/dist/es/shared/parseAst.js:401:41)
+    at error (file:///home/nextjs/.npm/_npx/9ed06546b0653f96/node_modules/rollup/dist/es/shared/parseAst.js:397:42)
+    at ModuleLoader.loadEntryModule (file:///home/nextjs/.npm/_npx/9ed06546b0653f96/node_modules/rollup/dist/es/shared/node-entry.js:21585:20)
+    at async Promise.all (index 0)
+npm notice
+npm notice New major version of npm available! 10.8.2 -> 11.6.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.6.1
+npm notice To update run: npm install -g npm@11.6.1
+npm notice
+vite v7.1.8 building for production...
+✓ 0 modules transformed.
+✗ Build failed in 15ms
+error during build:
+Could not resolve entry module "index.html".
+    at getRollupError (file:///home/nextjs/.npm/_npx/9ed06546b0653f96/node_modules/rollup/dist/es/shared/parseAst.js:401:41)
+    at error (file:///home/nextjs/.npm/_npx/9ed06546b0653f96/node_modules/rollup/dist/es/shared/parseAst.js:397:42)
+    at ModuleLoader.loadEntryModule (file:///home/nextjs/.npm/_npx/9ed06546b0653f96/node_modules/rollup/dist/es/shared/node-entry.js:21585:20)
+    at async Promise.all (index 0)
+vite v7.1.8 building for production...
+✓ 0 modules transformed.
+✗ Build failed in 19ms
+error during build:
+Could not resolve entry module "index.html".
+    at getRollupError (file:///home/nextjs/.npm/_npx/9ed06546b0653f96/node_modules/rollup/dist/es/shared/parseAst.js:401:41)
+    at error (file:///home/nextjs/.npm/_npx/9ed06546b0653f96/node_modules/rollup/dist/es/shared/parseAst.js:397:42)
+    at ModuleLoader.loadEntryModule (file:///home/nextjs/.npm/_npx/9ed06546b0653f96/node_modules/rollup/dist/es/shared/node-entry.js:21585:20)
+    at async Promise.all (index 0)
+vite v7.1.8 building for production...
+✓ 0 modules transformed.
+✗ Build failed in 15ms
+error during build:
+Could not resolve entry module "index.html".
+    at getRollupError (file:///home/nextjs/.npm/_npx/9ed06546b0653f96/node_modules/rollup/dist/es/shared/parseAst.js:401:41)
+    at error (file:///home/nextjs/.npm/_npx/9ed06546b0653f96/node_modules/rollup/dist/es/shared/parseAst.js:397:42)
+    at ModuleLoader.loadEntryModule (file:///home/nextjs/.npm/_npx/9ed06546b0653f96/node_modules/rollup/dist/es/shared/node-entry.js:21585:20)
+    at async Promise.all (index 0)
+vite v7.1.8 building for production...
+✓ 0 modules transformed.
+✗ Build failed in 15ms
+error during build:
+Could not resolve entry module "index.html".
+    at getRollupError (file:///home/nextjs/.npm/_npx/9ed06546b0653f96/node_modules/rollup/dist/es/shared/parseAst.js:401:41)
+    at error (file:///home/nextjs/.npm/_npx/9ed06546b0653f96/node_modules/rollup/dist/es/shared/parseAst.js:397:42)
+    at ModuleLoader.loadEntryModule (file:///home/nextjs/.npm/_npx/9ed06546b0653f96/node_modules/rollup/dist/es/shared/node-entry.js:21585:20)
+    at async Promise.all (index 0)
+vite v7.1.8 building for production...
+✓ 0 modules transformed.
+✗ Build failed in 14ms
+error during build:
+Could not resolve entry module "index.html".
+    at getRollupError (file:///home/nextjs/.npm/_npx/9ed06546b0653f96/node_modules/rollup/dist/es/shared/parseAst.js:401:41)
+    at error (file:///home/nextjs/.npm/_npx/9ed06546b0653f96/node_modules/rollup/dist/es/shared/parseAst.js:397:42)
+    at ModuleLoader.loadEntryModule (file:///home/nextjs/.npm/_npx/9ed06546b0653f96/node_modules/rollup/dist/es/shared/node-entry.js:21585:20)
+    at async Promise.all (index 0)
+vite v7.1.8 building for production...
+✓ 0 modules transformed.
+✗ Build failed in 18ms
+error during build:
+Could not resolve entry module "index.html".
+    at getRollupError (file:///home/nextjs/.npm/_npx/9ed06546b0653f96/node_modules/rollup/dist/es/shared/parseAst.js:401:41)
+    at error (file:///home/nextjs/.npm/_npx/9ed06546b0653f96/node_modules/rollup/dist/es/shared/parseAst.js:397:42)
+    at ModuleLoader.loadEntryModule (file:///home/nextjs/.npm/_npx/9ed06546b0653f96/node_modules/rollup/dist/es/shared/node-entry.js:21585:20)
+    at async Promise.all (index 0)
+vite v7.1.8 building for production...
+✓ 0 modules transformed.
+✗ Build failed in 17ms
+error during build:
+Could not resolve entry module "index.html".
+    at getRollupError (file:///home/nextjs/.npm/_npx/9ed06546b0653f96/node_modules/rollup/dist/es/shared/parseAst.js:401:41)
+    at error (file:///home/nextjs/.npm/_npx/9ed06546b0653f96/node_modules/rollup/dist/es/shared/parseAst.js:397:42)
+    at ModuleLoader.loadEntryModule (file:///home/nextjs/.npm/_npx/9ed06546b0653f96/node_modules/rollup/dist/es/shared/node-entry.js:21585:20)
+    at async Promise.all (index 0)
+vite v7.1.8 building for production...
+✓ 0 modules transformed.
+✗ Build failed in 16ms
+error during build:
+Could not resolve entry module "index.html".
+    at getRollupError (file:///home/nextjs/.npm/_npx/9ed06546b0653f96/node_modules/rollup/dist/es/shared/parseAst.js:401:41)
+    at error (file:///home/nextjs/.npm/_npx/9ed06546b0653f96/node_modules/rollup/dist/es/shared/parseAst.js:397:42)
+    at ModuleLoader.loadEntryModule (file:///home/nextjs/.npm/_npx/9ed06546b0653f96/node_modules/rollup/dist/es/shared/node-entry.js:21585:20)
+    at async Promise.all (index 0)
+vite v7.1.8 building for production...
+✓ 0 modules transformed.
+✗ Build failed in 20ms
+error during build:
+Could not resolve entry module "index.html".
+    at getRollupError (file:///home/nextjs/.npm/_npx/9ed06546b0653f96/node_modules/rollup/dist/es/shared/parseAst.js:401:41)
+    at error (file:///home/nextjs/.npm/_npx/9ed06546b0653f96/node_modules/rollup/dist/es/shared/parseAst.js:397:42)
+    at ModuleLoader.loadEntryModule (file:///home/nextjs/.npm/_npx/9ed06546b0653f96/node_modules/rollup/dist/es/shared/node-entry.js:21585:20)
+    at async Promise.all (index 0)
+vite v7.1.8 building for production...
+✓ 0 modules transformed.
+✗ Build failed in 18ms
+error during build:
+Could not resolve entry module "index.html".
+    at getRollupError (file:///home/nextjs/.npm/_npx/9ed06546b0653f96/node_modules/rollup/dist/es/shared/parseAst.js:401:41)
+    at error (file:///home/nextjs/.npm/_npx/9ed06546b0653f96/node_modules/rollup/dist/es/shared/parseAst.js:397:42)
+    at ModuleLoader.loadEntryModule (file:///home/nextjs/.npm/_npx/9ed06546b0653f96/node_modules/rollup/dist/es/shared/node-entry.js:21585:20)
+    at async Promise.all (index 0)
